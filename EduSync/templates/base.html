@@ -11,7 +11,8 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+
   <div class="container">
     <a class="navbar-brand fw-bold" href="/">EduSync</a>
     <div>
@@ -29,30 +30,37 @@
 {% block content %}{% endblock %}
 
 <!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
-  <script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById("themeToggle");
     const body = document.body;
 
-    // Load saved theme
-    if (localStorage.getItem("theme") === "dark") {
-        body.classList.add("dark-mode");
-        toggleBtn.innerText = "☀️ Light Mode";
-    }
+    if (!toggleBtn) return;
+
+    // Load theme
+    const savedTheme = localStorage.getItem("theme") || "light";
+    body.setAttribute("data-bs-theme", savedTheme);
+
+    toggleBtn.innerText =
+        savedTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
 
     toggleBtn.addEventListener("click", () => {
-        body.classList.toggle("dark-mode");
+        const currentTheme = body.getAttribute("data-bs-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
 
-        if (body.classList.contains("dark-mode")) {
-            localStorage.setItem("theme", "dark");
-            toggleBtn.innerText = "☀️ Light Mode";
-        } else {
-            localStorage.setItem("theme", "light");
-            toggleBtn.innerText = "🌙 Dark Mode";
-        }
+        body.setAttribute("data-bs-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+
+        toggleBtn.innerText =
+            newTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
     });
+});
 </script>
 
-</script>
+
+
+
 </body>
 </html>
