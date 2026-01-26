@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="bg-primary text-white text-center p-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold">EduSync</h1>
+        <p class="lead">Smart Academic Management Platform</p>
+        {% comment %} <a href="{% url 'signup' %}" class="btn btn-warning btn-lg mt-3">Register Institution</a> {% endcomment %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm p-4">
+                    <h5>Manage Teachers</h5>
+                    <p>Add, remove, and track teacher activities easily.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm p-4">
+                    <h5>Manage Students</h5>
+                    <p>Add, remove, track student performance and attendance.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm p-4">
+                    <h5>Generate Reports</h5>
+                    <p>Timetable, Attendance sheets, Academic Calendar & Marks reports.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Counters Section -->
+<section class="bg-light py-5 text-center">
+    <div class="container">
+        <h2 class="mb-4">EduSync in Numbers</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <h3 class="text-primary">150+</h3>
+                <p>Institutions onboarded</p>
+            </div>
+            <div class="col-md-4">
+                <h3 class="text-success">10,000+</h3>
+                <p>Students managed</p>
+            </div>
+            <div class="col-md-4">
+                <h3 class="text-warning">500+</h3>
+                <p>Teachers active</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="text-center py-5">
+    <div class="container">
+        <h3 class="mb-3">Get Started Today</h3>
+        <a href="{% url 'signup' %}" class="btn btn-primary btn-lg">Register Your Institution</a>
+    </div>
+</section>
+
+{% endblock %}
