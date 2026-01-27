@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,10 +39,12 @@
         </span>
 
 
-        <button id="themeToggle" class="btn btn-secondary btn-sm">🌙</button>
+                  <button id="themeToggle" class="btn btn-secondary btn-sm">🌙</button>
+
         <!-- Logout -->
         <form action="{% url 'logout' %}" method="post" class="m-0">
           {% csrf_token %}
+
           <button type="submit" class="btn btn-danger btn-sm">
             Logout
           </button>
@@ -56,6 +57,7 @@
         <a href="{% url 'login' %}" class="btn btn-success btn-sm">Institute Login</a>
         <a href="{% url 'signup' %}" class="btn btn-warning btn-sm">Get Started</a>
         <button id="themeToggle" class="btn btn-secondary btn-sm">🌙</button>
+
       {% endif %}
 
       <!-- Theme Toggle -->
