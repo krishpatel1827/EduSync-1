@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-4">
+      <div class="card shadow p-4" style="background-color: #ffffff; border-radius: 12px;">
+        <h3 class="text-center mb-2 text-dark fw-bold">Institution Admin Login</h3>
+        <p class="text-center mb-4 text-primary">Login to manage your institution</p>
+
+        <!-- Alerts -->
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-danger text-center py-2" style="font-size: 0.9rem;">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="text"
+                   name="username"
+                   class="form-control form-control-lg"
+                   placeholder="Enter admin username"
+                   style="border-radius: 8px;"
+                   required>
+          </div>
+
+          <div class="mb-3">
+            <input type="password"
+                   name="password"
+                   class="form-control form-control-lg"
+                   placeholder="Enter password"
+                   style="border-radius: 8px;"
+                   required>
+          </div>
+
+          <button type="submit"
+                  class="btn btn-primary btn-lg w-100 mt-3"
+                  style="background-color: #0d6efd; border-color: #0d6efd; border-radius: 8px;">
+            Login
+          </button>
+        </form>
+
+        {% comment %} <p class="text-center mt-3 text-secondary" style="font-size: 0.9rem;">
+          Forgot password? <a href="#" class="text-primary">Reset here</a>
+        </p> {% endcomment %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/alerts.js' %}"></script>
+{% if error %}
+  <script>
+    showErrorAlert("{{ error }}");
+  </script>
+{% endif %}
+{% if success %}
+  <script>
+    showSuccessAlert("{{ success }}");
+    setTimeout(function() {
+      window.location.href = "{% url redirect %}";
+    }, 2000);
+  </script>
+{% endif %}
+
+{% endblock %}
+
+
+{% comment %} {% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 85vh;">
+
+    <div class="card shadow border-2" style="width: 420px;">
+        <div class="card-body p-4 bg-white">
+
+            <h4 class="text-center fw-bold mb-3 text-dark">
+                Institution Admin Login
+            </h4>
+
+            <p class="text-center text-dark mb-4">
+                Login to manage your institution
+            </p>
+
+            <!-- ALERT -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger text-center py-2">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label text-dark fw-semibold">Username</label>
+                    <input type="text"
+                           name="username"
+                           class="form-control form-control-lg"
+                           placeholder="Enter admin name"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-dark fw-semibold">Password</label>
+                    <input type="password"
+                           name="password"
+                           class="form-control form-control-lg"
+                           placeholder="Enter password"
+                           required>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary btn-lg w-100 mt-3">
+                    Login
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %} {% endcomment %}

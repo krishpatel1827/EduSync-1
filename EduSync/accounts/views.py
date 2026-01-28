@@ -8,55 +8,7 @@ from institution.models import Institution
 @require_http_methods(["GET", "POST"])
 def landing_view(request):
     return render(request, 'landing.html')
-# from django.contrib.auth import authenticate, login
-# from django.contrib import messages
-# from django.shortcuts import render, redirect
-# from .models import SignupTable, UserProfile
 
-# def login_view(request):
-#     if request.method == "POST":
-#         institution_name = request.POST.get("institution_name")
-#         password = request.POST.get("password")
-
-#         try:
-#             signup = SignupTable.objects.get(
-#                 institution_name__iexact=institution_name.strip()
-#             )
-#         except SignupTable.DoesNotExist:
-#             return render(request, "login.html", {
-#                 "error": "❌ Institution does not exist."
-#             })
-
-#         profile = UserProfile.objects.filter(
-#             institution=signup.institution_name,
-#             role="institution_admin"
-#         ).first()
-
-#         if not profile:
-#             return render(request, "login.html", {
-#                 "error": "❌ Institution admin not found."
-#             })
-
-#         user = authenticate(
-#             request,
-#             username=profile.user.username,
-#             password=profile.user.password
-#         )
-
-#         if user is None:
-#             return render(request, "login.html", {
-#                 "error": "❌ Invalid password."
-#             })
-        
-
-#         login(request, user)
-#         messages.success(
-#             request,
-#             "✅ Login successfully! Redirecting to dashboard..."
-#         )
-#         return redirect("dashboard")
-
-#     return render(request, "login.html")
 
 @require_http_methods(["GET", "POST"])
 def login_view(request):

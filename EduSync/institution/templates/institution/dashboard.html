@@ -3,8 +3,8 @@
 {% block content %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <div class="container mt-4">
-    <h2 class="mb-4">Institution Dashboard</h2>
-    <p>Welcome, {{ institution.name }} </p>
+    {% comment %} <h2 class="mb-4">Institution Dashboard</h2> {% endcomment %}
+    <h1 class="text-center mb-4">Welcome, {{ institution.name }} </h1>
 
     <div class="row">
         <!-- Admin Panel Card -->
@@ -14,7 +14,9 @@
                     <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
                     <h5 class="card-title">Admin Panel</h5>
                     <p class="card-text">Manage institution settings and overview.</p>
-                    <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Admin Panel</a>
+                    <a href="{% url 'institution_admin_login' %}" class="btn btn-outline- dark btn-primary">
+                        Go to Admin Panel
+                    </a>
                 </div>
             </div>
         </div>
