@@ -1,6 +1,436 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+  body {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d1810 100%);
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* News Ticker */
+  .news-ticker {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border-bottom: 2px solid #ff6b4a;
+    padding: 12px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .news-ticker marquee {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Header Section */
+  .dashboard-header {
+    text-align: center;
+    padding: 40px 20px 30px;
+    animation: fadeInDown 0.6s ease-out;
+  }
+
+  .dashboard-title {
+    color: #ffffff;
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+
+  .dashboard-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 16px;
+  }
+
+  /* Card Styling */
+  .admin-card {
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    animation: slideUp 0.6s ease-out;
+    height: 100%;
+  }
+
+  .admin-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 107, 74, 0.3);
+  }
+
+  .card-header-custom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .card-header-custom h5 {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff6b4a 0%, #ff8566 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  /* Form Elements */
+  .form-control-custom {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    resize: vertical;
+  }
+
+  .form-control-custom:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #ff6b4a;
+    box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.1);
+    color: #ffffff;
+    outline: none;
+  }
+
+  .form-control-custom::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* Buttons */
+  .btn-primary-custom {
+    background: linear-gradient(135deg, #ff6b4a 0%, #ff8566 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 25px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 74, 0.3);
+  }
+
+  .btn-primary-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 74, 0.4);
+  }
+
+  .btn-outline-custom {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px 25px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-custom:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #ff6b4a;
+    color: #ff6b4a;
+  }
+
+  .btn-warning-custom {
+    background: linear-gradient(135deg, #ffa726 0%, #ffb74d 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 15px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-warning-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 167, 38, 0.4);
+  }
+
+  .btn-danger-custom {
+    background: linear-gradient(135deg, #ef5350 0%, #e57373 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 15px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-danger-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 83, 80, 0.4);
+  }
+
+  .btn-success-custom {
+    background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 25px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-success-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 187, 106, 0.4);
+  }
+
+  /* News Item */
+  .news-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .news-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 107, 74, 0.3);
+  }
+
+  .news-item span {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    flex: 1;
+    margin-right: 15px;
+  }
+
+  .news-item .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Quick Action Cards */
+  .quick-action-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .quick-action-card:hover {
+    background: rgba(255, 107, 74, 0.05);
+    border-color: #ff6b4a;
+    transform: translateY(-3px);
+  }
+
+  .quick-action-card h5 {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+
+  /* Animations */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.3;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .dashboard-title {
+      font-size: 28px;
+    }
+    
+    .admin-card {
+      padding: 20px;
+    }
+  }
+</style>
+
+{% if news_list %}
+<div class="news-ticker">
+    <marquee direction="left" scrollamount="6">
+        {% for n in news_list %}
+            🔔 {{ n.content }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        {% endfor %}
+    </marquee>
+</div>
+{% endif %}
+
+<div class="dashboard-header">
+    <h3 class="dashboard-title">Institution Admin Dashboard</h3>
+    <p class="dashboard-subtitle">Manage your institution's settings and data here</p>
+</div>
+
+<div class="container" style="max-width: 1200px; padding-bottom: 50px;">
+    <div class="row g-4">
+        <!-- ADD / EDIT NEWS -->
+        <div class="col-lg-5">
+            <div class="admin-card">
+                <div class="card-header-custom">
+                    <h5>{% if edit_news %}✏️ Edit News{% else %}📰 Add News{% endif %}</h5>
+                    <div class="card-icon">📢</div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if edit_news %}
+                    <input type="hidden" name="news_id" value="{{ edit_news.id }}">
+                    {% endif %}
+
+                    <textarea 
+                        name="news"
+                        class="form-control-custom mb-3"
+                        rows="5"
+                        placeholder="Enter news content here..."
+                        required>{{ edit_news.content|default_if_none:"" }}</textarea>
+
+                    <button class="btn-primary-custom w-100" type="submit">
+                        {% if edit_news %}✓ Update News{% else %}✓ Publish News{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- NEWS LIST -->
+        <div class="col-lg-7">
+            <div class="admin-card">
+                <div class="card-header-custom">
+                    <h5>📋 Published News</h5>
+                    <span style="color: rgba(255, 255, 255, 0.5); font-size: 14px;">
+                        {{ news_list|length }} item{{ news_list|length|pluralize }}
+                    </span>
+                </div>
+
+                <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                    {% if news_list %}
+                        {% for n in news_list %}
+                        <div class="news-item">
+                            <span>{{ n.content }}</span>
+                            <div class="action-buttons">
+                                <a href="?edit={{ n.id }}" class="btn-warning-custom">✏️ Edit</a>
+                                <a href="{% url 'delete_news' n.id %}" class="btn-danger-custom" 
+                                   onclick="return confirm('Are you sure you want to delete this news?')">
+                                    🗑️ Delete
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📰</div>
+                            <p>No news published yet. Add your first news item!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-6">
+            <div class="admin-card">
+                <div class="quick-action-card">
+                    <h5>👨‍🏫 Manage Teachers</h5>
+                    <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-bottom: 15px;">
+                        Add, edit, or remove teachers from your institution
+                    </p>
+                    <a href="#" class="btn-outline-custom">Go to Teachers</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="admin-card">
+                <div class="quick-action-card">
+                    <h5>👨‍🎓 Manage Students</h5>
+                    <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-bottom: 15px;">
+                        Add, edit, or remove students from your institution
+                    </p>
+                    <a href="#" class="btn-outline-custom">Go to Students</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  // Smooth scroll for news list
+  document.addEventListener('DOMContentLoaded', function() {
+    const newsContainer = document.querySelector('.news-item');
+    if (newsContainer) {
+      newsContainer.style.animation = 'slideUp 0.6s ease-out';
+    }
+  });
+
+  // Form submission animation
+  document.querySelector('form').addEventListener('submit', function() {
+    const button = this.querySelector('button[type="submit"]');
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+    button.disabled = true;
+  });
+</script>
+
+{% endblock %}
+
+{% comment %} {% extends "base.html" %}
+{% block content %}
+
 {% if news_list %}
 <div class="container-fluid bg-dark text-white py-2 mb-4">
     <marquee direction="left" scrollamount="6">
@@ -21,85 +451,56 @@
 
     <!-- ADD / EDIT NEWS -->
     <div class="col-md-5">
-      <div class="card shadow">
+        <div class="card shadow">
         <div class="card-body">
 
-          <h5>{% if edit_news %}Edit News{% else %}Add News{% endif %}</h5>
+            <h5>{% if edit_news %}Edit News{% else %}Add News{% endif %}</h5>
 
-          <form method="post">
-            {% csrf_token %}
+            <form method="post">
+                {% csrf_token %}
 
-            {% if edit_news %}
-              <input type="hidden" name="news_id" value="{{ edit_news.id }}">
-            {% endif %}
+                {% if edit_news %}
+                <input type="hidden" name="news_id" value="{{ edit_news.id }}">
+                {% endif %}
 
             <textarea name="news"
-                      class="form-control mb-2"
-                      rows="4"
-                      required>{{ edit_news.content|default_if_none:"" }}</textarea>
+                class="form-control mb-2"
+                rows="4"
+                required>{{ edit_news.content|default_if_none:"" }}</textarea>
 
             <button class="btn btn-success">
-              {% if edit_news %}Update{% else %}Publish{% endif %}
+            {% if edit_news %}Update{% else %}Publish{% endif %}
             </button>
-          </form>
+        </form>
 
         </div>
-      </div>
+    </div>
     </div>
 
     <!-- NEWS LIST -->
     <div class="col-md-7">
-      <div class="card shadow">
+        <div class="card shadow">
         <div class="card-body">
 
-          <h5>Published News</h5>
+            <h5>Published News</h5>
 
-          {% for n in news_list %}
-          <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
-            <span>{{ n.content }}</span>
+            {% for n in news_list %}
+                <div class="d-flex justify-content-between align-items-center border p-2 mb-2">
+                <span>{{ n.content }}</span>
 
-            <div>
-              <a href="?edit={{ n.id }}" class="btn btn-sm btn-warning">Edit</a>
-              <a href="{% url 'delete_news' n.id %}" class="btn btn-sm btn-danger">Delete</a>
-            </div>
-          </div>
-          {% endfor %}
+                <div>
+                <a href="?edit={{ n.id }}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'delete_news' n.id %}" class="btn btn-sm btn-danger">Delete</a>
+                </div>
+                </div>
+            {% endfor %}
 
         </div>
-      </div>
+        </div>
     </div>
 
-  </div>
+    </div>
 </div>
-        <!-- NEWS CARD -->
-        {% comment %} <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title">Institution News</h5>
-
-                    <button class="btn btn-outline-primary mb-3"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#newsForm">
-                        Add News
-                    </button>
-
-                    <div class="collapse" id="newsForm">
-                        <form method="post">
-                            {% csrf_token %}
-                            <textarea name="news"
-                                      class="form-control mb-2"
-                                      rows="3"
-                                      placeholder="Enter news here..."></textarea>
-                            <button type="submit" class="btn btn-success">
-                                Publish News
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div> {% endcomment %}
-
-        <!-- OTHER CARDS -->
         <div class="col-md-5">
             <div class="card shadow mb-4">
                 <div class="card-body">
@@ -120,94 +521,4 @@
 </div>
 
 {% endblock %}
-
-{% comment %} {% extends "base.html"%}
-{% load static %}
-{% block content %}
-
-<h3 class="text-center mt-3 mb-3">Institution Admin Dashboard</h3>
-<p class="text-center mb-4">Manage your institution's settings and data here.</p>
-
-
-<div class="container mt-5">
-    <div class="row g-4 h-100">
-        <div class="col-md-5">
-        {% if news_list %}
-    <div class="container-fluid bg-dark text-white py-2 mb-4">
-    <marquee direction="left" scrollamount="6">
-        {% for n in news_list %}
-        🔔 {{ n.content }} &nbsp;&nbsp;&nbsp;
-        {% endfor %}
-    </marquee>
-</div>
-    {% endif %}
-
-
-
-<div class="container mt-5">
-  <div class="row g-4"> {% endcomment %}
-
-    <!-- NEWS CARD -->
-    {% comment %} <div class="col-md-5">
-      <div class="card shadow">
-        <div class="card-body">
-
-          <h5 class="card-title">Institution News</h5>
-
-          <!-- Toggle Button -->
-          <button class="btn btn-outline-primary mb-3"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#newsForm">
-            Add News
-          </button> {% endcomment %}
-
-          <!-- COLLAPSIBLE FORM -->
-          {% comment %} <div class="collapse" id="newsForm">
-            <form method="post">
-              {% csrf_token %}
-              <textarea name="news"
-                        class="form-control mb-2"
-                        rows="3"
-                        placeholder="Enter news here..."></textarea>
-              <button type="submit" class="btn btn-success">
-                Publish News
-              </button>
-            </form>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-    <div class="card mt-4 mb-4" style="border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"> 
-        <div class="card-body">
-            <h5 class="card-title">Add Teacher</h5>
-            <p class="card-text">Manage teachers from here.</p>
-            <a href="#" class="btn btn-outline-primary">Add teacher</a>
-        </div>
-    </div>
-
-    <div class="card mt-4 mb-4" style="border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        <div class="card-body">
-            <h5 class="card-title">Institution Students</h5>
-            <p class="card-text">Manage students from here.</p>
-            <a href="#" class="btn btn-outline-primary">Add Students</a>
-        </div>
-    </div>
-
-    <div class="card mt-4 mb-4" style="border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        <div class="card-body">
-            <h5 class="card-title">ChatBot</h5>
-            <p class="card-text">Inform teachers & students from here.</p>
-            <a href="#" class="btn btn-outline-primary">Go to Chatbot</a>
-        </div>
-    </div>
-
-  </div>
-</div>
-{% endblock %}       {% endcomment %}
-
-
+ {% endcomment %}

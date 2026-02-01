@@ -1,6 +1,460 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<style>
+  body {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d1810 100%);
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* News Ticker */
+  .news-ticker {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border-bottom: 2px solid #ff6b4a;
+    padding: 12px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 0;
+  }
+
+  .news-ticker marquee {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    text-align: center;
+    padding: 60px 20px 50px;
+    animation: fadeInDown 0.8s ease-out;
+  }
+
+  .welcome-badge {
+    background: linear-gradient(135deg, #ff6b4a 0%, #ff8566 100%);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(255, 107, 74, 0.3);
+  }
+
+  .hero-title {
+    color: #ffffff;
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    letter-spacing: -1px;
+  }
+
+  .hero-title .institution-name {
+    color: #ff6b4a;
+  }
+
+  .hero-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 18px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Panel Cards Grid */
+  .panels-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  .panel-card {
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    animation: slideUp 0.6s ease-out;
+    animation-fill-mode: both;
+  }
+
+  .panel-card:nth-child(1) { animation-delay: 0.1s; }
+  .panel-card:nth-child(2) { animation-delay: 0.2s; }
+  .panel-card:nth-child(3) { animation-delay: 0.3s; }
+
+  .panel-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .panel-card:hover::before {
+    opacity: 1;
+  }
+
+  .panel-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    border-color: var(--accent-color);
+  }
+
+  .panel-card.admin-panel {
+    --accent-color: #ff6b4a;
+  }
+
+  .panel-card.student-panel {
+    --accent-color: #66bb6a;
+  }
+
+  .panel-card.teacher-panel {
+    --accent-color: #ffa726;
+  }
+
+  /* Icon Container */
+  .panel-icon-container {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 25px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.4s ease;
+  }
+
+  .panel-card:hover .panel-icon-container {
+    transform: scale(1.1) rotate(5deg);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .panel-icon {
+    font-size: 50px;
+    transition: all 0.3s ease;
+  }
+
+  .panel-card:hover .panel-icon {
+    transform: scale(1.1);
+  }
+
+  /* Content */
+  .panel-title {
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .panel-description {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 15px;
+    margin-bottom: 25px;
+    line-height: 1.6;
+  }
+
+  /* Stats Badge */
+  .panel-stats {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 16px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Button */
+  .btn-panel {
+    background: var(--accent-color);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 32px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-panel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    filter: brightness(1.1);
+  }
+
+  /* Features List */
+  .panel-features {
+    text-align: left;
+    margin: 25px 0;
+    padding: 0 20px;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+  }
+
+  .feature-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Animations */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 32px;
+    }
+    
+    .hero-subtitle {
+      font-size: 16px;
+    }
+    
+    .panel-card {
+      padding: 30px 25px;
+      margin-bottom: 20px;
+    }
+  }
+</style>
+
+{% if news_list %}
+<div class="news-ticker">
+    <marquee direction="left" scrollamount="6">
+        {% for n in news_list %}
+            🔔 {{ n.content }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        {% endfor %}
+    </marquee>
+</div>
+{% endif %}
+
+<div class="hero-section">
+    <div class="welcome-badge">🎓 Institution Portal</div>
+    <h1 class="hero-title">
+        Welcome, <span class="institution-name">{{ institution.name }}</span>
+    </h1>
+    <p class="hero-subtitle">
+        Access your institution's management panels and streamline your operations
+    </p>
+</div>
+
+<div class="panels-container">
+    <div class="row g-4">
+        <!-- Admin Panel -->
+        <div class="col-lg-4 col-md-6">
+            <div class="panel-card admin-panel">
+                <div class="panel-icon-container">
+                    <div class="panel-icon">⚙️</div>
+                </div>
+                <h5 class="panel-title">Admin Panel</h5>
+                <div class="panel-stats">🔐 Full Access Control</div>
+                <p class="panel-description">
+                    Manage institution settings, users, and system configurations
+                </p>
+                
+                <div class="panel-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Institution settings</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>News management</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>User administration</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'institution_admin_login' %}" class="btn-panel">
+                    Access Admin Panel →
+                </a>
+            </div>
+        </div>
+
+        <!-- Student Panel -->
+        <div class="col-lg-4 col-md-6">
+            <div class="panel-card student-panel">
+                <div class="panel-icon-container">
+                    <div class="panel-icon">🎓</div>
+                </div>
+                <h5 class="panel-title">Student Panel</h5>
+                <div class="panel-stats">👨‍🎓 Student Management</div>
+                <p class="panel-description">
+                    Manage student records, enrollment, and academic progress
+                </p>
+                
+                <div class="panel-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Student records</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Enrollment tracking</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Academic reports</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'student_dashboard' %}" class="btn-panel">
+                    Access Student Panel →
+                </a>
+            </div>
+        </div>
+
+        <!-- Teacher Panel -->
+        <div class="col-lg-4 col-md-6">
+            <div class="panel-card teacher-panel">
+                <div class="panel-icon-container">
+                    <div class="panel-icon">👨‍🏫</div>
+                </div>
+                <h5 class="panel-title">Teacher Panel</h5>
+                <div class="panel-stats">👩‍🏫 Faculty Management</div>
+                <p class="panel-description">
+                    Manage teacher profiles, assignments, and performance data
+                </p>
+                
+                <div class="panel-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Teacher profiles</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Class assignments</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✓</div>
+                        <span>Performance tracking</span>
+                    </div>
+                </div>
+
+                <a href="#" class="btn-panel">
+                    Access Teacher Panel →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  // Add parallax effect to panel cards
+  document.querySelectorAll('.panel-card').forEach(card => {
+    card.addEventListener('mousemove', function(e) {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      const rotateX = (y - centerY) / 20;
+      const rotateY = (centerX - x) / 20;
+      
+      card.style.transform = `translateY(-10px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+    
+    card.addEventListener('mouseleave', function() {
+      card.style.transform = 'translateY(0) scale(1) rotateX(0) rotateY(0)';
+    });
+  });
+
+  // Add click ripple effect
+  document.querySelectorAll('.btn-panel').forEach(button => {
+    button.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      ripple.style.position = 'absolute';
+      ripple.style.borderRadius = '50%';
+      ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+      ripple.style.width = ripple.style.height = '100px';
+      ripple.style.marginLeft = '-50px';
+      ripple.style.marginTop = '-50px';
+      ripple.style.left = e.clientX - this.getBoundingClientRect().left + 'px';
+      ripple.style.top = e.clientY - this.getBoundingClientRect().top + 'px';
+      ripple.style.animation = 'ripple 0.6s ease-out';
+      
+      this.appendChild(ripple);
+      
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+</script>
+
+<style>
+@keyframes ripple {
+  from {
+    opacity: 1;
+    transform: scale(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(4);
+  }
+}
+</style>
+
+{% endblock %}
+
+
+{% comment %} {% extends 'base.html' %}
+{% block content %}
+
 {% if news_list %}
 <div class="container-fluid bg-dark text-white py-2 mb-4">
     <marquee direction="left" scrollamount="6">
@@ -58,55 +512,4 @@
 </div>
 
 {% endblock %}
-
-{% comment %} {% extends 'base.html' %}
-
-{% block content %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<div class="container mt-4"> {% endcomment %}
-    {% comment %} <h2 class="mb-4">Institution Dashboard</h2> {% endcomment %}
-    {% comment %} <h1 class="text-center mb-4">Welcome, {{ institution.name }} </h1>
-
-    
-
-    <div class="row"> {% endcomment %}
-        <!-- Admin Panel Card -->
-        {% comment %} <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Admin Panel</h5>
-                    <p class="card-text">Manage institution settings and overview.</p>
-                    <a href="{% url 'institution_admin_login' %}" class="btn btn-outline- dark btn-primary">
-                        Go to Admin Panel
-                    </a>
-                </div>
-            </div>
-        </div> {% endcomment %}
-
-        <!-- Student Panel Card -->
-        {% comment %} <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-graduate fa-3x text-success mb-3"></i>
-                    <h5 class="card-title">Student Panel</h5>
-                    <p class="card-text">View and manage student information.</p>
-                    <a href="{% url 'student_dashboard' %}" class="btn btn-success">Go to Student Panel</a>
-                </div>
-            </div>
-        </div> {% endcomment %}
-
-        <!-- Teacher Panel Card -->
-        {% comment %} <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-chalkboard-teacher fa-3x text-warning mb-3"></i>
-                    <h5 class="card-title">Teacher Panel</h5>
-                    <p class="card-text">View and manage teacher information.</p>
-                    <a href="#" class="btn btn-warning">Go to Teacher Panel</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %} {% endcomment %}
+ {% endcomment %}
