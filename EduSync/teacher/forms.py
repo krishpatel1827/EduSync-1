@@ -27,6 +27,12 @@ class TeacherCreateForm(forms.Form):
         if institution is not None:
             self.fields["courses"].queryset = Course.objects.filter(institution=institution)
 
+    def clean_employee_id(self):
+        employee_id = self.cleaned_data.get('employee_id')
+        if Teacher.objects.filter(employee_id=employee_id).exists():
+            raise forms.ValidationError("A teacher with this Employee ID already exists.")
+        return employee_id
+
 
 class TeacherEditForm(forms.Form):
     name = forms.CharField(max_length=150, label="Teacher Name")
@@ -65,5 +71,7 @@ class TeacherEditForm(forms.Form):
             self.fields["courses"].initial = Course.objects.filter(teachers=teacher)
 
     def clean_employee_id(self):
-        employee_id = self.cleaned_data["employee_id"]
+        employee_id = self.cleaned_data.get('employee_id')
+        if Teacher.objects.filter(employee_id=employee_id).exclude(id=self.teacher.id).exists():
+            raise forms.ValidationError("A teacher with this Employee ID already exists.")
         return employee_id

@@ -37,10 +37,7 @@ def dashboard_view(request):
 
 from django.contrib import messages
 
-# 🔹 INSTITUTION ADMIN LOGIN
-<<<<<<< HEAD
-@never_cache
-=======
+
 
 
 
@@ -113,6 +110,7 @@ def _handle_portal_login(request, role):
 
         full_name = student.user.get_full_name()
         user_name = student.user.username
+        print(full_name, user_name,code)
         expected_names = {normalize(full_name), normalize(user_name)}
         if normalize(name) not in expected_names:
             messages.error(request, 'Student not found.')
@@ -131,7 +129,6 @@ def _handle_portal_login(request, role):
     return redirect('dashboard')
 
 
->>>>>>> 013a5d4cc5ea4e0fdf6efed08f300b3830c03115
 def institution_admin_login(request):
     if request.method == "POST":
         username = request.POST.get("username")

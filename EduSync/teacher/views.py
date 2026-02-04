@@ -7,6 +7,7 @@ from academics.models import Course
 from student.models import Student
 from institution.models import Institution
 from accounts.models import UserProfile
+from django.db import transaction, IntegrityError
 from .forms import TeacherCreateForm, TeacherEditForm
 
 
@@ -84,48 +85,53 @@ def teacher_create(request):
     if request.method == 'POST':
         form = TeacherCreateForm(request.POST, request.FILES, institution=institution)
         if form.is_valid():
-            from django.contrib.auth.models import User
-            full_name = form.cleaned_data['name'].strip()
-            parts = full_name.split(None, 1)
-            first_name = parts[0] if parts else full_name
-            last_name = parts[1] if len(parts) > 1 else ""
-            employee_id = form.cleaned_data['employee_id']
-            username = _unique_username(f"teacher_{employee_id}")
-            password = employee_id
+            try:
+                with transaction.atomic():
+                    from django.contrib.auth.models import User
+                    full_name = form.cleaned_data['name'].strip()
+                    parts = full_name.split(None, 1)
+                    first_name = parts[0] if parts else full_name
+                    last_name = parts[1] if len(parts) > 1 else ""
+                    employee_id = form.cleaned_data['employee_id']
+                    username = _unique_username(f"teacher_{employee_id}")
+                    password = employee_id
 
-            user = User.objects.create_user(username=username, password=password)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
+                    user = User.objects.create_user(username=username, password=password)
+                    user.first_name = first_name
+                    user.last_name = last_name
+                    user.save()
 
-            teacher = Teacher.objects.create(
-                user=user,
-                institution=institution,
-                employee_id=employee_id,
-                department=form.cleaned_data['department'],
-                qualification=form.cleaned_data['qualification'],
-                gender=form.cleaned_data['gender'],
-                date_of_birth=form.cleaned_data.get('date_of_birth'),
-                phone=form.cleaned_data.get('phone', ''),
-                address=form.cleaned_data.get('address', ''),
-                salary=form.cleaned_data.get('salary', 0.00),
-                contract_type=form.cleaned_data['contract_type'],
-                photo=form.cleaned_data.get('photo'),
-            )
+                    teacher = Teacher.objects.create(
+                        user=user,
+                        institution=institution,
+                        employee_id=employee_id,
+                        department=form.cleaned_data['department'],
+                        qualification=form.cleaned_data['qualification'],
+                        gender=form.cleaned_data['gender'],
+                        date_of_birth=form.cleaned_data.get('date_of_birth'),
+                        phone=form.cleaned_data.get('phone', ''),
+                        address=form.cleaned_data.get('address', ''),
+                        salary=form.cleaned_data.get('salary', 0.00),
+                        contract_type=form.cleaned_data['contract_type'],
+                        photo=form.cleaned_data.get('photo'),
+                    )
 
-            courses = form.cleaned_data.get('courses')
-            if courses:
-                for course in courses:
-                    course.teachers.add(teacher)
+                    courses = form.cleaned_data.get('courses')
+                    if courses:
+                        for course in courses:
+                            course.teachers.add(teacher)
 
-            UserProfile.objects.create(
-                user=teacher.user,
-                role='teacher',
-                institution=institution.name
-            )
-            messages.success(request, 'Teacher added successfully.')
-            messages.success(request, 'Teacher updated successfully.')
-            return redirect('teacher_list')
+                    UserProfile.objects.create(
+                        user=teacher.user,
+                        role='teacher',
+                        institution=institution.name
+                    )
+                messages.success(request, 'Teacher added successfully.')
+                return redirect('teacher_list')
+            except IntegrityError as e:
+                messages.error(request, f'Database error: One of the unique fields (like Employee ID) might already exist. ({e})')
+            except Exception as e:
+                messages.error(request, f'An unexpected error occurred: {e}')
     else:
         form = TeacherCreateForm(institution=institution)
 

@@ -21,6 +21,12 @@ class StudentCreateForm(forms.Form):
         if institution is not None:
             self.fields["course"].queryset = Course.objects.filter(institution=institution)
 
+    def clean_student_id(self):
+        student_id = self.cleaned_data.get('student_id')
+        if Student.objects.filter(student_id=student_id).exists():
+            raise forms.ValidationError("A student with this Roll No. already exists.")
+        return student_id
+
 
 class StudentEditForm(forms.Form):
     name = forms.CharField(max_length=150, label="Student Name")
@@ -50,3 +56,9 @@ class StudentEditForm(forms.Form):
             self.fields["parent_phone"].initial = student.parent_phone
             self.fields["blood_group"].initial = student.blood_group
             self.fields["course"].initial = student.course
+
+    def clean_student_id(self):
+        student_id = self.cleaned_data.get('student_id')
+        if Student.objects.filter(student_id=student_id).exclude(id=self.student.id).exists():
+            raise forms.ValidationError("A student with this Roll No. already exists.")
+        return student_id

@@ -336,9 +336,10 @@
 {% if messages %}
 <div class="container dashboard-messages" style="max-width:1200px; margin-top: 16px;">
   {% for message in messages %}
-    <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} mb-3" role="alert">
-      {{ message }}
-    </div>
+  <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} mb-3"
+    role="alert">
+    {{ message }}
+  </div>
   {% endfor %}
 </div>
 {% endif %}
@@ -382,78 +383,10 @@
           </div>
         </div>
 
-<<<<<<< HEAD
         <a href="{% url 'institution_admin_login' %}" class="btn-panel">
           Access Admin Panel →
         </a>
       </div>
-=======
-        <!-- Student Panel -->
-        <div class="col-lg-4 col-md-6">
-            <div class="panel-card student-panel">
-                <div class="panel-icon-container">
-                    <div class="panel-icon">🎓</div>
-                </div>
-                <h5 class="panel-title">Student Panel</h5>
-                <div class="panel-stats">👨‍🎓 Student Management</div>
-                <p class="panel-description">
-                    Manage student records, enrollment, and academic progress
-                </p>
-                
-                <div class="panel-features">
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Student records</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Enrollment tracking</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Academic reports</span>
-                    </div>
-                </div>
-
-                <a href="{% url 'student_portal_login' %}" class="btn-panel">
-                    Access Student Panel →
-                </a>
-            </div>
-        </div>
-
-        <!-- Teacher Panel -->
-        <div class="col-lg-4 col-md-6">
-            <div class="panel-card teacher-panel">
-                <div class="panel-icon-container">
-                    <div class="panel-icon">👨‍🏫</div>
-                </div>
-                <h5 class="panel-title">Teacher Panel</h5>
-                <div class="panel-stats">👩‍🏫 Faculty Management</div>
-                <p class="panel-description">
-                    Manage teacher profiles, assignments, and performance data
-                </p>
-                
-                <div class="panel-features">
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Teacher profiles</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Class assignments</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Performance tracking</span>
-                    </div>
-                </div>
-
-                <a href="{% url 'teacher_portal_login' %}" class="btn-panel">
-                    Access Teacher Panel →
-                </a>
-            </div>
-        </div>
->>>>>>> 013a5d4cc5ea4e0fdf6efed08f300b3830c03115
     </div>
 
     <!-- Student Panel -->
@@ -483,9 +416,9 @@
           </div>
         </div>
 
-        <a href="{% url 'student_dashboard' %}" class="btn-panel">
+        <button type="button" class="btn btn-panel w-100" data-bs-toggle="modal" data-bs-target="#studentLoginModal">
           Access Student Panel →
-        </a>
+        </button>
       </div>
     </div>
 
@@ -516,121 +449,43 @@
           </div>
         </div>
 
-        <a href="#" class="btn-panel">
+        <button type="button" class="btn btn-panel w-100" data-bs-toggle="modal" data-bs-target="#teacherLoginModal">
           Access Teacher Panel →
-        </a>
+        </button>
       </div>
     </div>
   </div>
-
-  <!-- 
-{% if courses %}
-<div id="course-overview" class="panels-container" style="padding-top: 0;">
-    <div class="row g-5">
-        <div class="col-12">
-            <div class="panel-card admin-panel" style="text-align:left;">
-                <h4 class="panel-title" style="margin-bottom:12px;">Courses</h4>
-                <p class="panel-description" style="margin-bottom:20px;">Click a course to view details and teachers.</p>
-
-                <div class="course-list">
-                    {% for course in courses %}
-                    <div class="course-item">
-                        <button class="btn btn-link p-0 course-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#course-{{ course.id }}" aria-expanded="false" aria-controls="course-{{ course.id }}" style="text-decoration:none; color: var(--clr-text); font-weight:600;">
-                            <span class="course-title">
-                                <span class="course-name">{{ course.name }}</span>
-                                <span class="course-meta">{{ course.code }} | Credits: {{ course.credits }}</span>
-                            </span>
-                            <span class="chevron">&#9660;</span>
-                        </button>
-
-                        <div id="course-{{ course.id }}" class="collapse mt-3">
-                            <div class="course-body">
-                                {% if course.description %}
-                                <p class="panel-description">{{ course.description }}</p>
-                                {% else %}
-                                <p class="panel-description">No description provided.</p>
-                                {% endif %}
-
-                                <div class="panel-stats" style="margin:16px 0 10px;">Teachers</div>
-                                {% if course.teachers.all %}
-                                <div class="row g-2">
-                                    {% for t in course.teachers.all %}
-                                    <div class="col-lg-4 col-md-6">
-                                        <div class="teacher-card">
-                                            {% if t.photo %}
-                                            <img class="teacher-photo" src="{{ t.photo.url }}" alt="{{ t.user.get_full_name|default:t.user.username }}">
-                                            {% endif %}
-                                            <div class="teacher-name">{{ t.user.get_full_name|default:t.user.username }}</div>
-                                            
-                                            <div class="panel-description">{{ t.qualification }}</div>
-                                            {% if t.phone %}
-                                            <div class="panel-description">{{ t.phone }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                    <div class="panel-description">No teachers assigned.</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
-{% endif %} -->
-
-<<<<<<< HEAD
-  <script>
-    // Add click ripple effect
-    document.querySelectorAll('.btn-panel').forEach(button => {
-      button.addEventListener('click', function (e) {
-        const ripple = document.createElement('span');
-        ripple.style.position = 'absolute';
-        ripple.style.borderRadius = '50%';
-        ripple.style.background = 'rgba(255, 255, 255, 0.5)';
-        ripple.style.width = ripple.style.height = '100px';
-        ripple.style.marginLeft = '-50px';
-        ripple.style.marginTop = '-50px';
-        ripple.style.left = e.clientX - this.getBoundingClientRect().left + 'px';
-        ripple.style.top = e.clientY - this.getBoundingClientRect().top + 'px';
-        ripple.style.animation = 'ripple 0.6s ease-out';
-
-        this.appendChild(ripple);
-
-        setTimeout(() => ripple.remove(), 600);
-      });
-=======
-
 
 <!-- Teacher Login Modal -->
 <div class="modal fade" id="teacherLoginModal" tabindex="-1" aria-labelledby="teacherLoginLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content" style="border-radius: 16px;">
-      <div class="modal-header">
-        <h5 class="modal-title" id="teacherLoginLabel">Teacher Login</h5>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: var(--shadow-lg);">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="teacherLoginLabel">👨‍🏫 Teacher Portal Login</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="post" action="">
+      <form method="post" action="{% url 'teacher_portal_login' %}">
         {% csrf_token %}
         <input type="hidden" name="role" value="teacher">
-        <div class="modal-body">
+        <div class="modal-body py-4">
           <div class="mb-3">
-            <label class="form-label">Teacher Name</label>
-            <input type="text" name="name" class="form-control" placeholder="Enter teacher name" required>
+            <label class="form-label fw-600">Full Name / Username</label>
+            <input type="text" name="name" class="form-control" style="border-radius: 10px; padding: 12px;"
+              placeholder="Enter your full name or username" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Employee ID</label>
-            <input type="text" name="code" class="form-control" placeholder="Enter employee ID" required>
+            <label class="form-label fw-600">Employee ID (Password)</label>
+            <input type="password" name="code" class="form-control" style="border-radius: 10px; padding: 12px;"
+              placeholder="Enter your employee ID" required>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Login</button>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+            style="border-radius: 10px;">Cancel</button>
+          <button type="submit" class="btn btn-primary"
+            style="background: var(--clr-gold); border: none; border-radius: 10px; padding: 10px 24px;">Login to
+            Portal</button>
         </div>
       </form>
     </div>
@@ -639,28 +494,33 @@
 
 <!-- Student Login Modal -->
 <div class="modal fade" id="studentLoginModal" tabindex="-1" aria-labelledby="studentLoginLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content" style="border-radius: 16px;">
-      <div class="modal-header">
-        <h5 class="modal-title" id="studentLoginLabel">Student Login</h5>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: var(--shadow-lg);">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="studentLoginLabel">🎓 Student Portal Login</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="post" action="">
+      <form method="post" action="{% url 'student_portal_login' %}">
         {% csrf_token %}
         <input type="hidden" name="role" value="student">
-        <div class="modal-body">
+        <div class="modal-body py-4">
           <div class="mb-3">
-            <label class="form-label">Student Name</label>
-            <input type="text" name="name" class="form-control" placeholder="Enter student name" required>
+            <label class="form-label fw-600">Full Name / Username</label>
+            <input type="text" name="name" class="form-control" style="border-radius: 10px; padding: 12px;"
+              placeholder="Enter your full name or username" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Roll No.</label>
-            <input type="text" name="code" class="form-control" placeholder="Enter roll number" required>
+            <label class="form-label fw-600">Roll Number / Student ID (Password)</label>
+            <input type="password" name="code" class="form-control" style="border-radius: 10px; padding: 12px;"
+              placeholder="Enter your roll number" required>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Login</button>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+            style="border-radius: 10px;">Cancel</button>
+          <button type="submit" class="btn btn-primary"
+            style="background: var(--clr-green); border: none; border-radius: 10px; padding: 10px 24px;">Login to
+            Portal</button>
         </div>
       </form>
     </div>
@@ -670,7 +530,7 @@
 <script>
   // Add click ripple effect
   document.querySelectorAll('.btn-panel').forEach(button => {
-    button.addEventListener('click', function(e) {
+    button.addEventListener('click', function (e) {
       const ripple = document.createElement('span');
       ripple.style.position = 'absolute';
       ripple.style.borderRadius = '50%';
@@ -681,83 +541,36 @@
       ripple.style.left = e.clientX - this.getBoundingClientRect().left + 'px';
       ripple.style.top = e.clientY - this.getBoundingClientRect().top + 'px';
       ripple.style.animation = 'ripple 0.6s ease-out';
-      
+
       this.appendChild(ripple);
-      
+
       setTimeout(() => ripple.remove(), 600);
->>>>>>> 013a5d4cc5ea4e0fdf6efed08f300b3830c03115
     });
-  </script>
+  });
+</script>
 
-  <style>
-    @keyframes ripple {
-      from {
-        opacity: 1;
-        transform: scale(0);
-      }
-
-      to {
-        opacity: 0;
-        transform: scale(4);
-      }
+<style>
+  @keyframes ripple {
+    from {
+      opacity: 1;
+      transform: scale(0);
     }
 
-
-    .course-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+    to {
+      opacity: 0;
+      transform: scale(4);
     }
+  }
 
-    .course-item {
-      background: var(--clr-surface-alt);
-      border-radius: 16px;
-      padding: 16px 18px;
-      border: 1px solid rgba(0, 0, 0, .05);
-    }
+  .fw-600 {
+    font-weight: 600;
+  }
 
-    .course-title {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+  /* Premium details for modals */
+  .modal-backdrop.show {
+    opacity: 0.7;
+    backdrop-filter: blur(4px);
+  }
+</style>
 
-    .course-name {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--clr-text);
-    }
-
-    .course-meta {
-      font-size: 13px;
-      color: var(--clr-text-muted);
-    }
-
-    .course-body {
-      padding-top: 6px;
-    }
-
-    .teacher-photo {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid var(--clr-accent);
-      margin-bottom: 6px;
-    }
-
-    .teacher-card {
-      background: var(--clr-surface);
-      border-radius: 14px;
-      padding: 14px 16px;
-      border: 1px solid rgba(0, 0, 0, .06);
-    }
-
-    .teacher-name {
-      font-weight: 600;
-      color: var(--clr-text);
-      margin-bottom: 2px;
-    }
-  </style>
-
-  {% endblock %}
+{% endblock %}
