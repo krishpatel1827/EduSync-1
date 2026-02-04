@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Teacher
 from academics.models import Course
-from timetable.models import TimeSlot, Attendance
+
 from student.models import Student
 from institution.models import Institution
 from accounts.models import UserProfile
@@ -50,35 +50,14 @@ def teacher_dashboard(request):
     except Teacher.DoesNotExist:
         return render(request, 'teacher/dashboard.html', {'error': 'Teacher profile not found'})
 
-@login_required(login_url='login')
-def teacher_timetable(request):
-    try:
-        teacher = Teacher.objects.get(user=request.user)
-        courses = Course.objects.filter(teacher=teacher)
-        timetable = TimeSlot.objects.filter(course__in=courses)
-        context = {'timetable': timetable, 'teacher': teacher}
-        return render(request, 'teacher/timetable.html', context)
-    except Teacher.DoesNotExist:
-        return render(request, 'teacher/timetable.html', {'error': 'Teacher profile not found'})
 
-@login_required(login_url='login')
-def teacher_attendance(request):
-    try:
-        teacher = Teacher.objects.get(user=request.user)
-        courses = Course.objects.filter(teacher=teacher)
-        attendance = Attendance.objects.filter(course__in=courses)
-        context = {'attendance': attendance, 'teacher': teacher, 'courses': courses}
-        return render(request, 'teacher/attendance.html', context)
-    except Teacher.DoesNotExist:
-        return render(request, 'teacher/attendance.html', {'error': 'Teacher profile not found'})
 
 @login_required(login_url='login')
 def teacher_students(request):
     try:
         teacher = Teacher.objects.get(user=request.user)
         courses = Course.objects.filter(teacher=teacher)
-        students = Student.objects.filter(user__id__in=
-            Attendance.objects.filter(course__in=courses).values_list('student__user__id', flat=True)).distinct()
+        students = Student.objects.filter(course__in=courses).distinct()
         context = {'students': students, 'teacher': teacher}
         return render(request, 'teacher/students.html', context)
     except Teacher.DoesNotExist:
@@ -124,6 +103,12 @@ def teacher_create(request):
                 employee_id=employee_id,
                 department=form.cleaned_data['department'],
                 qualification=form.cleaned_data['qualification'],
+                gender=form.cleaned_data['gender'],
+                date_of_birth=form.cleaned_data.get('date_of_birth'),
+                phone=form.cleaned_data.get('phone', ''),
+                address=form.cleaned_data.get('address', ''),
+                salary=form.cleaned_data.get('salary', 0.00),
+                contract_type=form.cleaned_data['contract_type'],
                 photo=form.cleaned_data.get('photo'),
             )
 
@@ -166,6 +151,13 @@ def teacher_edit(request, teacher_id):
             teacher.employee_id = form.cleaned_data['employee_id']
             teacher.department = form.cleaned_data['department']
             teacher.qualification = form.cleaned_data['qualification']
+            teacher.gender = form.cleaned_data['gender']
+            teacher.date_of_birth = form.cleaned_data.get('date_of_birth')
+            teacher.phone = form.cleaned_data.get('phone', '')
+            teacher.address = form.cleaned_data.get('address', '')
+            teacher.salary = form.cleaned_data.get('salary', 0.00)
+            teacher.contract_type = form.cleaned_data['contract_type']
+
             if form.cleaned_data.get('photo'):
                 teacher.photo = form.cleaned_data.get('photo')
             teacher.save()

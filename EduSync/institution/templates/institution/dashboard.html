@@ -2,368 +2,450 @@
 {% block content %}
 
 <style>
- body {
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
+  body {
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
 
-/* 🌈 PAGE BACKGROUND */
-.portal-wrapper {
-  background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
-  min-height: 100vh;
-}
+  /* 🌈 PAGE BACKGROUND */
+  .portal-wrapper {
+    background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    min-height: 100vh;
+  }
 
-/* 📰 NEWS TICKER */
-.news-ticker {
-  background: var(--clr-surface);
-  border-bottom: 2px solid var(--clr-accent);
-  padding: 12px 0;
-  box-shadow: var(--shadow-sm);
-}
+  /* 📰 NEWS TICKER */
+  .news-ticker {
+    background: var(--clr-surface);
+    border-bottom: 2px solid var(--clr-accent);
+    padding: 12px 0;
+    box-shadow: var(--shadow-sm);
+  }
 
-.news-ticker marquee {
-  color: var(--clr-text);
-  font-size: 14px;
-}
+  .news-ticker marquee {
+    color: var(--clr-text);
+    font-size: 14px;
+  }
 
-/* HERO */
-.hero-section {
-  text-align: center;
-  padding: 60px 20px 50px;
-  animation: fadeInDown .8s ease-out;
-}
+  /* HERO */
+  .hero-section {
+    text-align: center;
+    padding: 60px 20px 50px;
+    animation: fadeInDown .8s ease-out;
+  }
 
-.welcome-badge {
-  background: var(--clr-accent);
-  color: #fff;
-  padding: 10px 25px;
-  border-radius: 25px;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  display:inline-block;
-}
+  .welcome-badge {
+    background: var(--clr-accent);
+    color: #fff;
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: inline-block;
+  }
 
-.hero-title {
-  color: var(--clr-text);
-  font-size: 48px;
-  font-weight: 700;
-}
+  .hero-title {
+    color: var(--clr-text);
+    font-size: 48px;
+    font-weight: 700;
+  }
 
-.hero-title .institution-name {
-  color: var(--clr-accent);
-}
+  .hero-title .institution-name {
+    color: var(--clr-accent);
+  }
 
-.hero-subtitle {
-  color: var(--clr-text-muted);
-  font-size: 18px;
-  max-width: 600px;
-  margin: 0 auto;
-}
+  .hero-subtitle {
+    color: var(--clr-text-muted);
+    font-size: 18px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
 
-/* PANELS GRID */
-.panels-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px 80px;
-}
+  /* PANELS GRID */
+  .panels-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
 
-/* 🧊 PANEL CARD */
-.panel-card {
-  background: var(--clr-surface);
-  border-radius: 20px;
-  padding: 40px 30px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(0,0,0,.06);
-  backdrop-filter: blur(10px);
-  transition: .4s cubic-bezier(.4,0,.2,1);
-  text-align: center;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  animation: slideUp .6s ease-out both;
-}
+  /* 🧊 PANEL CARD */
+  .panel-card {
+    background: var(--clr-surface);
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0, 0, 0, .06);
+    backdrop-filter: blur(10px);
+    transition: .4s cubic-bezier(.4, 0, .2, 1);
+    text-align: center;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    animation: slideUp .6s ease-out both;
+  }
 
-[data-bs-theme="dark"] .panel-card {
-  border-color: rgba(255,255,255,.08);
-}
+  [data-bs-theme="dark"] .panel-card {
+    border-color: rgba(255, 255, 255, .08);
+  }
 
-.panel-card:hover {
-  transform: none;
-}
+  .panel-card:hover {
+    transform: none;
+  }
 
-/* Accent themes */
-.panel-card.admin-panel   { --accent-color: var(--clr-accent); }
-.panel-card.student-panel { --accent-color: var(--clr-green); }
-.panel-card.teacher-panel { --accent-color: var(--clr-gold); }
+  /* Accent themes */
+  .panel-card.admin-panel {
+    --accent-color: var(--clr-accent);
+  }
 
-/* Accent top glow */
-.panel-card::before {
-  content:'';
-  position:absolute;
-  top:0; left:0; right:0;
-  height:4px;
-  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
-  opacity:0;
-  transition:.3s;
-}
+  .panel-card.student-panel {
+    --accent-color: var(--clr-green);
+  }
 
-.panel-card:hover::before { opacity:1; }
+  .panel-card.teacher-panel {
+    --accent-color: var(--clr-gold);
+  }
 
-/* ICON CIRCLE */
-.panel-icon-container {
-  width:100px; height:100px;
-  margin:0 auto 25px;
-  background: var(--clr-surface-alt);
-  border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-}
+  /* Accent top glow */
+  .panel-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    opacity: 0;
+    transition: .3s;
+  }
 
-.panel-icon { font-size:50px; }
+  .panel-card:hover::before {
+    opacity: 1;
+  }
 
-/* TEXT */
-.panel-title { color: var(--clr-text); font-size:26px; font-weight:700; }
-.panel-description { color: var(--clr-text-muted); font-size:15px; }
+  /* ICON CIRCLE */
+  .panel-icon-container {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 25px;
+    background: var(--clr-surface-alt);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.panel-stats {
-  display:inline-block;
-  background: var(--clr-surface-alt);
-  padding:8px 16px;
-  border-radius:20px;
-  font-size:13px;
-  color: var(--clr-text-muted);
-}
+  .panel-icon {
+    font-size: 50px;
+  }
 
-/* FEATURES */
-.panel-features {
-  text-align:left;
-  margin:25px 0;
-  padding:0 20px;
-}
+  /* TEXT */
+  .panel-title {
+    color: var(--clr-text);
+    font-size: 26px;
+    font-weight: 700;
+  }
 
-.feature-item {
-  display:flex;
-  align-items:center;
-  margin-bottom:10px;
-  color: var(--clr-text-muted);
-  font-size:14px;
-}
+  .panel-description {
+    color: var(--clr-text-muted);
+    font-size: 15px;
+  }
 
-.feature-icon {
-  width:24px; height:24px;
-  background: var(--accent-color);
-  border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  margin-right:12px;
-  font-size:12px;
-  color:#fff;
-}
+  .panel-stats {
+    display: inline-block;
+    background: var(--clr-surface-alt);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--clr-text-muted);
+  }
 
-/* BUTTON */
-.btn-panel {
-  background: var(--accent-color);
-  border:none;
-  border-radius:12px;
-  padding:14px 32px;
-  color:#fff;
-  font-weight:600;
-  text-decoration:none;
-  display:inline-block;
-}
+  /* FEATURES */
+  .panel-features {
+    text-align: left;
+    margin: 25px 0;
+    padding: 0 20px;
+  }
 
-.btn-panel:hover { filter:brightness(1.1); }
+  .feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    color: var(--clr-text-muted);
+    font-size: 14px;
+  }
 
-/* ANIMATIONS */
-@keyframes fadeInDown { from{opacity:0;transform:translateY(-30px);} to{opacity:1;} }
-@keyframes slideUp { from{opacity:0;transform:translateY(40px);} to{opacity:1;} }
+  .feature-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 12px;
+    color: #fff;
+  }
 
-/* RESPONSIVE */
-@media (max-width:768px){
-  .hero-title{font-size:32px;}
-  .panel-card{padding:30px 25px;}
-}
+  /* BUTTON */
+  .btn-panel {
+    background: var(--accent-color);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 32px;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+  }
 
+  .btn-panel:hover {
+    filter: brightness(1.1);
+  }
 
-/* Chevron for collapsible courses */
-.course-toggle {
-  width: 100%;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.chevron {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--clr-surface-alt);
-  transition: transform .25s ease;
-  font-size: 12px;
-  color: var(--clr-text);
-}
-.course-toggle[aria-expanded="true"] .chevron {
-  transform: rotate(180deg);
-}
+  /* ANIMATIONS */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
 
+    to {
+      opacity: 1;
+    }
+  }
 
-.course-list { display:flex; flex-direction:column; gap:14px; }
-.course-item {
-  background: var(--clr-surface-alt);
-  border-radius: 16px;
-  padding: 16px 18px;
-  border: 1px solid rgba(0,0,0,.05);
-}
-.course-title { display:flex; flex-direction:column; gap:4px; }
-.course-name { font-size: 18px; font-weight: 700; color: var(--clr-text); }
-.course-meta { font-size: 13px; color: var(--clr-text-muted); }
-.course-body { padding-top: 6px; }
-.teacher-photo {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--clr-accent);
-  margin-bottom: 6px;
-}
-.teacher-card {
-  background: var(--clr-surface);
-  border-radius: 14px;
-  padding: 14px 16px;
-  border: 1px solid rgba(0,0,0,.06);
-}
-.teacher-name { font-weight: 600; color: var(--clr-text); margin-bottom: 2px; }
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
 
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width:768px) {
+    .hero-title {
+      font-size: 32px;
+    }
+
+    .panel-card {
+      padding: 30px 25px;
+    }
+  }
 
 
+  /* Chevron for collapsible courses */
+  .course-toggle {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--clr-surface-alt);
+    transition: transform .25s ease;
+    font-size: 12px;
+    color: var(--clr-text);
+  }
+
+  .course-toggle[aria-expanded="true"] .chevron {
+    transform: rotate(180deg);
+  }
+
+
+  .course-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .course-item {
+    background: var(--clr-surface-alt);
+    border-radius: 16px;
+    padding: 16px 18px;
+    border: 1px solid rgba(0, 0, 0, .05);
+  }
+
+  .course-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .course-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--clr-text);
+  }
+
+  .course-meta {
+    font-size: 13px;
+    color: var(--clr-text-muted);
+  }
+
+  .course-body {
+    padding-top: 6px;
+  }
+
+  .teacher-photo {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--clr-accent);
+    margin-bottom: 6px;
+  }
+
+  .teacher-card {
+    background: var(--clr-surface);
+    border-radius: 14px;
+    padding: 14px 16px;
+    border: 1px solid rgba(0, 0, 0, .06);
+  }
+
+  .teacher-name {
+    font-weight: 600;
+    color: var(--clr-text);
+    margin-bottom: 2px;
+  }
 </style>
 
 {% if news_list %}
 <div class="news-ticker">
-    <marquee direction="left" scrollamount="6">
-        {% for n in news_list %}
-            🔔 {{ n.content }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        {% endfor %}
-    </marquee>
+  <marquee direction="left" scrollamount="6">
+    {% for n in news_list %}
+    🔔 {{ n.content }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    {% endfor %}
+  </marquee>
 </div>
 {% endif %}
 
 <div class="hero-section">
-    <div class="welcome-badge">🎓 Institution Portal</div>
-    <h1 class="hero-title">
-        Welcome, <span class="institution-name">{{ institution.name }}</span>
-    </h1>
-    <p class="hero-subtitle">
-        Access your institution's management panels and streamline your operations
-    </p>
+  <div class="welcome-badge">🎓 Institution Portal</div>
+  <h1 class="hero-title">
+    Welcome, <span class="institution-name">{{ institution.name }}</span>
+  </h1>
+  <p class="hero-subtitle">
+    Access your institution's management panels and streamline your operations
+  </p>
 </div>
 
 <div class="panels-container">
-    <div class="row g-5">
-        <!-- Admin Panel -->
-        <div class="col-lg-4 col-md-6">
-            <div class="panel-card admin-panel">
-                <div class="panel-icon-container">
-                    <div class="panel-icon">⚙️</div>
-                </div>
-                <h5 class="panel-title">Admin Panel</h5>
-                <div class="panel-stats">🔐 Full Access Control</div>
-                <p class="panel-description">
-                    Manage institution settings, users, and system configurations
-                </p>
-                
-                <div class="panel-features">
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Institution settings</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>News management</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>User administration</span>
-                    </div>
-                </div>
+  <div class="row g-5">
+    <!-- Admin Panel -->
+    <div class="col-lg-4 col-md-6">
+      <div class="panel-card admin-panel">
+        <div class="panel-icon-container">
+          <div class="panel-icon">⚙️</div>
+        </div>
+        <h5 class="panel-title">Admin Panel</h5>
+        <div class="panel-stats">🔐 Full Access Control</div>
+        <p class="panel-description">
+          Manage institution settings, users, and system configurations
+        </p>
 
-                <a href="{% url 'institution_admin_login' %}" class="btn-panel">
-                    Access Admin Panel →
-                </a>
-            </div>
+        <div class="panel-features">
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Institution settings</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>News management</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>User administration</span>
+          </div>
         </div>
 
-        <!-- Student Panel -->
-        <div class="col-lg-4 col-md-6">
-            <div class="panel-card student-panel">
-                <div class="panel-icon-container">
-                    <div class="panel-icon">🎓</div>
-                </div>
-                <h5 class="panel-title">Student Panel</h5>
-                <div class="panel-stats">👨‍🎓 Student Management</div>
-                <p class="panel-description">
-                    Manage student records, enrollment, and academic progress
-                </p>
-                
-                <div class="panel-features">
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Student records</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Enrollment tracking</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Academic reports</span>
-                    </div>
-                </div>
-
-                <a href="{% url 'student_dashboard' %}" class="btn-panel">
-                    Access Student Panel →
-                </a>
-            </div>
-        </div>
-
-        <!-- Teacher Panel -->
-        <div class="col-lg-4 col-md-6">
-            <div class="panel-card teacher-panel">
-                <div class="panel-icon-container">
-                    <div class="panel-icon">👨‍🏫</div>
-                </div>
-                <h5 class="panel-title">Teacher Panel</h5>
-                <div class="panel-stats">👩‍🏫 Faculty Management</div>
-                <p class="panel-description">
-                    Manage teacher profiles, assignments, and performance data
-                </p>
-                
-                <div class="panel-features">
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Teacher profiles</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Class assignments</span>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✓</div>
-                        <span>Performance tracking</span>
-                    </div>
-                </div>
-
-                <a href="#" class="btn-panel">
-                    Access Teacher Panel →
-                </a>
-            </div>
-        </div>
+        <a href="{% url 'institution_admin_login' %}" class="btn-panel">
+          Access Admin Panel →
+        </a>
+      </div>
     </div>
 
+    <!-- Student Panel -->
+    <div class="col-lg-4 col-md-6">
+      <div class="panel-card student-panel">
+        <div class="panel-icon-container">
+          <div class="panel-icon">🎓</div>
+        </div>
+        <h5 class="panel-title">Student Panel</h5>
+        <div class="panel-stats">👨‍🎓 Student Management</div>
+        <p class="panel-description">
+          Manage student records, enrollment, and academic progress
+        </p>
 
+        <div class="panel-features">
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Student records</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Enrollment tracking</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Academic reports</span>
+          </div>
+        </div>
+
+        <a href="{% url 'student_dashboard' %}" class="btn-panel">
+          Access Student Panel →
+        </a>
+      </div>
+    </div>
+
+    <!-- Teacher Panel -->
+    <div class="col-lg-4 col-md-6">
+      <div class="panel-card teacher-panel">
+        <div class="panel-icon-container">
+          <div class="panel-icon">👨‍🏫</div>
+        </div>
+        <h5 class="panel-title">Teacher Panel</h5>
+        <div class="panel-stats">👩‍🏫 Faculty Management</div>
+        <p class="panel-description">
+          Manage teacher profiles, assignments, and performance data
+        </p>
+
+        <div class="panel-features">
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Teacher profiles</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Class assignments</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Performance tracking</span>
+          </div>
+        </div>
+
+        <a href="#" class="btn-panel">
+          Access Teacher Panel →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 
 {% if courses %}
 <div id="course-overview" class="panels-container" style="padding-top: 0;">
     <div class="row g-5">
@@ -422,74 +504,99 @@
         </div>
     </div>
 </div>
-{% endif %}
+{% endif %} -->
 
-<script>
-  // Add click ripple effect
-  document.querySelectorAll('.btn-panel').forEach(button => {
-    button.addEventListener('click', function(e) {
-      const ripple = document.createElement('span');
-      ripple.style.position = 'absolute';
-      ripple.style.borderRadius = '50%';
-      ripple.style.background = 'rgba(255, 255, 255, 0.5)';
-      ripple.style.width = ripple.style.height = '100px';
-      ripple.style.marginLeft = '-50px';
-      ripple.style.marginTop = '-50px';
-      ripple.style.left = e.clientX - this.getBoundingClientRect().left + 'px';
-      ripple.style.top = e.clientY - this.getBoundingClientRect().top + 'px';
-      ripple.style.animation = 'ripple 0.6s ease-out';
-      
-      this.appendChild(ripple);
-      
-      setTimeout(() => ripple.remove(), 600);
+  <script>
+    // Add click ripple effect
+    document.querySelectorAll('.btn-panel').forEach(button => {
+      button.addEventListener('click', function (e) {
+        const ripple = document.createElement('span');
+        ripple.style.position = 'absolute';
+        ripple.style.borderRadius = '50%';
+        ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+        ripple.style.width = ripple.style.height = '100px';
+        ripple.style.marginLeft = '-50px';
+        ripple.style.marginTop = '-50px';
+        ripple.style.left = e.clientX - this.getBoundingClientRect().left + 'px';
+        ripple.style.top = e.clientY - this.getBoundingClientRect().top + 'px';
+        ripple.style.animation = 'ripple 0.6s ease-out';
+
+        this.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+      });
     });
-  });
-</script>
+  </script>
 
-<style>
-@keyframes ripple {
-  from {
-    opacity: 1;
-    transform: scale(0);
-  }
-  to {
-    opacity: 0;
-    transform: scale(4);
-  }
-}
+  <style>
+    @keyframes ripple {
+      from {
+        opacity: 1;
+        transform: scale(0);
+      }
 
-
-.course-list { display:flex; flex-direction:column; gap:14px; }
-.course-item {
-  background: var(--clr-surface-alt);
-  border-radius: 16px;
-  padding: 16px 18px;
-  border: 1px solid rgba(0,0,0,.05);
-}
-.course-title { display:flex; flex-direction:column; gap:4px; }
-.course-name { font-size: 18px; font-weight: 700; color: var(--clr-text); }
-.course-meta { font-size: 13px; color: var(--clr-text-muted); }
-.course-body { padding-top: 6px; }
-.teacher-photo {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--clr-accent);
-  margin-bottom: 6px;
-}
-.teacher-card {
-  background: var(--clr-surface);
-  border-radius: 14px;
-  padding: 14px 16px;
-  border: 1px solid rgba(0,0,0,.06);
-}
-.teacher-name { font-weight: 600; color: var(--clr-text); margin-bottom: 2px; }
+      to {
+        opacity: 0;
+        transform: scale(4);
+      }
+    }
 
 
+    .course-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
-</style>
+    .course-item {
+      background: var(--clr-surface-alt);
+      border-radius: 16px;
+      padding: 16px 18px;
+      border: 1px solid rgba(0, 0, 0, .05);
+    }
 
-{% endblock %}
+    .course-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
+    .course-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--clr-text);
+    }
 
+    .course-meta {
+      font-size: 13px;
+      color: var(--clr-text-muted);
+    }
+
+    .course-body {
+      padding-top: 6px;
+    }
+
+    .teacher-photo {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--clr-accent);
+      margin-bottom: 6px;
+    }
+
+    .teacher-card {
+      background: var(--clr-surface);
+      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1px solid rgba(0, 0, 0, .06);
+    }
+
+    .teacher-name {
+      font-weight: 600;
+      color: var(--clr-text);
+      margin-bottom: 2px;
+    }
+  </style>
+
+  {% endblock %}

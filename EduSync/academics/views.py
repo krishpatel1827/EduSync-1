@@ -36,6 +36,8 @@ def course_detail(request, course_id):
     return render(request, 'academics/course_detail.html', context)
 
 
+from django.db import IntegrityError
+
 @login_required(login_url='login')
 def course_create(request):
     institution = _get_user_institution(request.user)
@@ -48,11 +50,14 @@ def course_create(request):
     if request.method == 'POST':
         form = CourseForm(request.POST)
         if form.is_valid():
-            course = form.save(commit=False)
-            course.institution = institution
-            course.save()
-            form.save_m2m()
-            return redirect('course_list')
+            try:
+                course = form.save(commit=False)
+                course.institution = institution
+                course.save()
+                form.save_m2m()
+                return redirect('course_list')
+            except IntegrityError:
+                form.add_error('code', 'A course with this code already exists for your institution.')
     else:
         form = CourseForm()
 

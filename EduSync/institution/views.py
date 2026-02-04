@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 
 from .models import Institution, News
 from academics.models import Course
@@ -8,6 +9,7 @@ from teacher.models import Teacher
 
 
 # 🔹 INSTITUTION DASHBOARD (WELCOME PAGE)
+@never_cache
 @login_required(login_url='login')
 def dashboard_view(request):
     try:
@@ -31,7 +33,10 @@ def dashboard_view(request):
     return render(request, 'institution/dashboard.html', context)
 
 
+from django.contrib import messages
+
 # 🔹 INSTITUTION ADMIN LOGIN
+@never_cache
 def institution_admin_login(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -40,26 +45,14 @@ def institution_admin_login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is None:
-            context = {
-                'error': "❌ Username or password is wrong",
-                'redirect': 'dashboard'
-            }
-            return render(request, 'institution/admin_login.html', context)
+            return render(request, 'institution/admin_login.html', {'error': "❌ Username or password is wrong"})
 
-        if user.userprofile.role != 'institution_admin':
-            context = {
-                'error': "❌ You are not an institution admin",
-                'redirect': 'dashboard'
-            }
-            return render(request, 'institution/admin_login.html', context)
+        if not hasattr(user, 'userprofile') or user.userprofile.role != 'institution_admin':
+            return render(request, 'institution/admin_login.html', {'error': "❌ You are not an institution admin"})
 
         login(request, user)
-        context = {
-            'success': "✅ Login successful, moving to admin dashboard",
-            'redirect': 'institution_admin_dashboard',
-            'force_public_nav': True
-        }
-        return render(request, 'institution/admin_login.html', context)
+        messages.success(request, "✅ Login successful, welcome to the admin dashboard!")
+        return redirect('institution_admin_dashboard')
 
     return render(
         request,
@@ -68,6 +61,7 @@ def institution_admin_login(request):
 
 
 # 🔹 INSTITUTION ADMIN DASHBOARD (ADD + SHOW NEWS)
+@never_cache
 @login_required(login_url='institution_admin_login')
 def institution_admin_dashboard(request):
     edit_news = None

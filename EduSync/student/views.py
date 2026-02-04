@@ -97,6 +97,12 @@ def student_create(request):
                 institution=institution,
                 student_id=student_id,
                 academic_year=form.cleaned_data.get('academic_year', ''),
+                gender=form.cleaned_data['gender'],
+                date_of_birth=form.cleaned_data.get('date_of_birth'),
+                address=form.cleaned_data.get('address', ''),
+                parent_name=form.cleaned_data.get('parent_name', ''),
+                parent_phone=form.cleaned_data.get('parent_phone', ''),
+                blood_group=form.cleaned_data.get('blood_group', ''),
                 course=form.cleaned_data.get('course'),
             )
 
@@ -132,6 +138,12 @@ def student_edit(request, student_id):
 
             student.student_id = form.cleaned_data['student_id']
             student.academic_year = form.cleaned_data.get('academic_year', '')
+            student.gender = form.cleaned_data['gender']
+            student.date_of_birth = form.cleaned_data.get('date_of_birth')
+            student.address = form.cleaned_data.get('address', '')
+            student.parent_name = form.cleaned_data.get('parent_name', '')
+            student.parent_phone = form.cleaned_data.get('parent_phone', '')
+            student.blood_group = form.cleaned_data.get('blood_group', '')
             student.course = form.cleaned_data.get('course')
             student.save()
 
