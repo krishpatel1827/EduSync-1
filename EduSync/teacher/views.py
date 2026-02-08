@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 from .models import Teacher
 from academics.models import Course
 
@@ -78,6 +79,7 @@ def teacher_list(request):
 
 
 @login_required(login_url='login')
+@never_cache
 def teacher_create(request):
     institution, error = _get_institution_admin(request)
     if error:
@@ -140,6 +142,7 @@ def teacher_create(request):
 
 
 @login_required(login_url='login')
+@never_cache
 def teacher_edit(request, teacher_id):
     institution, error = _get_institution_admin(request)
     if error:

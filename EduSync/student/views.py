@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 from .models import Student
 from academics.models import Grade
 from institution.models import Institution
@@ -73,6 +74,7 @@ def student_list(request):
 
 
 @login_required(login_url='login')
+@never_cache
 def student_create(request):
     institution, error = _get_institution_admin(request)
     if error:
@@ -129,6 +131,7 @@ def student_create(request):
 
 
 @login_required(login_url='login')
+@never_cache
 def student_edit(request, student_id):
     institution, error = _get_institution_admin(request)
     if error:

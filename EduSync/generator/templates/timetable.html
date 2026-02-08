@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<style>
+    /* Reset & Base */
+    body {
+        background-color: white;
+    }
+
+    .timetable-body {
+        font-family: 'Arial Narrow', Arial, sans-serif;
+        background-color: white;
+        padding: 5px;
+        color: black;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    /* Controls (Hide in print) */
+    .controls {
+        margin-bottom: 10px;
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        background: #f8f9fa;
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .btn {
+        padding: 5px 15px;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .btn-dark {
+        background-color: #343a40;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+    }
+
+    @media print {
+        .controls {
+            display: none;
+        }
+
+        .timetable-body {
+            padding: 0;
+            overflow: visible;
+        }
+
+        @page {
+            size: landscape;
+            margin: 0.5cm;
+        }
+    }
+
+    /* Header */
+    .header-section {
+        text-align: center;
+        border: 2px solid black;
+        border-bottom: none;
+        padding: 5px;
+    }
+
+    .header-section h1 {
+        font-size: 20px;
+        font-weight: 900;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .header-section h2 {
+        font-size: 16px;
+        font-weight: 800;
+        margin: 5px 0;
+        text-transform: uppercase;
+        background-color: white;
+    }
+
+    .header-section h3 {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 2px 0;
+        text-transform: uppercase;
+        text-decoration: underline;
+    }
+
+    /* Main Table */
+    .tt-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 2px solid black;
+        font-size: 11px;
+        text-align: center;
+        table-layout: fixed;
+        /* Enforce strict widths */
+    }
+
+    .tt-table th,
+    .tt-table td {
+        border: 1px solid black;
+        padding: 4px 2px;
+        vertical-align: middle;
+        word-wrap: break-word;
+    }
+
+    /* Column Widths */
+    .col-day {
+        width: 3%;
+    }
+
+    .col-lec {
+        width: 3%;
+    }
+
+    .col-time {
+        width: 8%;
+    }
+
+    /* Division columns auto-calculated but we aim for compactness */
+
+    /* Header Styling */
+    .header-row-1 th {
+        background-color: #ffffff;
+        /* Division Title Row */
+    }
+
+    .header-row-2 th {
+        background-color: #ffdcb2;
+        /* D1, D2 color (Peach) */
+    }
+
+    .header-row-3 th {
+        background-color: #e6ffff;
+        /* Sub/Fac/Room color (Light Cyan) */
+        font-size: 9px;
+    }
+
+    /* Vertical Text */
+    .vertical-text-cell {
+        font-weight: bold;
+        vertical-align: middle;
+        text-align: center;
+        width: 30px;
+        letter-spacing: 10px;
+        /* Force width */
+        padding: 0 !important;
+    }
+
+    .vertical-text-wrapper {
+        writing-mode: vertical-rl;
+        /* Standard vertical text Top-to-Bottom, Right-to-Left lines */
+        transform: rotate(180deg);
+        /* Flip to read Bottom-to-Top */
+        white-space: nowrap;
+        display: inline-block;
+        max-height: 100%;
+    }
+
+    /* Data Colors */
+    .row-normal td {
+        background-color: #ffffff;
+    }
+
+    /* Specific Logic for Time/Room Column background */
+    .cell-time {
+        background-color: #ccffcc;
+        /* Light Green */
+        font-weight: bold;
+        font-size: 10px;
+    }
+
+    .cell-content {
+        font-size: 10px;
+    }
+
+    .text-subject {
+        font-weight: bold;
+        color: black;
+    }
+
+    .text-faculty {
+        font-weight: normal;
+        color: #333;
+        font-style: normal;
+    }
+
+    .text-room {
+        font-weight: bold;
+        font-size: 9px;
+    }
+
+    /* Break Row */
+    .break-row td {
+        background-color: white;
+        font-weight: bold;
+        text-align: center;
+        padding: 5px;
+        border-top: 2px solid black;
+        border-bottom: 2px solid black;
+    }
+
+    /* Footer */
+    .footer-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 2px solid black;
+        border-top: none;
+        font-size: 11px;
+    }
+
+    .footer-heading {
+        background-color: #dbadbd;
+        /* Dusty Pink */
+        font-weight: bold;
+        text-align: center;
+        border: 1px solid black;
+        padding: 5px;
+    }
+
+    .footer-sub-heading {
+        background-color: #e6e6e6;
+        /* Grey */
+        font-weight: bold;
+        text-align: center;
+        border: 1px solid black;
+        padding: 3px;
+    }
+
+    .footer-content {
+        border: 1px solid black;
+        vertical-align: top;
+        padding: 0;
+    }
+
+    .signature-section {
+        background-color: #ffecd9;
+        /* Light Peach */
+        border: 1px solid black;
+        text-align: center;
+        padding: 20px;
+        font-weight: bold;
+        width: 50%;
+    }
+
+    .prepared-by {
+        background-color: #eaf1dd;
+        /* Light Greenish */
+    }
+
+    ul.legend {
+        list-style: none;
+        padding: 5px 10px;
+        margin: 0;
+        text-align: center;
+    }
+
+    ul.legend li {
+        margin-bottom: 2px;
+    }
+</style>
+
+<div class="timetable-body">
+    <!-- Controls -->
+    <div class="controls">
+        <a href="{% url 'dashboard' %}" class="btn btn-dark">&larr; Dashboard</a>
+        <a href="{% url 'add_entry' %}" class="btn btn-primary">+ Add Entry</a>
+        <a href="{% url 'setup' %}" class="btn btn-secondary">Configure</a>
+        {% if current_timetable %}
+        <a href="{% url 'export_excel' current_timetable.id %}" class="btn btn-success">Excel</a>
+        <a href="{% url 'export_pdf' current_timetable.id %}" class="btn btn-danger">PDF</a>
+        {% endif %}
+    </div>
+
+    <!-- Title Header -->
+    <div class="header-section">
+        <h1>L.J. INSTITUTE OF ENGINEERING AND TECHNOLOGY, L.J. UNIVERSITY</h1>
+        <h2>SY CE/IT- 4 DEPARTMENT</h2>
+        <h3>{{ current_timetable.name|default:"SEM-III TIME TABLE w.e.f 15th September 2025" }}</h3>
+    </div>
+
+    <!-- Timetable Grid -->
+    <table class="tt-table">
+        <thead>
+            <!-- Row 1: Main Headers -->
+            <tr class="header-row-1">
+                <th rowspan="3" class="col-day">DAY</th>
+                <th rowspan="3" class="col-lec">LECTURE NO</th>
+                <th rowspan="3" class="col-time">
+                    <div>TIME/</div>
+                    <div>ROOM NO.</div>
+                </th>
+                <!-- Division Header Spanning All Divisions -->
+                <th colspan="{{ divisions|length|multiply:3 }}" style="background-color: #ffe0cc; font-size: 14px;">
+                    DIVISION</th>
+                <th rowspan="3" class="col-day">DAY</th>
+            </tr>
+            <!-- Row 2: Division Names -->
+            <tr class="header-row-2">
+                {% for div in divisions %}
+                <th colspan="3">{{ div.name }}</th>
+                {% endfor %}
+            </tr>
+            <!-- Row 3: Sub/Fac/Room -->
+            <tr class="header-row-3">
+                {% for div in divisions %}
+                <th>Subject</th>
+                <th>Faculty</th>
+                <th>Room No</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for day in timetable_data %}
+            {% with day.slots as slots %}
+            {% for slot_data in slots %}
+            {% if slot_data.slot.is_break %}
+            <tr class="break-row">
+                <!-- Day Left -->
+                {% if forloop.first %}
+                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: white;">
+                    <div class="vertical-text-wrapper">{{ day.day_code }}</div>
+                </td>
+                {% endif %}
+
+                <!-- Break Content -->
+                <td colspan="{{ divisions|length|multiply:3|add:2 }}">
+                    BREAK ({{ slot_data.slot.start_time|date:"g:i am" }} to {{ slot_data.slot.end_time|date:"g:i am" }})
+                </td>
+
+                <!-- Day Right -->
+                {% if forloop.first %}
+                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: white;">
+                    <div class="vertical-text-wrapper">{{ day.day_code }}</div>
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr class="row-normal">
+                <!-- Day Column (First slot only) -->
+                {% if forloop.first %}
+                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: white;">
+                    <div class="vertical-text-wrapper">{{ day.day_code }}</div>
+                </td>
+                {% endif %}
+
+                <!-- Lecture No -->
+                <td style="background-color: #e6f7ff; font-weight: bold;">{{ slot_data.slot.lecture_number }}</td>
+
+                <!-- Time -->
+                <td class="cell-time">
+                    {{ slot_data.slot.start_time|date:"g:ia" }} to <br>
+                    {{ slot_data.slot.end_time|date:"g:ia" }}
+                </td>
+
+                <!-- Division Data -->
+                {% for div in divisions %}
+                {% with slot_data.entries|get_item:div.id as entry %}
+                {% if entry %}
+                <td class="cell-content text-subject" style="background-color: #e6f7ff;">{{ entry.subject.code }}</td>
+                <td class="cell-content text-faculty" style="background-color: #e6f7ff;">{{ entry.faculty.initials }}
+                </td>
+                <td class="cell-content text-room" style="background-color: #e6f7ff;">{{ entry.room.number }}</td>
+                {% else %}
+                <!-- Empty Cells -->
+                <td style="background-color: #e6f7ff;">-</td>
+                <td style="background-color: #e6f7ff;">-</td>
+                <td style="background-color: #e6f7ff;">-</td>
+                {% endif %}
+                {% endwith %}
+                {% endfor %}
+
+                <!-- Right Day Column -->
+                {% if forloop.first %}
+                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: white;">
+                    <div class="vertical-text-wrapper">{{ day.day_code }}</div>
+                </td>
+                {% endif %}
+            </tr>
+            {% endif %}
+            {% endfor %}
+            {% endwith %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Footer Legend -->
+    <table class="footer-table">
+        <tr>
+            <td colspan="4" class="footer-heading" style="background-color: #dbadbd;">SEMESTER III</td>
+        </tr>
+        <tr>
+            <!-- Legends split into 2 massive columns for simplicity, or 4 to match image if possible -->
+            <td class="footer-sub-heading" style="width: 25%;">SUBJECT NAME</td>
+            <td class="footer-sub-heading" style="width: 25%;">FACULTY NAME</td>
+            <td class="footer-sub-heading" style="width: 25%;">SUBJECT NAME</td>
+            <td class="footer-sub-heading" style="width: 25%;">FACULTY NAME</td>
+        </tr>
+        <tr>
+            <!-- We will list half subjects in col 1, half in col 3 etc if we can, or just duplicate for now -->
+            <td class="footer-content">
+                <ul class="legend">
+                    {% for subject in subjects %}
+                    <li><strong>{{ subject.name }}</strong> ({{ subject.code }})</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td class="footer-content">
+                <ul class="legend">
+                    {% for faculty in faculties %}
+                    <li>Prof. {{ faculty.name }} ({{ faculty.initials }})</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td class="footer-content">
+                <ul class="legend">
+                    <!-- Placeholder or Continuation -->
+                    <li>Introduction to Prob... (PS)</li>
+                    <li>Digital Electronics (DE)</li>
+                </ul>
+            </td>
+            <td class="footer-content">
+                <ul class="legend">
+                    <!-- Placeholder or Continuation -->
+                    <li>Prof. Priyanka Sinha (PCS)</li>
+                    <li>Prof. Mansi Hedav (MPH)</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Signatures -->
+    <table class="footer-table" style="border-top: none;">
+        <tr>
+            <td class="signature-section prepared-by">
+                Prepared By:<br>
+                Prof. Darshan Bhatt (DVB)<br>
+                Prof. Priyanka Sinha (PCS)
+            </td>
+            <td class="signature-section">
+                Prof. Sneha Shah<br>
+                HOD- SY4 (CST/CSIT/CSE_CS/MA&CP)
+            </td>
+        </tr>
+    </table>
+
+</div>
+{% endblock %}

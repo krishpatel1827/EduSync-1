@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 from django.db import IntegrityError
 from .models import Course, Grade
 from .forms import CourseForm
+from django.views.decorators.cache import never_cache
 from institution.models import Institution
 
 
@@ -38,6 +39,7 @@ def course_detail(request, course_id):
 
 
 @login_required(login_url='login')
+@never_cache
 def course_create(request):
     institution = _get_user_institution(request.user)
     if not institution:
@@ -67,6 +69,7 @@ def course_create(request):
 
 
 @login_required(login_url='login')
+@never_cache
 def course_edit(request, course_id):
     institution = _get_user_institution(request.user)
     if institution:
