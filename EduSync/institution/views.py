@@ -38,17 +38,38 @@ def dashboard_view(request):
 @never_cache
 @login_required(login_url='login')
 def teacher_portal_login(request):
+    # Check if we are already a teacher
+    if hasattr(request.user, 'userprofile') and request.user.userprofile.role == 'teacher':
+        return redirect('generator') 
+        
     return _handle_portal_login(request, role='teacher')
 
 
 @never_cache
 @login_required(login_url='login')
 def student_portal_login(request):
+    # Check if we are already a student
+    if hasattr(request.user, 'userprofile') and request.user.userprofile.role == 'student':
+        return redirect('student_dashboard')
+
     return _handle_portal_login(request, role='student')
 
 
-
 def _handle_portal_login(request, role):
+    # Get the current institution from the logged-in admin
+    try:
+        # If currently an admin
+        if request.user.userprofile.role == 'institution_admin':
+            institution = Institution.objects.get(admin=request.user)
+        else:
+            # If accidentally here as another role, try to find institution from profile
+            institution_name = request.user.userprofile.institution
+            institution = Institution.objects.get(name=institution_name)
+            
+    except (Institution.DoesNotExist, AttributeError):
+        messages.error(request, 'Institution context missing. Please log in as Institution Admin first.')
+        return redirect('dashboard')
+
     if request.method == "GET":
         context = {
             'role': role,
@@ -63,59 +84,54 @@ def _handle_portal_login(request, role):
     name = " ".join((request.POST.get('name') or "").split())
     code = (request.POST.get('code') or "").strip()
 
-    try:
-        institution = Institution.objects.get(admin=request.user)
-    except Institution.DoesNotExist:
-        messages.error(request, 'Institution not found for this account.')
-        return redirect('dashboard')
-
     def normalize(value):
         return " ".join((value or "").split()).lower()
+
+    target_user = None
 
     if role == "teacher":
         teacher = Teacher.objects.filter(employee_id=code, institution=institution).select_related('user').first()
         if not teacher:
-            messages.error(request, 'Teacher not found.')
+            messages.error(request, f'Teacher with Employee ID "{code}" not found.')
             return redirect('teacher_portal_login')
 
         full_name = teacher.user.get_full_name()
         user_name = teacher.user.username
+        
         expected_names = {normalize(full_name), normalize(user_name)}
         if normalize(name) not in expected_names:
-            messages.error(request, 'Teacher not found.')
+            messages.error(request, f'Name mismatch. Expected "{full_name}" or "{user_name}".')
             return redirect('teacher_portal_login')
+            
+        target_user = teacher.user
 
-        user = authenticate(request, username=teacher.user.username, password=code)
-        if user is None:
-            messages.error(request, 'Invalid teacher credentials.')
-            return redirect('teacher_portal_login')
-
-        logout(request)
-        login(request, user)
-        return redirect('teacher_dashboard')
-
-    if role == "student":
+    elif role == "student":
         student = Student.objects.filter(student_id=code, institution=institution).select_related('user').first()
         if not student:
-            messages.error(request, 'Student not found.')
+            messages.error(request, f'Student with Roll No "{code}" not found.')
             return redirect('student_portal_login')
 
         full_name = student.user.get_full_name()
         user_name = student.user.username
-        print(full_name, user_name,code)
+        
         expected_names = {normalize(full_name), normalize(user_name)}
         if normalize(name) not in expected_names:
-            messages.error(request, 'Student not found.')
+            messages.error(request, f'Name mismatch. Expected "{full_name}" or "{user_name}".')
             return redirect('student_portal_login')
+            
+        target_user = student.user
 
-        user = authenticate(request, username=student.user.username, password=code)
-        if user is None:
-            messages.error(request, 'Invalid student credentials.')
-            return redirect('student_portal_login')
-
-        logout(request)
-        login(request, user)
-        return redirect('generator')
+    if target_user:
+        # 🚀 MAGIC SWAP: Log in as the target user without password
+        # We trust the Institution Admin who is currently logged in
+        login(request, target_user)
+        
+        messages.success(request, f"Accessing as {role}: {target_user.get_full_name()}")
+        
+        if role == 'teacher':
+             return redirect('generator')
+        else:
+             return redirect('student_dashboard')
 
     messages.error(request, 'Invalid login request.')
     return redirect('dashboard')
@@ -126,7 +142,8 @@ def institution_admin_login(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-
+        print(f"DEBUG: Login attempt - Username: {username}, Password: {password}")
+        print()
         user = authenticate(request, username=username, password=password)
 
         if user is None:

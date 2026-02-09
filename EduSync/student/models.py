@@ -20,6 +20,14 @@ class Student(models.Model):
     enrollment_date = models.DateField(auto_now_add=True)
     gpa = models.FloatField(default=0.0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    semester = models.IntegerField(default=3, help_text="Current semester (1-8)")
+    division = models.ForeignKey('generator.Division', on_delete=models.SET_NULL, null=True, blank=True, help_text="Student's division for timetable")
+    
+    class Meta:
+        db_table = 'student_student'
+        verbose_name = 'Student'
+        verbose_name_plural = 'Students'
+        ordering = ['student_id']
     
     def __str__(self):
         return f"{self.student_id} - {self.user.get_full_name()}"

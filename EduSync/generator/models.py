@@ -1,29 +1,28 @@
 from django.db import models
+from academics.models import Course
+from teacher.models import Teacher
+from institution.models import Institution
 
 class Timetable(models.Model):
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=100, default="My Timetable")
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     days_count = models.IntegerField(default=6)
+    heading_1 = models.CharField(max_length=255, default="L.J. INSTITUTE OF ENGINEERING AND TECHNOLOGY, L.J. UNIVERSITY")
+    heading_2 = models.CharField(max_length=255, default="SY CE/IT- 4 DEPARTMENT")
     
+    # Footer Fields
+    footer_semester_text = models.CharField(max_length=100, default="SEMESTER III")
+    footer_prepared_by = models.TextField(default="Prepared By:\nProf. Darshan Bhatt (DVB)\nProf. Priyanka Sinha (PCS)")
+    footer_hod = models.TextField(default="Prof. Sneha Shah\nHOD- SY4 (CST/CSIT/CSE_CS/MA&CP)")
+    theme_palette = models.CharField(max_length=20, default="classic")
+
     def __str__(self):
         return f"{self.name} ({self.created_at.strftime('%Y-%m-%d %H:%M')})"
 
-class Faculty(models.Model):
-    name = models.CharField(max_length=100)
-    initials = models.CharField(max_length=10, help_text="e.g., PKP")
-
-    def __str__(self):
-        return f"{self.name} ({self.initials})"
-
-class Subject(models.Model):
-    name = models.CharField(max_length=100)
-    code = models.CharField(max_length=20, help_text="e.g., FSD-1")
-
-    def __str__(self):
-        return f"{self.name} ({self.code})"
-
 class Room(models.Model):
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, null=True, blank=True)
     number = models.CharField(max_length=20, help_text="e.g., 410-C")
 
     def __str__(self):
@@ -63,14 +62,12 @@ class TimetableEntry(models.Model):
     timeslot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE)
     division = models.ForeignKey(Division, on_delete=models.CASCADE)
     
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, null=True, blank=True)
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, null=True, blank=True)
+    subject = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
+    faculty = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, blank=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Timetable Entries"
-        # Unique constraint needs to allow multiple timetables now. 
-        # (timetable, day, timeslot, division) should be unique
     
     def __str__(self):
         return f"{self.day} - {self.timeslot} - {self.division}"

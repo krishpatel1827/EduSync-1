@@ -1,8 +1,7 @@
 from django.contrib import admin
-from .models import Faculty, Subject, Room, Division, TimeSlot, TimetableEntry
+from .models import Timetable, Room, Division, TimeSlot, TimetableEntry
 
-admin.site.register(Faculty)
-admin.site.register(Subject)
+admin.site.register(Timetable)
 admin.site.register(Room)
 admin.site.register(Division)
 admin.site.register(TimeSlot)

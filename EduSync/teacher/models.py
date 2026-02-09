@@ -20,5 +20,12 @@ class Teacher(models.Model):
     contract_type = models.CharField(max_length=20, choices=CONTRACT_CHOICES, default='Full-Time')
     photo = models.ImageField(upload_to='teachers/', blank=True, null=True)
     
+    @property
+    def initials(self):
+        full_name = self.user.get_full_name()
+        if not full_name:
+            return self.user.username[:3].upper()
+        return "".join([n[0].upper() for n in full_name.split() if n])
+
     def __str__(self):
         return f"{self.employee_id} - {self.user.get_full_name()}"

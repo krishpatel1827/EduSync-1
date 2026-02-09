@@ -360,21 +360,9 @@
 
             {% elif user.is_authenticated %}
             <!--  AUTHENTICATED NAVBAR -->
-            <!-- We can decide how to show dashboard links if needed, but keeping it clean -->
-            {% if show_dashboard_nav %}
             <ul class="nav-links d-none d-md-flex">
-                {% if user.userprofile.role == 'institution_admin' %}
-                <li><a href="{% url 'institution_admin_dashboard' %}">Admin</a></li>
-                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                {% elif user.userprofile.role == 'teacher' %}
-                <li><a href="{% url 'teacher_dashboard' %}">Teacher</a></li>
-                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                {% elif user.userprofile.role == 'student' %}
-                <li><a href="{% url 'student_dashboard' %}">Student</a></li>
-                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                {% endif %}
+                <!-- Keep links minimal or empty as requested -->
             </ul>
-            {% endif %}
 
             <div class="nav-right ms-auto">
                 <button id="themeToggle" class="btn-theme" title="Toggle Theme"></button>

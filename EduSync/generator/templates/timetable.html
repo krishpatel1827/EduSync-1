@@ -15,6 +15,7 @@
         color: black;
         max-width: 100%;
         overflow-x: auto;
+        transition: background-color 0.4s ease, color 0.4s ease;
     }
 
     /* Controls (Hide in print) */
@@ -79,6 +80,8 @@
         border: 2px solid black;
         border-bottom: none;
         padding: 5px;
+        position: relative;
+        /* Added for edit button */
     }
 
     .header-section h1 {
@@ -122,6 +125,7 @@
         padding: 4px 2px;
         vertical-align: middle;
         word-wrap: break-word;
+        transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
     }
 
     /* Column Widths */
@@ -278,25 +282,280 @@
     ul.legend li {
         margin-bottom: 2px;
     }
+
+    /* THEME: CLASSIC (Default) */
+    .theme-classic .header-row-2 th {
+        background-color: #ffdcb2;
+    }
+
+    /* Peach */
+    .theme-classic .header-row-3 th {
+        background-color: #e6ffff;
+    }
+
+    /* Cyan */
+    .theme-classic .cell-time {
+        background-color: #ccffcc;
+    }
+
+    /* Green */
+    .theme-classic .footer-heading {
+        background-color: #dbadbd;
+    }
+
+    /* Pink */
+    .theme-classic .footer-sub-heading {
+        background-color: #e6e6e6;
+    }
+
+    /* Grey */
+    .theme-classic .text-subject {
+        color: black;
+    }
+
+    /* THEME: MODERN BLUE */
+    .theme-modern_blue .header-row-2 th {
+        background-color: #bbdefb;
+        color: black;
+    }
+
+    .theme-modern_blue .header-row-3 th {
+        background-color: #e3f2fd;
+        color: black;
+    }
+
+    .theme-modern_blue .cell-time {
+        background-color: #e8eaf6;
+        color: black;
+    }
+
+    .theme-modern_blue .footer-heading {
+        background-color: #2196f3;
+        color: white;
+    }
+
+    .theme-modern_blue .footer-sub-heading {
+        background-color: #90caf9;
+    }
+
+    .theme-modern_blue .row-normal td {
+        border-color: #90caf9;
+    }
+
+    /* THEME: NATURE GREEN */
+    .theme-nature_green .header-row-2 th {
+        background-color: #c8e6c9;
+    }
+
+    .theme-nature_green .header-row-3 th {
+        background-color: #e8f5e9;
+    }
+
+    .theme-nature_green .cell-time {
+        background-color: #f1f8e9;
+    }
+
+    .theme-nature_green .footer-heading {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    .theme-nature_green .footer-sub-heading {
+        background-color: #a5d6a7;
+    }
+
+    /* THEME: SUNSET ORANGE */
+    .theme-sunset_orange .header-row-2 th {
+        background-color: #ffccbc;
+    }
+
+    .theme-sunset_orange .header-row-3 th {
+        background-color: #fbe9e7;
+    }
+
+    .theme-sunset_orange .cell-time {
+        background-color: #fff3e0;
+    }
+
+    .theme-sunset_orange .footer-heading {
+        background-color: #ff5722;
+        color: white;
+    }
+
+    .theme-sunset_orange .footer-sub-heading {
+        background-color: #ffab91;
+    }
+
+    /* THEME: MINIMAL DARK */
+    .theme-minimal_dark .timetable-body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .theme-minimal_dark table {
+        border-color: #333;
+    }
+
+    .theme-minimal_dark th,
+    .theme-minimal_dark td {
+        border-color: #333;
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+    }
+
+    .theme-minimal_dark .header-row-2 th {
+        background-color: #333;
+        color: white;
+    }
+
+    .theme-minimal_dark .header-row-3 th {
+        background-color: #424242;
+        color: white;
+    }
+
+    .theme-minimal_dark .cell-time {
+        background-color: #2c2c2c;
+    }
+
+    .theme-minimal_dark .footer-heading {
+        background-color: #333;
+        color: white;
+    }
+
+    .theme-minimal_dark .footer-sub-heading {
+        background-color: #424242;
+        color: #e0e0e0;
+    }
+
+    .theme-minimal_dark .text-subject {
+        color: #81d4fa;
+    }
+
+    .theme-minimal_dark .text-faculty {
+        color: #b0bec5;
+    }
+
+    .theme-minimal_dark .header-section h1,
+    .theme-minimal_dark .header-section h2,
+    .theme-minimal_dark .header-section h3 {
+        color: #e0e0e0;
+        background-color: #121212;
+    }
+
+    /* Default (Classic) Colors for items that were inline */
+    .division-header {
+        background-color: #ffe0cc;
+        font-size: 14px;
+    }
+
+    .theme-modern_blue .division-header {
+        background-color: #64b5f6;
+        color: white;
+    }
+
+    .theme-nature_green .division-header {
+        background-color: #81c784;
+    }
+
+    .theme-sunset_orange .division-header {
+        background-color: #ff8a65;
+    }
+
+    .theme-minimal_dark .division-header {
+        background-color: #424242;
+        color: white;
+    }
+
+    .cell-data {
+        background-color: #e6f7ff;
+    }
+
+    .theme-modern_blue .cell-data {
+        background-color: #e1f5fe;
+    }
+
+    .theme-nature_green .cell-data {
+        background-color: #f1f8e9;
+    }
+
+    .theme-sunset_orange .cell-data {
+        background-color: #fbe9e7;
+    }
+
+    .theme-minimal_dark .cell-data {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border-color: #333;
+    }
 </style>
 
-<div class="timetable-body">
+<div class="timetable-body theme-{{ current_timetable.theme_palette }}">
     <!-- Controls -->
     <div class="controls">
         <a href="{% url 'dashboard' %}" class="btn btn-dark">&larr; Dashboard</a>
+
+        <form action="{% url 'toggle_theme' current_timetable.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-info text-white">🎨 Change Theme</button>
+        </form>
+
         <a href="{% url 'add_entry' %}" class="btn btn-primary">+ Add Entry</a>
         <a href="{% url 'setup' %}" class="btn btn-secondary">Configure</a>
         {% if current_timetable %}
+        <form action="{% url 'auto_generate_timetable' current_timetable.id %}" method="post" style="display:inline;"
+            onsubmit="return confirm('Are you sure? This will overwrite existing entries.')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning">Auto Generate</button>
+        </form>
+        <form action="{% url 'clear_timetable' current_timetable.id %}" method="post" style="display:inline;"
+            onsubmit="return confirm('Are you sure you want to clear ALL entries? This cannot be undone.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Clear All</button>
+        </form>
         <a href="{% url 'export_excel' current_timetable.id %}" class="btn btn-success">Excel</a>
         <a href="{% url 'export_pdf' current_timetable.id %}" class="btn btn-danger">PDF</a>
         {% endif %}
     </div>
 
     <!-- Title Header -->
-    <div class="header-section">
-        <h1>L.J. INSTITUTE OF ENGINEERING AND TECHNOLOGY, L.J. UNIVERSITY</h1>
-        <h2>SY CE/IT- 4 DEPARTMENT</h2>
-        <h3>{{ current_timetable.name|default:"SEM-III TIME TABLE w.e.f 15th September 2025" }}</h3>
+    <!-- Title Header -->
+    <div class="header-section position-relative">
+        <h1 class="text-uppercase">{{ current_timetable.heading_1 }}</h1>
+        <h2 class="text-uppercase">{{ current_timetable.heading_2 }}</h2>
+        <h3 class="text-uppercase">{{ current_timetable.name }}</h3>
+
+        <!-- Edit Button (Hidden in Print) -->
+        <button type="button" class="btn btn-sm btn-light position-absolute top-0 end-0 m-2 d-print-none"
+            data-bs-toggle="modal" data-bs-target="#editHeaderModal" title="Edit Headers">
+            ✏️
+        </button>
+    </div>
+
+    <!-- Edit Header Modal -->
+    <div class="modal fade" id="editHeaderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Timetable Headers</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'edit_timetable_header' current_timetable.id %}" method="post">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        {% for field in header_form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Timetable Grid -->
@@ -311,7 +570,7 @@
                     <div>ROOM NO.</div>
                 </th>
                 <!-- Division Header Spanning All Divisions -->
-                <th colspan="{{ divisions|length|multiply:3 }}" style="background-color: #ffe0cc; font-size: 14px;">
+                <th colspan="{{ divisions|length|multiply:3 }}" class="division-header">
                     DIVISION</th>
                 <th rowspan="3" class="col-day">DAY</th>
             </tr>
@@ -365,7 +624,7 @@
                 {% endif %}
 
                 <!-- Lecture No -->
-                <td style="background-color: #e6f7ff; font-weight: bold;">{{ slot_data.slot.lecture_number }}</td>
+                <td style="font-weight: bold;" class="cell-data">{{ slot_data.slot.lecture_number }}</td>
 
                 <!-- Time -->
                 <td class="cell-time">
@@ -377,15 +636,15 @@
                 {% for div in divisions %}
                 {% with slot_data.entries|get_item:div.id as entry %}
                 {% if entry %}
-                <td class="cell-content text-subject" style="background-color: #e6f7ff;">{{ entry.subject.code }}</td>
-                <td class="cell-content text-faculty" style="background-color: #e6f7ff;">{{ entry.faculty.initials }}
+                <td class="cell-content text-subject cell-data">{{ entry.subject.code }}</td>
+                <td class="cell-content text-faculty cell-data">{{ entry.faculty.initials }}
                 </td>
-                <td class="cell-content text-room" style="background-color: #e6f7ff;">{{ entry.room.number }}</td>
+                <td class="cell-content text-room cell-data">{{ entry.room.number }}</td>
                 {% else %}
                 <!-- Empty Cells -->
-                <td style="background-color: #e6f7ff;">-</td>
-                <td style="background-color: #e6f7ff;">-</td>
-                <td style="background-color: #e6f7ff;">-</td>
+                <td class="cell-data">-</td>
+                <td class="cell-data">-</td>
+                <td class="cell-data">-</td>
                 {% endif %}
                 {% endwith %}
                 {% endfor %}
@@ -407,7 +666,8 @@
     <!-- Footer Legend -->
     <table class="footer-table">
         <tr>
-            <td colspan="4" class="footer-heading" style="background-color: #dbadbd;">SEMESTER III</td>
+            <td colspan="4" class="footer-heading" style="background-color: #dbadbd;">{{
+                current_timetable.footer_semester_text }}</td>
         </tr>
         <tr>
             <!-- Legends split into 2 massive columns for simplicity, or 4 to match image if possible -->
@@ -428,7 +688,7 @@
             <td class="footer-content">
                 <ul class="legend">
                     {% for faculty in faculties %}
-                    <li>Prof. {{ faculty.name }} ({{ faculty.initials }})</li>
+                    <li>Prof. {{ faculty.user.get_full_name }} ({{ faculty.initials }})</li>
                     {% endfor %}
                 </ul>
             </td>
@@ -453,13 +713,10 @@
     <table class="footer-table" style="border-top: none;">
         <tr>
             <td class="signature-section prepared-by">
-                Prepared By:<br>
-                Prof. Darshan Bhatt (DVB)<br>
-                Prof. Priyanka Sinha (PCS)
+                {{ current_timetable.footer_prepared_by|linebreaksbr }}
             </td>
             <td class="signature-section">
-                Prof. Sneha Shah<br>
-                HOD- SY4 (CST/CSIT/CSE_CS/MA&CP)
+                {{ current_timetable.footer_hod|linebreaksbr }}
             </td>
         </tr>
     </table>

@@ -1,16 +1,36 @@
 from django import forms
-from .models import TimetableEntry, TimeSlot, Division, Subject, Faculty, Room
+from .models import TimetableEntry, TimeSlot, Division, Room
+from academics.models import Course
+from teacher.models import Teacher
 
 class TimetableEntryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         timetable = kwargs.pop('timetable', None)
+        # We can also pass institution directly if we want to be more explicit
+        institution = getattr(timetable, 'institution', None)
+        
         super().__init__(*args, **kwargs)
+        
         if timetable:
             self.fields['timeslot'].queryset = TimeSlot.objects.filter(timetable=timetable)
             self.fields['division'].queryset = Division.objects.filter(timetable=timetable)
+            
+            # CRITICAL: Always filter by institution to prevent cross-institution data exposure
+            if institution:
+                self.fields['subject'].queryset = Course.objects.filter(institution=institution)
+                self.fields['faculty'].queryset = Teacher.objects.filter(institution=institution)
+                self.fields['room'].queryset = Room.objects.filter(institution=institution)
+            else:
+                # If no institution is linked to the timetable, show nothing to be safe
+                self.fields['subject'].queryset = Course.objects.none()
+                self.fields['faculty'].queryset = Teacher.objects.none()
+                self.fields['room'].queryset = Room.objects.none()
         else:
             self.fields['timeslot'].queryset = TimeSlot.objects.none()
             self.fields['division'].queryset = Division.objects.none()
+            self.fields['subject'].queryset = Course.objects.none()
+            self.fields['faculty'].queryset = Teacher.objects.none()
+            self.fields['room'].queryset = Room.objects.none()
 
     class Meta:
         model = TimetableEntry
@@ -82,4 +102,27 @@ class SetupForm(forms.Form):
     # Let's assume a pattern: x lectures, break, y lectures.
     slots_before_break = forms.IntegerField(label="Lectures before break", initial=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     slots_after_break = forms.IntegerField(label="Lectures after break", initial=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+
+
+class TimetableHeaderForm(forms.ModelForm):
+    class Meta:
+        from .models import Timetable
+        model = Timetable
+        fields = ['heading_1', 'heading_2', 'name', 'footer_semester_text', 'footer_prepared_by', 'footer_hod']
+        labels = {
+            'heading_1': 'Main Header (Institution)',
+            'heading_2': 'Sub Header (Department)',
+            'name': 'Timetable Title (e.g. SEM-III ...)',
+            'footer_semester_text': 'Footer Title (e.g. SEMESTER III)',
+            'footer_prepared_by': 'Prepared By text (Signatures)',
+            'footer_hod': 'HOD Signature text',
+        }
+        widgets = {
+            'heading_1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. L.J. INSTITUTE...'}),
+            'heading_2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. SY CE/IT...'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Timetable Name'}),
+            'footer_semester_text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'SEMESTER ...'}),
+            'footer_prepared_by': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'footer_hod': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
 

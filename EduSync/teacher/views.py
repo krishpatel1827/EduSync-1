@@ -11,6 +11,7 @@ from institution.models import Institution
 from accounts.models import UserProfile
 from django.db import transaction, IntegrityError
 from .forms import TeacherCreateForm, TeacherEditForm
+from generator.models import Timetable, TimetableEntry
 
 
 def _unique_username(base):
@@ -44,10 +45,28 @@ def _get_institution_admin(request):
 def teacher_dashboard(request):
     try:
         teacher = Teacher.objects.get(user=request.user)
-        courses = Course.objects.filter(teacher=teacher)
+        courses = Course.objects.filter(teachers=teacher)
+        
+        # Fetch personal schedule
+        active_tt = Timetable.objects.filter(institution=teacher.institution, is_active=True).first()
+        schedule = []
+        if active_tt:
+            entries = TimetableEntry.objects.filter(faculty=teacher, timetable=active_tt).select_related('timeslot', 'subject', 'room', 'division').order_by('timeslot__start_time')
+            
+            # Group by day
+            days_map = {'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday'}
+            for day_code, day_name in days_map.items():
+                day_entries = [e for e in entries if e.day == day_code]
+                if day_entries:
+                    schedule.append({
+                        'day': day_name,
+                        'entries': day_entries
+                    })
+
         context = {
             'teacher': teacher,
             'courses': courses,
+            'schedule': schedule,
         }
         return render(request, 'teacher/dashboard.html', context)
     except Teacher.DoesNotExist:
@@ -60,7 +79,7 @@ def teacher_dashboard(request):
 def teacher_students(request):
     try:
         teacher = Teacher.objects.get(user=request.user)
-        courses = Course.objects.filter(teacher=teacher)
+        courses = Course.objects.filter(teachers=teacher)
         students = Student.objects.filter(course__in=courses).distinct()
         context = {'students': students, 'teacher': teacher}
         return render(request, 'teacher/students.html', context)

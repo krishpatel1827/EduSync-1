@@ -8,16 +8,12 @@ from django.views.decorators.cache import never_cache
 from institution.models import Institution
 
 
-def _get_user_institution(user):
-    try:
-        return Institution.objects.get(admin=user)
-    except Institution.DoesNotExist:
-        return None
+from accounts.utils import get_user_institution
 
 
 @login_required(login_url='login')
 def course_list(request):
-    institution = _get_user_institution(request.user)
+    institution = get_user_institution(request.user)
     if institution:
         courses = Course.objects.filter(institution=institution)
     else:
@@ -28,7 +24,7 @@ def course_list(request):
 
 @login_required(login_url='login')
 def course_detail(request, course_id):
-    institution = _get_user_institution(request.user)
+    institution = get_user_institution(request.user)
     if institution:
         course = get_object_or_404(Course, id=course_id, institution=institution)
     else:
@@ -41,7 +37,7 @@ def course_detail(request, course_id):
 @login_required(login_url='login')
 @never_cache
 def course_create(request):
-    institution = _get_user_institution(request.user)
+    institution = get_user_institution(request.user)
     if not institution:
         return render(request, 'academics/course_form.html', {
             'form': None,
@@ -71,7 +67,7 @@ def course_create(request):
 @login_required(login_url='login')
 @never_cache
 def course_edit(request, course_id):
-    institution = _get_user_institution(request.user)
+    institution = get_user_institution(request.user)
     if institution:
         course = get_object_or_404(Course, id=course_id, institution=institution)
     else:
@@ -95,7 +91,7 @@ def course_edit(request, course_id):
 @login_required(login_url='login')
 @require_POST
 def course_delete(request, course_id):
-    institution = _get_user_institution(request.user)
+    institution = get_user_institution(request.user)
     if institution:
         course = get_object_or_404(Course, id=course_id, institution=institution)
     else:

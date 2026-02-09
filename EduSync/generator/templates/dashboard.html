@@ -11,7 +11,7 @@
             EduSync's intelligent generator.</p>
     </div>
 
-    <!-- Features Grid -->
+    <!-- Management Grid -->
     <div class="features-grid">
 
         <!-- Generate Tile -->
@@ -48,9 +48,57 @@
             </div>
         </a>
 
-        <!-- History Tile -->
-        <a href="{% url 'history' %}">
+        <!-- Teachers Tile -->
+        <a href="{% url 'teacher_list' %}">
+            <div class="dashboard-card card-teachers">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <h2 class="card-title">Manage Teachers</h2>
+                <p class="card-desc">Add, edit, and manage faculty member profiles and their assignments.</p>
+            </div>
+        </a>
+
+        <!-- Students Tile -->
+        <a href="{% url 'student_list' %}">
+            <div class="dashboard-card card-students">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg>
+                </div>
+                <h2 class="card-title">Manage Students</h2>
+                <p class="card-desc">Enroll students, update their records, and track academic standing.</p>
+            </div>
+        </a>
+
+        <!-- Courses Tile -->
+        <a href="{% url 'course_list' %}">
             <div class="dashboard-card card-history">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="card-title">Curriculum</h2>
+                <p class="card-desc">Define subjects, course codes, and semester requirements.</p>
+            </div>
+        </a>
+
+        <!-- Archives Tile -->
+        <a href="{% url 'history' %}">
+            <div class="dashboard-card card-history-alt">
                 <div class="card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">

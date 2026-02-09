@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .teacher-dashboard {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .welcome-card {
+        background: linear-gradient(135deg, var(--clr-accent) 0%, #4F46E5 100%);
+        border-radius: 24px;
+        padding: 3rem;
+        color: white;
+        margin-bottom: 3rem;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-card::after {
+        content: "";
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .welcome-card h1 {
+        font-family: var(--font-head);
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-card p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .feature-card {
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 20px;
+        padding: 2rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--clr-accent);
+    }
+
+    .card-icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .icon-blue {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3B82F6;
+    }
+
+    .icon-green {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10B981;
+    }
+
+    .icon-purple {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8B5CF6;
+    }
+
+    .feature-card h3 {
+        font-family: var(--font-head);
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+        color: var(--clr-text-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .stats-row {
+        margin-top: 3rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-box {
+        background: var(--clr-surface-alt);
+        padding: 1.5rem;
+        border-radius: 16px;
+        text-align: center;
+    }
+
+    .stat-val {
+        display: block;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--clr-accent);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--clr-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="teacher-dashboard">
+    <div class="welcome-card">
+        <h1>Hello, Prof. {{ teacher.user.first_name }}!</h1>
+        <p>Your academic portal is ready. Manage your classes and check your schedule.</p>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Students Access -->
+        <a href="{% url 'teacher_students' %}" class="feature-card">
+            <div class="card-icon-box icon-blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+            </div>
+            <h3>Student Roster</h3>
+            <p>View students enrolled in your courses and track their academic progress.</p>
+        </a>
+
+        <!-- Course Access -->
+        <div class="feature-card">
+            <div class="card-icon-box icon-green">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+            <h3>Active Courses</h3>
+            <p>Overview of courses you are currently teaching this semester.</p>
+            <div style="margin-top: 1rem;">
+                {% for course in courses %}
+                <span class="badge bg-primary me-1">{{ course.code }}</span>
+                {% empty %}
+                <span class="text-muted" style="font-size: 0.8rem;">No courses assigned.</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded Schedule -->
+    <div class="schedule-section" style="margin-top: 4rem;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 style="font-family: var(--font-head); font-weight: 700;">My Weekly Schedule</h2>
+            <span class="badge bg-soft-primary"
+                style="color: var(--clr-accent); background: var(--clr-accent-soft); padding: 0.5rem 1rem; border-radius: 10px;">Live
+                View</span>
+        </div>
+
+        {% if schedule %}
+        <div class="row g-4">
+            {% for day_data in schedule %}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
+                    <div class="card-header bg-white border-0 py-3"
+                        style="border-left: 4px solid var(--clr-accent) !important;">
+                        <h5 class="mb-0 fw-bold">{{ day_data.day }}</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3 border-0" style="font-size: 0.75rem; text-transform: uppercase;">
+                                        Time</th>
+                                    <th class="border-0" style="font-size: 0.75rem; text-transform: uppercase;">
+                                        Course/Division</th>
+                                    <th class="border-0" style="font-size: 0.75rem; text-transform: uppercase;">Room
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in day_data.entries %}
+                                <tr>
+                                    <td class="ps-3 align-middle">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">{{
+                                            entry.timeslot.start_time|time:"G:i" }}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">{{
+                                            entry.timeslot.end_time|time:"G:i" }}</div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <div style="font-weight: 600;">{{ entry.subject.code }}</div>
+                                        <div class="text-muted" style="font-size: 0.8rem;">Division: {{
+                                            entry.division.name }}</div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge bg-light text-dark"
+                                            style="border: 1px solid var(--clr-border);">{{ entry.room.number }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5 bg-white border rounded-4">
+            <div class="mb-3">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h5 class="text-muted">No schedule found for this semester.</h5>
+            <p class="text-muted small">Please contact your administrator to assign your classes.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-box">
+            <span class="stat-val">{{ courses.count }}</span>
+            <span class="stat-label">Assigned Courses</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-val">{{ teacher.department }}</span>
+            <span class="stat-label">Department</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-val">{{ teacher.employee_id }}</span>
+            <span class="stat-label">Employee ID</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

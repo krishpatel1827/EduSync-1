@@ -154,6 +154,21 @@ a {
     box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4);
 }
 
+.card-teachers:hover .card-icon {
+    background: var(--primary-dark);
+    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+}
+
+.card-students:hover .card-icon {
+    background: #10b981;
+    box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
+}
+
+.card-history-alt:hover .card-icon {
+    background: #ec4899;
+    box-shadow: 0 10px 20px -5px rgba(236, 72, 153, 0.4);
+}
+
 .card-title {
     font-size: 1.5rem;
     font-weight: 700;
