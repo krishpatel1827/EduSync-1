@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .my-attendance-container {
+        min-height: 100vh;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
+
+    .page-title {
+        font-family: var(--font-head);
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin-bottom: 0.3rem;
+    }
+
+    .page-subtitle {
+        color: var(--clr-text-muted);
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-card {
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 14px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .summary-item {
+        background: var(--clr-surface-alt);
+        border-radius: 10px;
+        padding: 0.8rem;
+    }
+
+    .summary-label {
+        color: var(--clr-text-muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .summary-value {
+        color: var(--clr-text);
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .table-wrap {
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+
+    .att-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .att-table thead {
+        background: var(--clr-surface-alt);
+    }
+
+    .att-table th,
+    .att-table td {
+        padding: 0.9rem;
+        border-bottom: 1px solid var(--clr-border);
+        text-align: left;
+    }
+
+    .att-table th {
+        color: var(--clr-text);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-good {
+        color: var(--clr-success);
+        font-weight: 700;
+    }
+
+    .badge-mid {
+        color: var(--clr-warning);
+        font-weight: 700;
+    }
+
+    .badge-low {
+        color: var(--clr-danger);
+        font-weight: 700;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: var(--clr-surface);
+        border-radius: 14px;
+        border: 2px dashed var(--clr-border);
+    }
+</style>
+
+<div class="my-attendance-container">
+    <div class="container" style="max-width: 1200px;">
+        <a href="{% url 'student_dashboard' %}" class="btn btn-sm btn-outline-secondary mb-3">Back to Dashboard</a>
+        <h1 class="page-title">My Attendance</h1>
+        <p class="page-subtitle">Visible only when your teacher shares attendance for your department.</p>
+
+        {% if attendance_records %}
+        <div class="summary-card">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Roll No.</div>
+                    <div class="summary-value">{{ student.student_id }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Student Name</div>
+                    <div class="summary-value">{{ student.user.get_full_name }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Attended Lectures</div>
+                    <div class="summary-value">{{ total_attended }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Total Lectures</div>
+                    <div class="summary-value">{{ total_lectures }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Overall Attendance</div>
+                    <div class="summary-value">{{ overall_percentage }}%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-wrap table-responsive">
+            <table class="att-table">
+                <thead>
+                    <tr>
+                        <th>Roll No.</th>
+                        <th>Name (Student)</th>
+                        <th>Department</th>
+                        <th>Teacher</th>
+                        <th>Attended Lecture</th>
+                        <th>Total Lecture</th>
+                        <th>Attendance %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td><strong>{{ student.student_id }}</strong></td>
+                        <td>{{ student.user.get_full_name }}</td>
+                        <td>{{ record.sheet.department.name }}</td>
+                        <td>{{ record.sheet.teacher.user.get_full_name }}</td>
+                        <td>{{ record.lectures_attended }}</td>
+                        <td>{{ record.total_lectures }}</td>
+                        <td>
+                            {% if record.attendance_percentage >= 75 %}
+                            <span class="badge-good">{{ record.attendance_percentage }}%</span>
+                            {% elif record.attendance_percentage >= 50 %}
+                            <span class="badge-mid">{{ record.attendance_percentage }}%</span>
+                            {% else %}
+                            <span class="badge-low">{{ record.attendance_percentage }}%</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h4>No shared attendance yet</h4>
+            <p class="text-muted mb-0">Your department teacher has not shared attendance data.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -10,6 +10,8 @@ class Student(models.Model):
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
     course = models.ForeignKey('academics.Course', on_delete=models.SET_NULL, null=True, blank=True, db_index=True)
     student_id = models.CharField(max_length=20, unique=True)
+    branch = models.ForeignKey('academics.Branch', on_delete=models.SET_NULL, null=True, blank=True)
+    phone = models.CharField(max_length=15, blank=True)
     academic_year = models.CharField(max_length=20, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='M')
     date_of_birth = models.DateField(null=True, blank=True)

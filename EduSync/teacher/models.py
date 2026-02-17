@@ -10,6 +10,7 @@ class Teacher(models.Model):
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE, db_index=True)
     employee_id = models.CharField(max_length=20, unique=True)
     department = models.ForeignKey('institution.Department', on_delete=models.SET_NULL, null=True, blank=True, db_index=True)
+    branch = models.ForeignKey('academics.Branch', on_delete=models.SET_NULL, null=True, blank=True)
     qualification = models.CharField(max_length=200)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='M')
     date_of_birth = models.DateField(null=True, blank=True)

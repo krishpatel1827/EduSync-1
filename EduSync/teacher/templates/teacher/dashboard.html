@@ -50,21 +50,33 @@
     }
 
     .feature-card {
-        background: var(--clr-surface);
-        border: 1px solid var(--clr-border);
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 20px;
         padding: 2rem;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
         color: inherit;
         display: block;
         height: 100%;
     }
 
+    [data-bs-theme="dark"] .feature-card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
     .feature-card:hover {
-        transform: translateY(-8px);
+        transform: translateY(-8px) scale(1.01);
         box-shadow: var(--shadow-lg);
         border-color: var(--clr-accent);
+        background: rgba(255, 255, 255, 0.85);
+    }
+
+    [data-bs-theme="dark"] .feature-card:hover {
+        background: rgba(15, 23, 42, 0.8);
     }
 
     .card-icon-box {
@@ -90,6 +102,16 @@
     .icon-purple {
         background: rgba(139, 92, 246, 0.1);
         color: #8B5CF6;
+    }
+
+    .icon-orange {
+        background: rgba(249, 115, 22, 0.1);
+        color: #F97316;
+    }
+
+    .icon-teal {
+        background: rgba(20, 184, 166, 0.1);
+        color: #14B8A6;
     }
 
     .feature-card h3 {
@@ -194,6 +216,35 @@
                 {% endfor %}
             </div>
         </div>
+
+        <!-- Attendance Generator -->
+        <a href="{% url 'attendance_generator' %}" class="feature-card">
+            <div class="card-icon-box icon-orange">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    <path d="M9 14l2 2 4-4"></path>
+                </svg>
+            </div>
+            <h3>Attendance Generator</h3>
+            <p>Generate attendance sheets for your department and track student lecture attendance.</p>
+        </a>
+
+        <!-- Attendance Archives -->
+        <a href="{% url 'attendance_archives' %}" class="feature-card">
+            <div class="card-icon-box icon-teal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                    <rect x="1" y="3" width="22" height="5"></rect>
+                    <line x1="10" y1="12" x2="14" y2="12"></line>
+                </svg>
+            </div>
+            <h3>Attendance Archives</h3>
+            <p>View and manage your past attendance sheets. {% if has_attendance_archives %}{{ attendance_archive_count
+                }} sheet{{ attendance_archive_count|pluralize }} saved.{% else %}No archives yet.{% endif %}</p>
+        </a>
     </div>
 
 

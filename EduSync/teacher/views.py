@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import Teacher
-from academics.models import Course
+from academics.models import Course, AttendanceSheet
 
 from student.models import Student
 from institution.models import Institution
@@ -40,6 +41,7 @@ def _get_institution_admin(request):
     return institution, None
 
 
+@ensure_csrf_cookie
 @login_required(login_url='login')
 def teacher_dashboard(request):
     try:
@@ -62,10 +64,14 @@ def teacher_dashboard(request):
                         'entries': day_entries
                     })
 
+        attendance_archive_count = AttendanceSheet.objects.filter(teacher=teacher).count()
+
         context = {
             'teacher': teacher,
             'courses': courses,
             'schedule': schedule,
+            'attendance_archive_count': attendance_archive_count,
+            'has_attendance_archives': attendance_archive_count > 0,
         }
         return render(request, 'teacher/dashboard.html', context)
     except Teacher.DoesNotExist:
@@ -86,6 +92,7 @@ def teacher_students(request):
         return render(request, 'teacher/students.html', {'error': 'Teacher profile not found'})
 
 
+@ensure_csrf_cookie
 @login_required(login_url='login')
 def teacher_list(request):
     institution, error = _get_institution_admin(request)
@@ -222,3 +229,165 @@ def teacher_delete(request, teacher_id):
     user.delete()
     messages.success(request, 'Teacher deleted successfully.')
     return redirect('teacher_list')
+
+
+# ═══ ATTENDANCE GENERATOR ═══
+
+@login_required(login_url='login')
+def attendance_generator(request):
+    """Teacher attendance generator page - step 1"""
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        messages.error(request, 'Teacher profile not found.')
+        return redirect('login')
+
+    # Get departments for this teacher's institution
+    from institution.models import Department
+    departments = Department.objects.filter(institution=teacher.institution).order_by('name')
+
+    if request.method == 'POST':
+        dept_id = request.POST.get('department_id')
+        date_from = request.POST.get('date_from')
+        date_to = request.POST.get('date_to')
+        total_lectures = request.POST.get('total_lectures')
+
+        if not all([dept_id, date_from, date_to, total_lectures]):
+            messages.error(request, 'Please fill all fields.')
+            return render(request, 'teacher/attendance_generator.html', {'departments': departments})
+
+        try:
+            total_lectures = int(total_lectures)
+            if total_lectures <= 0:
+                raise ValueError("Total lectures must be positive")
+        except ValueError:
+            messages.error(request, 'Total lectures must be a positive number.')
+            return render(request, 'teacher/attendance_generator.html', {'departments': departments})
+
+        # Redirect to attendance sheet with parameters
+        return redirect('attendance_sheet', dept_id=dept_id, date_from=date_from, date_to=date_to, total_lectures=total_lectures)
+
+    context = {
+        'teacher': teacher,
+        'departments': departments,
+    }
+    return render(request, 'teacher/attendance_generator.html', context)
+
+
+@login_required(login_url='login')
+def attendance_archives(request):
+    """Teacher attendance archives list"""
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        messages.error(request, 'Teacher profile not found.')
+        return redirect('login')
+
+    sheets = AttendanceSheet.objects.filter(teacher=teacher).select_related('department').order_by('-created_at')
+
+    context = {
+        'teacher': teacher,
+        'sheets': sheets,
+    }
+    return render(request, 'teacher/attendance_archives.html', context)
+
+
+@login_required(login_url='login')
+def attendance_sheet(request, dept_id, date_from, date_to, total_lectures):
+    """Generate and display attendance sheet for students"""
+    from academics.models import AttendanceSheet as Sheet, Attendance
+    from institution.models import Department
+    from student.models import Student
+    from datetime import datetime
+
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        messages.error(request, 'Teacher profile not found.')
+        return redirect('login')
+
+    try:
+        department = Department.objects.get(id=dept_id, institution=teacher.institution)
+    except Department.DoesNotExist:
+        messages.error(request, 'Department not found.')
+        return redirect('attendance_generator')
+
+    # Parse dates
+    try:
+        date_from_obj = datetime.strptime(date_from, '%Y-%m-%d').date()
+        date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').date()
+    except ValueError:
+        messages.error(request, 'Invalid date format.')
+        return redirect('attendance_generator')
+
+    total_lectures = int(total_lectures)
+
+    # Get or create AttendanceSheet
+    sheet, created = Sheet.objects.get_or_create(
+        teacher=teacher,
+        department=department,
+        date_from=date_from_obj,
+        date_to=date_to_obj,
+        defaults={'total_lectures': total_lectures}
+    )
+    if sheet.total_lectures != total_lectures:
+        sheet.total_lectures = total_lectures
+        sheet.save(update_fields=['total_lectures', 'updated_at'])
+
+    # Get students in this department
+    students = Student.objects.filter(
+        department=department,
+        institution=teacher.institution
+    ).select_related('user').order_by('student_id')
+
+    # Create attendance records if they don't exist
+    for student in students:
+        record, _ = Attendance.objects.get_or_create(
+            sheet=sheet,
+            student=student,
+            defaults={'total_lectures': total_lectures, 'lectures_attended': 0}
+        )
+        if record.total_lectures != total_lectures:
+            record.total_lectures = total_lectures
+            if record.lectures_attended > total_lectures:
+                record.lectures_attended = total_lectures
+            record.save(update_fields=['total_lectures', 'lectures_attended'])
+
+    # Get attendance records
+    attendance_records = Attendance.objects.filter(sheet=sheet).select_related('student__user').order_by('student__student_id')
+
+    if request.method == 'POST':
+        # Update attendance records
+        for record in attendance_records:
+            lectures_attended = request.POST.get(f'lectures_attended_{record.id}')
+            if lectures_attended is not None:
+                try:
+                    attended = int(lectures_attended)
+                    if 0 <= attended <= record.total_lectures:
+                        record.lectures_attended = attended
+                        record.save()
+                except ValueError:
+                    pass
+
+        action = request.POST.get('action', 'save')
+        if action == 'share':
+            sheet.shared_with_students = True
+            sheet.save(update_fields=['shared_with_students', 'updated_at'])
+            messages.success(request, 'Attendance saved and shared with students.')
+        elif action == 'unshare':
+            sheet.shared_with_students = False
+            sheet.save(update_fields=['shared_with_students', 'updated_at'])
+            messages.success(request, 'Attendance saved and unshared from students.')
+        else:
+            messages.success(request, 'Attendance saved.')
+
+        return redirect('teacher_dashboard')
+
+    context = {
+        'teacher': teacher,
+        'sheet': sheet,
+        'department': department,
+        'attendance_records': attendance_records,
+        'total_lectures': total_lectures,
+    }
+    return render(request, 'teacher/attendance_sheet.html', context)

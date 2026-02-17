@@ -16,4 +16,6 @@ urlpatterns = [
     path('clear/<int:timetable_id>/', views.clear_timetable_entries, name='clear_timetable'),
     path('edit-header/<int:timetable_id>/', views.edit_timetable_header, name='edit_timetable_header'),
     path('toggle-theme/<int:timetable_id>/', views.toggle_theme, name='toggle_theme'),
+    path('publish/<int:timetable_id>/', views.publish_timetable, name='publish_timetable'),
+    path('api/branches/', views.api_branches, name='api_branches'),
 ]

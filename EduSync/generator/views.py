@@ -3,12 +3,14 @@ from .models import TimetableEntry, Division, TimeSlot, Room, Timetable
 from academics.models import Course
 from teacher.models import Teacher
 from institution.models import Institution
-from .forms import TimetableEntryForm, SetupForm
+from .forms import TimetableEntryForm, SetupForm, PublishTimetableForm
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.db import IntegrityError
 import datetime
 import openpyxl
 from reportlab.pdfgen import canvas
@@ -19,9 +21,13 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from accounts.utils import get_user_institution
 
 
+@login_required
+@ensure_csrf_cookie
 def dashboard(request):
     return render(request, 'dashboard.html')
 
+@login_required
+@ensure_csrf_cookie
 def history(request):
     institution = get_user_institution(request.user)
     timetables = Timetable.objects.filter(institution=institution).order_by('-created_at')
@@ -34,6 +40,9 @@ def history_delete(request, timetable_id):
     messages.success(request, "Timetable deleted successfully!")
     return redirect('history')
 
+@ensure_csrf_cookie
+@csrf_protect
+@login_required(login_url='login')
 def timetable_view(request, timetable_id=None):
     institution = get_user_institution(request.user)
     if timetable_id:
@@ -99,11 +108,17 @@ def timetable_view(request, timetable_id=None):
         'faculties': faculties,
         'break_colspan': break_colspan,
         'header_form': None,
+        'departments': [],
+        'courses': [],
     }
     
     if timetable:
         from .forms import TimetableHeaderForm
+        from institution.models import Department
         context['header_form'] = TimetableHeaderForm(instance=timetable)
+        context['departments'] = Department.objects.filter(institution=institution)
+        context['courses'] = Course.objects.filter(institution=institution)
+        context['publish_form'] = PublishTimetableForm(institution=institution, timetable=timetable)
         
     return render(request, 'timetable.html', context)
 
@@ -133,18 +148,26 @@ def add_entry(request):
 @login_required
 @never_cache
 def setup_view(request):
+    institution = get_user_institution(request.user)
+    
     if request.method == 'POST':
-        form = SetupForm(request.POST)
+        form = SetupForm(request.POST, institution=institution, user=request.user)
         if form.is_valid():
             # Create NEW Timetable
             Timetable.objects.filter(is_active=True).update(is_active=False)
             
-            institution = get_user_institution(request.user)
             days_count = form.cleaned_data.get('days_count', 6)
+            department = form.cleaned_data.get('department')
+            course = form.cleaned_data.get('course')
+            
             new_tt = Timetable.objects.create(
                 name=f"Timetable {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}",
                 days_count=days_count,
-                institution=institution
+                institution=institution,
+                department=department,
+                course=course,
+                created_by=request.user,
+                status='Draft'
             )
             
             # Process Divisions
@@ -185,9 +208,6 @@ def setup_view(request):
                     is_break=True
                 )
                 current_time = break_end
-                # Note: We usually increment lecture number or keep it unique?
-                # The existing code didn't seem to increment lecture_num for break in a way that affects display,
-                # but let's consistency increment it so ordering works.
                 lecture_num += 1
             
             # Second batch
@@ -204,8 +224,13 @@ def setup_view(request):
             
             messages.success(request, "New Timetable Structure Generated Successfully!")
             return redirect('timetable', timetable_id=new_tt.id)
+        else:
+            # Show form errors
+            for field, errors in form.errors.items():
+                messages.error(request, f"{field}: {', '.join(errors)}")
+            return render(request, 'setup.html', {'form': form})
     else:
-        form = SetupForm()
+        form = SetupForm(institution=institution, user=request.user)
     
     return render(request, 'setup.html', {'form': form})
 
@@ -298,21 +323,22 @@ def export_pdf(request, timetable_id):
 
 @login_required
 @never_cache
+@ensure_csrf_cookie
+@csrf_protect
 def auto_generate_timetable(request, timetable_id):
     institution = get_user_institution(request.user)
     timetable = get_object_or_404(Timetable, id=timetable_id, institution=institution)
     
-    # 1. Clear existing entries for this timetable to start fresh (optional, but safer for "auto-gen")
-    # removing this if we want to fill *only empty* slots, but user said "all the fields should be field"
-    # Let's clear to avoid conflicts with manual entries if they want a full regen.
-    # checking if user wants to keep manual? assuming overwrite for "auto gen".
+    if request.method != 'POST':
+        messages.error(request, "Invalid request method.")
+        return redirect('timetable', timetable_id=timetable.id)
+    
+    # Clear existing entries
     timetable.entries.all().delete()
     
-    # 2. Get Resources
+    # Get Resources
     courses = list(Course.objects.filter(institution=institution))
     teachers = list(Teacher.objects.filter(institution=institution))
-    # We need rooms. If no rooms exist, create some dummy ones or error?
-    # Let's check if Room model exists and has data.
     rooms = list(Room.objects.filter(institution=institution))
     
     if not courses or not teachers:
@@ -335,10 +361,10 @@ def auto_generate_timetable(request, timetable_id):
     import random
 
     # Track usage to prevent conflicts
-    # teacher_schedule[(day, timeslot_id)] = teacher_id
-    # room_schedule[(day, timeslot_id)] = room_id
-    teacher_occupation = {}
-    room_occupation = {}
+    # Key format: (day, timeslot_id)
+    teacher_occupation = {}  # {(day, slot_id): teacher_id}
+    room_occupation = {}     # {(day, slot_id): room_id}
+    division_occupation = {} # {(day, slot_id): division_id}
 
     entries_created = 0
 
@@ -346,47 +372,58 @@ def auto_generate_timetable(request, timetable_id):
         for slot in timeslots:
             for div in divisions:
                 # Attempt to assign a random course, teacher, and room
-                # Try X times to find a non-conflicting combination
                 attempts = 0
-                max_attempts = 50
+                max_attempts = 100
                 success = False
                 
                 while attempts < max_attempts:
                     course = random.choice(courses)
-                    teacher = random.choice(teachers) #Ideally course.teachers.all() but valid logic might be complex
+                    teacher = random.choice(teachers)
                     room = random.choice(rooms)
                     
-                    # Check Teacher Conflict
-                    if teacher_occupation.get((day_code, slot.id)) == teacher.id:
+                    slot_key = (day_code, slot.id)
+                    
+                    # Check Teacher Conflict (teacher can't be in two places at once)
+                    if teacher_occupation.get(slot_key) == teacher.id:
                         attempts += 1
                         continue
                         
-                    # Check Room Conflict
-                    if room_occupation.get((day_code, slot.id)) == room.id:
+                    # Check Room Conflict (room can't be used by two divisions at once)
+                    if room_occupation.get(slot_key) == room.id:
+                        attempts += 1
+                        continue
+                    
+                    # Check Division Conflict (division can't have two classes at once)
+                    if division_occupation.get(slot_key) == div.id:
                         attempts += 1
                         continue
                     
                     # No Conflict! Assign
-                    TimetableEntry.objects.create(
-                        timetable=timetable,
-                        day=day_code,
-                        timeslot=slot,
-                        division=div,
-                        subject=course,
-                        faculty=teacher,
-                        room=room
-                    )
-                    
-                    teacher_occupation[(day_code, slot.id)] = teacher.id
-                    room_occupation[(day_code, slot.id)] = room.id
-                    entries_created += 1
-                    success = True
-                    break
+                    try:
+                        TimetableEntry.objects.create(
+                            timetable=timetable,
+                            day=day_code,
+                            timeslot=slot,
+                            division=div,
+                            subject=course,
+                            faculty=teacher,
+                            room=room
+                        )
+                        
+                        # Mark as occupied
+                        teacher_occupation[slot_key] = teacher.id
+                        room_occupation[slot_key] = room.id
+                        division_occupation[slot_key] = div.id
+                        entries_created += 1
+                        success = True
+                        break
+                    except IntegrityError:
+                        # If we still hit a constraint, try again
+                        attempts += 1
+                        continue
                 
                 if not success:
-                    # Could not find a valid slot (maybe shortage of teachers/rooms)
-                    # Use a placeholder or leave empty?
-                    # Leaving empty is safer than invalid data
+                    # Could not find a valid assignment after max attempts
                     pass
 
     messages.success(request, f"Auto-generated {entries_created} timetable entries successfully!")
@@ -394,6 +431,7 @@ def auto_generate_timetable(request, timetable_id):
 
 @login_required
 @never_cache
+@csrf_protect
 def clear_timetable_entries(request, timetable_id):
     institution = get_user_institution(request.user)
     timetable = get_object_or_404(Timetable, id=timetable_id, institution=institution)
@@ -402,11 +440,14 @@ def clear_timetable_entries(request, timetable_id):
         count = timetable.entries.count()
         timetable.entries.all().delete()
         messages.success(request, f"Cleared {count} entries from the timetable.")
+    else:
+        messages.error(request, "Invalid request.")
         
     return redirect('timetable', timetable_id=timetable.id)
 
 @login_required
 @never_cache
+@csrf_protect
 def edit_timetable_header(request, timetable_id):
     institution = get_user_institution(request.user)
     timetable = get_object_or_404(Timetable, id=timetable_id, institution=institution)
@@ -442,3 +483,81 @@ def toggle_theme(request, timetable_id):
     
     messages.success(request, f"Theme changed to {themes[next_index].replace('_', ' ').title()}!")
     return redirect('timetable', timetable_id=timetable.id)
+
+@login_required
+@never_cache
+@csrf_protect
+def publish_timetable(request, timetable_id):
+    """Publish a timetable, making it visible to students"""
+    institution = get_user_institution(request.user)
+    timetable = get_object_or_404(Timetable, id=timetable_id, institution=institution)
+
+    if request.method != 'POST':
+        messages.error(request, "Invalid request.")
+        return redirect('timetable', timetable_id=timetable.id)
+
+    # Permission check: only creator or admin can publish
+    is_creator = request.user == timetable.created_by
+    is_admin = hasattr(request.user, 'userprofile') and request.user.userprofile.role == 'institution_admin'
+
+    if not (is_creator or is_admin):
+        messages.error(request, "You don't have permission to publish this timetable.")
+        return redirect('timetable', timetable_id=timetable.id)
+
+    if timetable.is_published:
+        # Unpublish flow - simple toggle
+        timetable.is_published = False
+        timetable.is_active = False
+        timetable.status = 'Draft'
+        timetable.save()
+        messages.success(request, "Timetable removed from student access.")
+        return redirect('timetable', timetable_id=timetable.id)
+
+    # Publish flow - validate form data
+    form = PublishTimetableForm(request.POST, institution=institution, timetable=timetable)
+    if not form.is_valid():
+        messages.error(request, "Please select a department, branch, and name to publish.")
+        return redirect('timetable', timetable_id=timetable.id)
+
+    department = form.cleaned_data['department']
+    branch = form.cleaned_data['branch']
+    name = form.cleaned_data['name']
+
+    # Update timetable with publish details
+    timetable.name = name
+    timetable.department = department
+    timetable.branch = branch
+
+    # Deactivate other timetables for same dept+branch
+    Timetable.objects.filter(
+        institution=institution,
+        department=department,
+        branch=branch,
+        is_active=True
+    ).exclude(id=timetable.id).update(is_active=False, status='Draft', is_published=False)
+
+    timetable.is_published = True
+    timetable.is_active = True
+    timetable.status = 'Published'
+    timetable.save()
+    messages.success(request, f"Timetable '{name}' published for {department.name} - {branch.name}!")
+    return redirect('timetable', timetable_id=timetable.id)
+
+
+@login_required
+def api_branches(request):
+    """Return branches filtered by department as JSON"""
+    from django.http import JsonResponse
+    from academics.models import Branch
+
+    department_id = request.GET.get('department')
+    if not department_id:
+        return JsonResponse([], safe=False)
+
+    institution = get_user_institution(request.user)
+    branches = Branch.objects.filter(
+        institution=institution,
+        department_id=department_id
+    ).values('id', 'name')
+
+    return JsonResponse(list(branches), safe=False)

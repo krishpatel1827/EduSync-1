@@ -92,6 +92,23 @@ class TimetableEntryForm(forms.ModelForm):
         return cleaned_data
 
 class SetupForm(forms.Form):
+    from institution.models import Department
+    
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.none(),
+        required=False,
+        label="Department (Optional)",
+        help_text="Assign to a specific department, or leave blank for institution-wide",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    course = forms.ModelChoiceField(
+        queryset=Course.objects.none(),
+        required=False,
+        label="Course/Branch (Optional)",
+        help_text="Assign to a specific course, or leave blank for department-wide",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
     divisions = forms.CharField(label="Divisions (Comma separated, e.g., D1, D2)", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'D1, D2, D3'}))
     days_count = forms.IntegerField(label="Number of Days (e.g., 5 or 6)", initial=6, min_value=1, max_value=7, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     start_time = forms.TimeField(label="First Lecture Start Time", widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time', 'value': '08:45'}))
@@ -102,6 +119,50 @@ class SetupForm(forms.Form):
     # Let's assume a pattern: x lectures, break, y lectures.
     slots_before_break = forms.IntegerField(label="Lectures before break", initial=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
     slots_after_break = forms.IntegerField(label="Lectures after break", initial=2, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+
+    def __init__(self, *args, institution=None, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from institution.models import Department
+        
+        if institution:
+            # Set department queryset based on institution
+            self.fields['department'].queryset = Department.objects.filter(institution=institution)
+            self.fields['course'].queryset = Course.objects.filter(institution=institution)
+            
+            # If user is a teacher, auto-select and restrict to their department
+            if user and hasattr(user, 'teacher'):
+                try:
+                    teacher = user.teacher
+                    if teacher.department:
+                        self.fields['department'].queryset = Department.objects.filter(id=teacher.department.id)
+                        self.fields['department'].initial = teacher.department
+                        # Filter courses by teacher's department
+                        self.fields['course'].queryset = Course.objects.filter(
+                            institution=institution,
+                            department=teacher.department
+                        )
+                except Exception:
+                    pass
+        else:
+            self.fields['department'].queryset = Department.objects.none()
+            self.fields['course'].queryset = Course.objects.none()
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        department = cleaned_data.get('department')
+        course = cleaned_data.get('course')
+        
+        # If course is selected, department must also be selected
+        if course and not department:
+            raise forms.ValidationError("Please select a department when assigning a course.")
+        
+        # Verify course belongs to selected department (if both are set)
+        if department and course:
+            if hasattr(course, 'department') and course.department:
+                if course.department.id != department.id:
+                    raise forms.ValidationError("Selected course does not belong to the selected department.")
+        
+        return cleaned_data
 
 
 class TimetableHeaderForm(forms.ModelForm):
@@ -125,4 +186,43 @@ class TimetableHeaderForm(forms.ModelForm):
             'footer_prepared_by': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'footer_hod': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+
+class PublishTimetableForm(forms.Form):
+    from institution.models import Department
+    from academics.models import Branch
+
+    name = forms.CharField(
+        max_length=100,
+        label="Timetable Name",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. SEM-III Timetable'})
+    )
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.none(),
+        required=True,
+        label="Department",
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'publish-department'})
+    )
+    branch = forms.ModelChoiceField(
+        queryset=Branch.objects.none(),
+        required=True,
+        label="Branch",
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'publish-branch'})
+    )
+
+    def __init__(self, *args, institution=None, timetable=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from institution.models import Department
+        from academics.models import Branch
+
+        if institution:
+            self.fields['department'].queryset = Department.objects.filter(institution=institution)
+            self.fields['branch'].queryset = Branch.objects.filter(institution=institution)
+
+        if timetable:
+            self.fields['name'].initial = timetable.name
+            if timetable.department:
+                self.fields['department'].initial = timetable.department
+            if timetable.branch:
+                self.fields['branch'].initial = timetable.branch
 

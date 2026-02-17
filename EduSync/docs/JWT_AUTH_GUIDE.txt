@@ -1,0 +1,396 @@
+================================================================================
+                       JWT AUTHENTICATION GUIDE - EduSync
+================================================================================
+
+OVERVIEW
+--------
+This project uses JWT (JSON Web Tokens) for API authentication. JWT allows 
+stateless authentication where the server doesn't need to store session data.
+
+How it works:
+1. User sends credentials (username, password, institution, role)
+2. Server validates and returns two tokens: ACCESS and REFRESH
+3. Client stores tokens and sends ACCESS token with each API request
+4. When ACCESS token expires, use REFRESH token to get a new one
+5. On logout, REFRESH token is blacklisted (invalidated)
+
+
+================================================================================
+                              API ENDPOINTS
+================================================================================
+
+1. LOGIN - Get Tokens
+---------------------
+   URL:     POST /api/auth/token/
+   
+   Request Body:
+   {
+       "username": "student_34",
+       "password": "testpass123",
+       "institution_name": "kpiet",
+       "role": "student"
+   }
+   
+   Response (Success):
+   {
+       "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+       "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+       "user": {
+           "id": 126,
+           "username": "student_34",
+           "email": "",
+           "first_name": "meet",
+           "last_name": "bhandari",
+           "role": "student",
+           "institution": "kpiet"
+       }
+   }
+   
+   Notes:
+   - role must be: "student", "teacher", or "institution_admin"
+   - institution_name must match exactly (case-insensitive)
+   - ACCESS token expires in 60 minutes
+   - REFRESH token expires in 7 days
+
+
+2. REFRESH TOKEN - Get New Access Token
+---------------------------------------
+   URL:     POST /api/auth/token/refresh/
+   
+   Request Body:
+   {
+       "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   }
+   
+   Response:
+   {
+       "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+       "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   }
+   
+   Notes:
+   - Use this when access token expires (401 error)
+   - New refresh token is also returned (rotation enabled)
+
+
+3. LOGOUT - Invalidate Token
+----------------------------
+   URL:     POST /api/auth/logout/
+   Headers: Authorization: Bearer <access_token>
+   
+   Request Body:
+   {
+       "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   }
+   
+   Response:
+   {
+       "detail": "Successfully logged out."
+   }
+   
+   Notes:
+   - Blacklists the refresh token so it can't be used again
+   - Client should also delete stored tokens
+
+
+4. GET USER PROFILE
+-------------------
+   URL:     GET /api/auth/profile/
+   Headers: Authorization: Bearer <access_token>
+   
+   Response:
+   {
+       "id": 126,
+       "username": "student_34",
+       "email": "",
+       "first_name": "meet",
+       "last_name": "bhandari",
+       "role": "student",
+       "institution": "kpiet",
+       "phone": ""
+   }
+
+
+5. VERIFY TOKEN
+---------------
+   URL:     GET /api/auth/verify/
+   Headers: Authorization: Bearer <access_token>
+   
+   Response:
+   {
+       "valid": true,
+       "user_id": 126,
+       "username": "student_34"
+   }
+
+
+================================================================================
+                          PROTECTED ENDPOINTS
+================================================================================
+
+STUDENT ENDPOINTS (Requires student role):
+------------------------------------------
+GET  /api/student/profile/     - Get own student profile
+PATCH /api/student/profile/    - Update own profile (phone, address, blood_group)
+
+TEACHER/ADMIN ENDPOINTS:
+------------------------
+GET /api/student/list/              - List all students (teacher/admin only)
+GET /api/student/<student_id>/      - Get specific student (teacher/admin only)
+
+TEACHER ENDPOINTS (Requires teacher role):
+------------------------------------------
+GET  /api/teacher/profile/     - Get own teacher profile
+PATCH /api/teacher/profile/    - Update own profile (phone, address, qualification)
+
+ADMIN ONLY ENDPOINTS:
+---------------------
+GET /api/teacher/list/              - List all teachers
+GET /api/teacher/<employee_id>/     - Get specific teacher
+
+
+================================================================================
+                      USING JWT IN YOUR CODE
+================================================================================
+
+JAVASCRIPT EXAMPLE:
+-------------------
+
+// 1. Login Function
+async function login(username, password, institution, role) {
+    const response = await fetch('/api/auth/token/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: username,
+            password: password,
+            institution_name: institution,
+            role: role
+        })
+    });
+    
+    if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        return data.user;
+    } else {
+        const error = await response.json();
+        throw new Error(error.detail || 'Login failed');
+    }
+}
+
+// 2. Make Authenticated Request
+async function apiRequest(url, options = {}) {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    
+    // If token expired, try to refresh
+    if (response.status === 401) {
+        const refreshed = await refreshToken();
+        if (refreshed) {
+            return apiRequest(url, options); // Retry with new token
+        } else {
+            logout(); // Refresh failed, force logout
+            window.location.href = '/login/';
+        }
+    }
+    
+    return response;
+}
+
+// 3. Refresh Token
+async function refreshToken() {
+    const refresh = localStorage.getItem('refresh_token');
+    if (!refresh) return false;
+    
+    const response = await fetch('/api/auth/token/refresh/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refresh })
+    });
+    
+    if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);
+        return true;
+    }
+    return false;
+}
+
+// 4. Logout
+async function logout() {
+    const access = localStorage.getItem('access_token');
+    const refresh = localStorage.getItem('refresh_token');
+    
+    if (access && refresh) {
+        await fetch('/api/auth/logout/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${access}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ refresh: refresh })
+        });
+    }
+    
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+}
+
+// 5. Check if Logged In
+function isLoggedIn() {
+    return localStorage.getItem('access_token') !== null;
+}
+
+// 6. Get Current User
+function getCurrentUser() {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+}
+
+
+PYTHON EXAMPLE (requests library):
+----------------------------------
+
+import requests
+
+BASE_URL = 'http://localhost:8000'
+
+# Login
+response = requests.post(f'{BASE_URL}/api/auth/token/', json={
+    'username': 'student_34',
+    'password': 'testpass123',
+    'institution_name': 'kpiet',
+    'role': 'student'
+})
+tokens = response.json()
+access_token = tokens['access']
+
+# Make authenticated request
+headers = {'Authorization': f'Bearer {access_token}'}
+profile = requests.get(f'{BASE_URL}/api/student/profile/', headers=headers)
+print(profile.json())
+
+
+================================================================================
+                         TOKEN STRUCTURE
+================================================================================
+
+The JWT token contains encoded information (payload):
+
+{
+    "token_type": "access",
+    "exp": 1771367661,           // Expiration timestamp
+    "iat": 1771364061,           // Issued at timestamp
+    "jti": "unique-token-id",    // Token ID
+    "user_id": "126",
+    "role": "student",
+    "institution": "kpiet",
+    "username": "student_34",
+    "email": ""
+}
+
+You can decode the payload in JavaScript:
+-----------------------------------------
+function parseJwt(token) {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(base64));
+}
+
+const payload = parseJwt(accessToken);
+console.log(payload.role);        // "student"
+console.log(payload.institution); // "kpiet"
+
+
+================================================================================
+                         ERROR RESPONSES
+================================================================================
+
+401 Unauthorized:
+{
+    "detail": "Given token not valid for any token type",
+    "code": "token_not_valid"
+}
+-> Token expired or invalid. Try refreshing.
+
+400 Bad Request:
+{
+    "institution_name": "Institution 'XYZ' not found."
+}
+-> Invalid institution name during login.
+
+{
+    "role": "Account found, but it is not a teacher account."
+}
+-> User tried to login with wrong role.
+
+403 Forbidden:
+{
+    "detail": "Only students can access this resource."
+}
+-> User doesn't have required role for this endpoint.
+
+
+================================================================================
+                           FILE LOCATIONS
+================================================================================
+
+Settings:        EduSync/EduSync/settings.py     (JWT configuration)
+Serializers:     EduSync/accounts/serializers.py
+API Views:       EduSync/accounts/api_views.py
+API URLs:        EduSync/accounts/api_urls.py
+Permissions:     EduSync/accounts/permissions.py
+
+Student API:     EduSync/student/api_views.py, api_urls.py, serializers.py
+Teacher API:     EduSync/teacher/api_views.py, api_urls.py, serializers.py
+
+
+================================================================================
+                         TEST CREDENTIALS
+================================================================================
+
+Student Account:
+  Username:    student_34
+  Password:    testpass123
+  Institution: kpiet
+  Role:        student
+
+
+================================================================================
+                      CURL/POWERSHELL COMMANDS
+================================================================================
+
+# Login (PowerShell)
+Invoke-RestMethod -Uri "http://localhost:8000/api/auth/token/" `
+  -Method POST -ContentType "application/json" `
+  -Body '{"username":"student_34","password":"testpass123","institution_name":"kpiet","role":"student"}'
+
+# Get Profile (PowerShell)
+$token = "YOUR_ACCESS_TOKEN"
+Invoke-RestMethod -Uri "http://localhost:8000/api/student/profile/" `
+  -Headers @{Authorization="Bearer $token"}
+
+# Login (curl - Git Bash/Linux)
+curl -X POST http://localhost:8000/api/auth/token/ \
+  -H "Content-Type: application/json" \
+  -d '{"username":"student_34","password":"testpass123","institution_name":"kpiet","role":"student"}'
+
+# Get Profile (curl)
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  http://localhost:8000/api/student/profile/
+
+
+================================================================================

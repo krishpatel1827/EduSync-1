@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import Student
 from academics.models import Grade
 from institution.models import Institution
@@ -38,17 +39,73 @@ def _get_institution_admin(request):
     return institution, None
 
 
+@ensure_csrf_cookie
 @login_required(login_url='login')
 def student_dashboard(request):
     try:
         student = Student.objects.get(user=request.user)
         grades = Grade.objects.filter(student=student)
         
-        # Fetch course schedule
-        active_tt = Timetable.objects.filter(institution=student.institution, is_active=True).first()
+        # Smart timetable filtering with priority hierarchy
+        # Priority 1: Exact match (department + branch)
+        # Priority 2: Department + course match
+        # Priority 3: Department-only match
+        # Priority 4: Institution-wide (backward compatibility)
+        active_tt = None
+
+        if student.department and student.branch:
+            # Try exact match: department + branch
+            active_tt = Timetable.objects.filter(
+                department=student.department,
+                branch=student.branch,
+                is_active=True
+            ).first()
+
+        if not active_tt and student.department and student.course:
+            # Fallback: department + course match
+            active_tt = Timetable.objects.filter(
+                department=student.department,
+                course=student.course,
+                is_active=True
+            ).first()
+
+            # Fallback: department-only match (course/branch is NULL)
+            if not active_tt:
+                active_tt = Timetable.objects.filter(
+                    department=student.department,
+                    course__isnull=True,
+                    branch__isnull=True,
+                    is_active=True
+                ).first()
+
+        if not active_tt and student.department:
+            active_tt = Timetable.objects.filter(
+                department=student.department,
+                branch__isnull=True,
+                course__isnull=True,
+                is_active=True
+            ).first()
+
+        # If still no match, try institution-wide (backward compatibility for old timetables)
+        if not active_tt:
+            active_tt = Timetable.objects.filter(
+                institution=student.institution,
+                department__isnull=True,
+                is_active=True
+            ).first()
+        
         schedule = []
-        if active_tt and student.course:
-            entries = TimetableEntry.objects.filter(subject=student.course, timetable=active_tt).select_related('timeslot', 'faculty', 'room', 'division').order_by('timeslot__start_time')
+        if active_tt:
+            # Get ALL entries for the timetable (not just student's course)
+            # This shows the complete timetable with all divisions
+            # Filter entries for the student's specific division if assigned
+            entry_filter = {'timetable': active_tt}
+            if student.division:
+                entry_filter['division'] = student.division
+            
+            entries = TimetableEntry.objects.filter(**entry_filter).select_related(
+                'timeslot', 'faculty', 'room', 'division', 'subject'
+            ).order_by('timeslot__start_time', 'timeslot__lecture_number')
             
             # Group by day
             days_map = {'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday'}
@@ -60,10 +117,26 @@ def student_dashboard(request):
                         'entries': day_entries
                     })
 
+        # Attendance summary stats
+        from academics.models import Attendance
+        shared_attendance_records = Attendance.objects.filter(
+            student=student,
+            sheet__shared_with_students=True,
+        )
+        shared_attendance_count = shared_attendance_records.count()
+        shared_total_attended = sum(r.lectures_attended for r in shared_attendance_records)
+        shared_total_lectures = sum(r.total_lectures for r in shared_attendance_records)
+        shared_overall_percentage = round((shared_total_attended / shared_total_lectures) * 100, 2) if shared_total_lectures else 0
+
         context = {
             'student': student,
             'grades': grades,
             'schedule': schedule,
+            'timetable': active_tt,
+            'shared_attendance_count': shared_attendance_count,
+            'shared_total_attended': shared_total_attended,
+            'shared_total_lectures': shared_total_lectures,
+            'shared_overall_percentage': shared_overall_percentage,
         }
         return render(request, 'student/dashboard.html', context)
     except Student.DoesNotExist:
@@ -81,6 +154,7 @@ def student_grades(request):
         return render(request, 'student/grades.html', {'error': 'Student profile not found'})
 
 
+@ensure_csrf_cookie
 @login_required(login_url='login')
 def student_list(request):
     institution, error = _get_institution_admin(request)
@@ -206,94 +280,95 @@ def student_delete(request, student_id):
 
 @login_required
 def student_timetable(request):
+    """
+    Renders a premium timetable grid for a specific student.
+    Supports Admin/Teacher view via ?student_id=X
+    """
+    from generator.models import Division, TimetableEntry
     try:
-        student = Student.objects.get(user=request.user)
+        # 1. Determine Target Student
+        student_id = request.GET.get('student_id')
+        if student_id and (request.user.userprofile.role in ['institution_admin', 'teacher']):
+            student = get_object_or_404(Student, id=student_id)
+        else:
+            student = Student.objects.get(user=request.user)
+            
         institution = student.institution
         
-        # Determine current active timetable for this institution
-        # Assuming entries are linked by course (subject) which connects to the student's enrolled course
-        
-        timetable = Timetable.objects.filter(institution=institution, is_active=True).first()
-        
+        # 2. Find Active Timetable
+        # Hierarchy: Dept + Branch -> Dept + Course -> Dept only -> Institution-wide
+        timetable = None
+
+        if student.department and student.branch:
+            timetable = Timetable.objects.filter(
+                department=student.department, branch=student.branch, is_active=True
+            ).first()
+
+        if not timetable and student.department and student.course:
+            timetable = Timetable.objects.filter(
+                department=student.department, course=student.course, is_active=True
+            ).first()
+
+        if not timetable and student.department:
+            timetable = Timetable.objects.filter(
+                department=student.department, branch__isnull=True, course__isnull=True, is_active=True
+            ).first()
+
         if not timetable:
-             return render(request, 'student/my_timetable.html', {'error': 'No active timetable found.'})
-             
-        # We need to filter entries relevant to this student.
-        # Ideally, a student belongs to a specific Division or Course (Branch).
-        # The prompt says "subject of particular branch and student of same branch".
-        # In our models, Student has 'course' (ForeignKey to Course).
-        # TimetableEntry has 'subject' (ForeignKey to Course).
-        # So we filter entries where entry.subject == student.course?
-        # WAIT: TimetableEntry also has 'division'.
-        # Usually students are in a Division. Our Student model doesn't seem to have 'Division' field explicitly shown above?
-        # Let's check Student model.
+            timetable = Timetable.objects.filter(
+                institution=institution, department__isnull=True, is_active=True
+            ).first()
+            
+        if not timetable:
+            return render(request, 'student/my_timetable.html', {
+                'error': f'Timetable is not generated for {student.department.name if student.department else "your department"}.',
+                'student': student
+            })
+
+        # Prepare Grid Data
+        divisions = Division.objects.filter(timetable=timetable).order_by('name')
         
-        # Re-reading prompt: "particular branch and a student is of same branch"
-        # So we filter entries by student.course.
+        # Get slots and handle potential duplicates in data by grouping by (time, type)
+        all_raw_slots = list(timetable.timeslots.all().order_by('start_time', 'lecture_number'))
+        time_to_slot_ids = {} # Map (time_key) -> list of slot IDs
+        all_unique_slots = []
         
-        relevant_entries = TimetableEntry.objects.filter(
-            timetable=timetable,
-            subject=student.course 
-        ).select_related('timeslot', 'faculty', 'room', 'division', 'subject').order_by('day', 'timeslot__lecture_number')
+        for s in all_raw_slots:
+            time_key = (s.start_time, s.end_time, s.is_break)
+            if time_key not in time_to_slot_ids:
+                time_to_slot_ids[time_key] = [s.id]
+                all_unique_slots.append(s)
+            else:
+                time_to_slot_ids[time_key].append(s.id)
         
-        # But wait, a timetable usually has ALL subjects for a division.
-        # If the student is in "B.Tech CS", their timetable should show ALL classes for "B.Tech CS".
-        # If 'student.course' represents the Branch (e.g. B.Tech CS), then yes.
-        # But usually 'TimetableEntry.subject' is a specific subject like "Data Structures".
-        # And "Data Structures" belongs to "B.Tech CS".
-        # Let's check models to be sure.
-        
-        # Assumption: Student.course is the "Program/Branch" (e.g. B.Tech CS).
-        # AND TimetableEntry.subject is ALSO the "Program/Branch"? 
-        # OR TimetableEntry.subject is a specific subject?
-        
-        # Let's look at `create_demo_data.py` or similar to see what Course means.
-        # Course name="B.Tech Computer Science".
-        # So yes, Student.course is the big program.
-        # TimetableEntry.subject is... wait.
-        # In generator/views.py: subjects = Course.objects.filter(...)
-        # So 'subject' in TimetableEntry IS the Course model.
-        # If the Course model represents "B.Tech CS", then assigning "B.Tech CS" to a slot means "Class for B.Tech CS".
-        
-        # So yes, filter entries where subject=student.course.
-        
-        # Construct grid data similar to timetable_view but only for this student's course
-        
-        divisions = list(set(e.division for e in relevant_entries))
-        # If there are multiple divisions for the same course (e.g. D1, D2), the student should ideally know their division.
-        # Since Student model logic for division isn't clear, we might show all or just the first?
-        # Prompt says "student can see the time table of his".
-        # Let's show all divisions for that course if multiple exist, or just the grid.
-        
-        # Actually, let's just reuse the timetable structure but filtered.
-        
-        days = [
+        days_map = [
             ('MON', 'Monday'), ('TUE', 'Tuesday'), ('WED', 'Wednesday'),
             ('THU', 'Thursday'), ('FRI', 'Friday'), ('SAT', 'Saturday'), ('SUN', 'Sunday')
         ][:timetable.days_count]
         
-        timeslots = list(set(e.timeslot for e in relevant_entries))
-        timeslots.sort(key=lambda x: x.lecture_number)
-        
-        # We need all timeslots from the timetable to show gaps/breaks correctly
-        all_timeslots = timetable.timeslots.all().order_by('lecture_number')
-        
         timetable_data = []
-        for day_code, day_name in days:
+        for day_code, day_name in days_map:
             day_slots = []
-            for slot in all_timeslots:
-                # Find entry for this student's course at this slot
-                # (Ignoring division for a moment, or assuming they want to see "B.Tech CS" classes)
-                entry = TimetableEntry.objects.filter(
-                    timetable=timetable,
-                    day=day_code,
-                    timeslot=slot,
-                    subject=student.course
-                ).first()
+            for slot in all_unique_slots:
+                slot_entries = {}
+                time_key = (slot.start_time, slot.end_time, slot.is_break)
+                slot_ids = time_to_slot_ids[time_key]
+                
+                for div in divisions:
+                    # Filter: Match Timetable, Day, any matching Slot IDs, and Division
+                    entry = TimetableEntry.objects.filter(
+                        timetable=timetable,
+                        day=day_code,
+                        timeslot_id__in=slot_ids,
+                        division=div
+                    ).select_related('faculty', 'room', 'subject').first()
+                    
+                    if entry:
+                        slot_entries[div.id] = entry
                 
                 day_slots.append({
                     'slot': slot,
-                    'entry': entry
+                    'entries': slot_entries
                 })
             timetable_data.append({
                 'day_code': day_code,
@@ -303,12 +378,44 @@ def student_timetable(request):
 
         context = {
             'student': student,
+            'divisions': divisions,
             'current_timetable': timetable,
             'timetable_data': timetable_data,
-            'semester_text': timetable.footer_semester_text, # Using the dynamic field
+            'semester_text': timetable.footer_semester_text,
+            'is_admin_view': student.user != request.user
         }
         return render(request, 'student/my_timetable.html', context)
         
-    except Student.DoesNotExist:
-        messages.error(request, "Student profile not found.")
+    except (Student.DoesNotExist, UserProfile.DoesNotExist):
+        messages.error(request, "Student profile or access context not found.")
         return redirect('dashboard')
+
+
+@login_required(login_url='login')
+def my_attendance(request):
+    """Student view - see shared attendance sheets"""
+    try:
+        student = Student.objects.get(user=request.user)
+    except Student.DoesNotExist:
+        messages.error(request, 'Student profile not found.')
+        return redirect('login')
+
+    from academics.models import Attendance
+
+    attendance_records = Attendance.objects.filter(
+        student=student,
+        sheet__shared_with_students=True,
+    ).select_related('sheet__teacher__user', 'sheet__department').order_by('-sheet__created_at')
+
+    total_attended = sum(r.lectures_attended for r in attendance_records)
+    total_lectures = sum(r.total_lectures for r in attendance_records)
+    overall_percentage = round((total_attended / total_lectures) * 100, 2) if total_lectures else 0
+
+    context = {
+        'student': student,
+        'attendance_records': attendance_records,
+        'total_attended': total_attended,
+        'total_lectures': total_lectures,
+        'overall_percentage': overall_percentage,
+    }
+    return render(request, 'student/my_attendance.html', context)

@@ -5,12 +5,15 @@ from django.db import IntegrityError
 from .models import Course, Grade
 from .forms import CourseForm
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from institution.models import Institution
 
 
 from accounts.utils import get_user_institution
 
 
+@ensure_csrf_cookie
+@csrf_protect
 @login_required(login_url='login')
 def course_list(request):
     institution = get_user_institution(request.user)
@@ -34,6 +37,8 @@ def course_detail(request, course_id):
     return render(request, 'academics/course_detail.html', context)
 
 
+@ensure_csrf_cookie
+@csrf_protect
 @login_required(login_url='login')
 @never_cache
 def course_create(request):

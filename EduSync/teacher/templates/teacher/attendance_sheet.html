@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .attendance-sheet-container {
+        min-height: 100vh;
+        padding: 2rem 1rem;
+    }
+
+    .theme-classic {
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
+
+    .sheet-header,
+    .table-wrapper {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        border: 1px solid var(--clr-border);
+        box-shadow: var(--shadow-md);
+    }
+
+    .sheet-header {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .institution-title {
+        font-family: var(--font-head);
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: var(--clr-text);
+        margin: 0;
+        padding: 0.2rem 0.4rem;
+        border-radius: 8px;
+        border: 1px dashed transparent;
+    }
+
+    .institution-title:focus {
+        outline: none;
+        border-color: var(--clr-accent);
+        background: var(--clr-accent-soft);
+    }
+
+    .sub-title {
+        font-weight: 700;
+        color: var(--clr-text);
+        margin: 0.5rem 0 0;
+    }
+
+    .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        align-items: center;
+        margin: 1rem 0 0;
+    }
+
+    .sheet-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .info-item {
+        background: var(--clr-surface-alt);
+        border-left: 4px solid var(--clr-accent);
+        border-radius: 10px;
+        padding: 0.8rem;
+    }
+
+    .info-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--clr-text-muted);
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--clr-text);
+    }
+
+    .status-chip {
+        display: inline-block;
+        padding: 0.3rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        background: var(--clr-warning-soft);
+        color: var(--clr-warning);
+    }
+
+    .status-chip.shared {
+        background: var(--clr-success-soft);
+        color: var(--clr-success);
+    }
+
+    .table-wrapper {
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 0.85rem;
+        border-bottom: 1px solid var(--clr-border);
+        text-align: left;
+    }
+
+    .attendance-table th {
+        background: var(--clr-surface-alt);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--clr-text);
+    }
+
+    .attendance-input {
+        width: 90px;
+        padding: 0.45rem;
+        border-radius: 8px;
+        border: 1px solid var(--clr-border);
+        background: var(--clr-bg);
+        color: var(--clr-text);
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .btn-action {
+        border-radius: 10px;
+        font-weight: 700;
+    }
+
+    .percentage-high {
+        color: var(--clr-success);
+        font-weight: 700;
+    }
+
+    .percentage-medium {
+        color: var(--clr-warning);
+        font-weight: 700;
+    }
+
+    .percentage-low {
+        color: var(--clr-danger);
+        font-weight: 700;
+    }
+</style>
+
+<div id="sheetThemeRoot" class="attendance-sheet-container theme-classic">
+    <div class="container" style="max-width: 1200px;">
+
+        {% if attendance_records %}
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="sheet-header">
+                <h1 id="institutionTitle" class="institution-title" contenteditable="true">{{ teacher.institution.name }}</h1>
+                <p class="sub-title">{{ department.name }} Attendance Sheet</p>
+
+                <div class="toolbar">
+                    <button type="submit" name="action" value="save" class="btn btn-primary btn-action">Save</button>
+                    {% if sheet.shared_with_students %}
+                    <button type="submit" name="action" value="unshare"
+                        class="btn btn-outline-secondary btn-action">Unshare from Students</button>
+                    {% else %}
+                    <button type="submit" name="action" value="share" class="btn btn-success btn-action">Share with
+                        Students</button>
+                    {% endif %}
+                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary btn-action">Back</a>
+
+                    <span class="status-chip {% if sheet.shared_with_students %}shared{% endif %}">
+                        {% if sheet.shared_with_students %}Shared with students{% else %}Not shared yet{% endif %}
+                    </span>
+                </div>
+
+                <div class="sheet-info">
+                    <div class="info-item">
+                        <div class="info-label">Date From</div>
+                        <div class="info-value">{{ sheet.date_from|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Date To</div>
+                        <div class="info-value">{{ sheet.date_to|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Total Lectures</div>
+                        <div class="info-value">{{ total_lectures }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Students</div>
+                        <div class="info-value">{{ attendance_records.count }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Roll No.</th>
+                            <th>Name (Student)</th>
+                            <th>Attended Lecture</th>
+                            <th>Total Lecture</th>
+                            <th>Attendance %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_records %}
+                        <tr>
+                            <td><strong style="color: var(--clr-accent);">{{ record.student.student_id }}</strong></td>
+                            <td><strong>{{ record.student.user.get_full_name }}</strong></td>
+                            <td>
+                                <input type="number" name="lectures_attended_{{ record.id }}" class="attendance-input"
+                                    value="{{ record.lectures_attended }}" min="0" max="{{ total_lectures }}"
+                                    data-total="{{ record.total_lectures }}" onchange="updatePercentage(this)">
+                            </td>
+                            <td><strong>{{ record.total_lectures }}</strong></td>
+                            <td>
+                                <span
+                                    class="percentage-{% if record.attendance_percentage >= 75 %}high{% elif record.attendance_percentage >= 50 %}medium{% else %}low{% endif %}"
+                                    id="percentage_{{ record.id }}">
+                                    {{ record.attendance_percentage }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+        {% else %}
+        <div class="sheet-header text-center">
+            <h2 class="sub-title">No students found in {{ department.name }}</h2>
+            <p class="text-muted">Add students in this department first, then regenerate attendance.</p>
+            <a href="{% url 'student_list' %}" class="btn btn-primary">Go to Students</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function updatePercentage(input) {
+        const totalLectures = parseInt(input.dataset.total, 10) || 0;
+        const attended = parseInt(input.value, 10) || 0;
+        const percentage = totalLectures > 0 ? Math.round((attended / totalLectures) * 100) : 0;
+        const recordId = input.name.split('_').pop();
+        const percentageCell = document.getElementById('percentage_' + recordId);
+        if (percentageCell) {
+            percentageCell.textContent = percentage + '%';
+            percentageCell.className = (percentage >= 75 ? 'percentage-high' : (percentage >= 50 ? 'percentage-medium' : 'percentage-low'));
+        }
+    }
+
+    (function () {
+        const title = document.getElementById('institutionTitle');
+        const titleKey = 'attendance_sheet_institution_title';
+
+        const savedTitle = localStorage.getItem(titleKey);
+        if (savedTitle) {
+            title.textContent = savedTitle;
+        }
+
+        title.addEventListener('input', function () {
+            localStorage.setItem(titleKey, title.textContent.trim());
+        });
+    })();
+</script>
+
+{% endblock %}

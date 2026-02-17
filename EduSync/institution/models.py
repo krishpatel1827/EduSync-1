@@ -26,6 +26,7 @@ class Department(models.Model):
         unique_together = ('institution', 'name')
 
 class News(models.Model):
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, related_name='news_feed', null=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

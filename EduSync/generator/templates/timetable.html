@@ -4,15 +4,11 @@
 {% block content %}
 <style>
     /* Reset & Base */
-    body {
-        background-color: white;
-    }
-
     .timetable-body {
         font-family: 'Arial Narrow', Arial, sans-serif;
-        background-color: white;
+        background-color: var(--clr-bg);
         padding: 5px;
-        color: black;
+        color: var(--clr-text);
         max-width: 100%;
         overflow-x: auto;
         transition: background-color 0.4s ease, color 0.4s ease;
@@ -24,37 +20,39 @@
         display: flex;
         gap: 5px;
         justify-content: center;
-        background: #f8f9fa;
+        flex-wrap: wrap;
+        background: var(--clr-surface-alt);
         padding: 10px;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid var(--clr-border);
     }
 
-    .btn {
+    .controls .btn {
         padding: 5px 15px;
         color: white;
         text-decoration: none;
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         font-size: 14px;
         font-weight: bold;
     }
 
-    .btn-dark {
-        background-color: #343a40;
+    .controls .btn-dark {
+        background-color: var(--clr-text);
+        color: var(--clr-bg);
     }
 
-    .btn-primary {
-        background-color: #007bff;
+    .controls .btn-primary {
+        background-color: var(--clr-accent);
     }
 
-    .btn-secondary {
-        background-color: #6c757d;
+    .controls .btn-secondary {
+        background-color: var(--clr-text-muted);
     }
 
-    .btn-success {
-        background-color: #28a745;
+    .controls .btn-success {
+        background-color: var(--clr-success, #28a745);
     }
 
-    .btn-danger {
+    .controls .btn-danger {
         background-color: #dc3545;
     }
 
@@ -77,11 +75,11 @@
     /* Header */
     .header-section {
         text-align: center;
-        border: 2px solid black;
+        border: 2px solid var(--clr-text);
         border-bottom: none;
         padding: 5px;
         position: relative;
-        /* Added for edit button */
+        background-color: var(--clr-surface);
     }
 
     .header-section h1 {
@@ -90,6 +88,7 @@
         margin: 0;
         text-transform: uppercase;
         letter-spacing: 1px;
+        color: var(--clr-text);
     }
 
     .header-section h2 {
@@ -97,7 +96,8 @@
         font-weight: 800;
         margin: 5px 0;
         text-transform: uppercase;
-        background-color: white;
+        background-color: var(--clr-surface);
+        color: var(--clr-text);
     }
 
     .header-section h3 {
@@ -106,22 +106,22 @@
         margin: 2px 0;
         text-transform: uppercase;
         text-decoration: underline;
+        color: var(--clr-text);
     }
 
     /* Main Table */
     .tt-table {
         width: 100%;
         border-collapse: collapse;
-        border: 2px solid black;
+        border: 2px solid var(--clr-text);
         font-size: 11px;
         text-align: center;
         table-layout: fixed;
-        /* Enforce strict widths */
     }
 
     .tt-table th,
     .tt-table td {
-        border: 1px solid black;
+        border: 1px solid var(--clr-border);
         padding: 4px 2px;
         vertical-align: middle;
         word-wrap: break-word;
@@ -141,12 +141,9 @@
         width: 8%;
     }
 
-    /* Division columns auto-calculated but we aim for compactness */
-
     /* Header Styling */
     .header-row-1 th {
-        background-color: #ffffff;
-        /* Division Title Row */
+        background-color: var(--clr-surface);
     }
 
     .header-row-2 th {
@@ -183,7 +180,7 @@
 
     /* Data Colors */
     .row-normal td {
-        background-color: #ffffff;
+        background-color: var(--clr-surface);
     }
 
     /* Specific Logic for Time/Room Column background */
@@ -200,12 +197,12 @@
 
     .text-subject {
         font-weight: bold;
-        color: black;
+        color: var(--clr-text);
     }
 
     .text-faculty {
         font-weight: normal;
-        color: #333;
+        color: var(--clr-text-muted);
         font-style: normal;
     }
 
@@ -216,51 +213,50 @@
 
     /* Break Row */
     .break-row td {
-        background-color: white;
+        background-color: var(--clr-surface);
         font-weight: bold;
         text-align: center;
         padding: 5px;
-        border-top: 2px solid black;
-        border-bottom: 2px solid black;
+        border-top: 2px solid var(--clr-text);
+        border-bottom: 2px solid var(--clr-text);
     }
 
     /* Footer */
     .footer-table {
         width: 100%;
         border-collapse: collapse;
-        border: 2px solid black;
+        border: 2px solid var(--clr-text);
         border-top: none;
         font-size: 11px;
+        color: var(--clr-text);
     }
 
     .footer-heading {
         background-color: #dbadbd;
-        /* Dusty Pink */
         font-weight: bold;
         text-align: center;
-        border: 1px solid black;
+        border: 1px solid var(--clr-border);
         padding: 5px;
     }
 
     .footer-sub-heading {
-        background-color: #e6e6e6;
-        /* Grey */
+        background-color: var(--clr-surface-alt);
         font-weight: bold;
         text-align: center;
-        border: 1px solid black;
+        border: 1px solid var(--clr-border);
         padding: 3px;
     }
 
     .footer-content {
-        border: 1px solid black;
+        border: 1px solid var(--clr-border);
         vertical-align: top;
         padding: 0;
+        background-color: var(--clr-surface);
     }
 
     .signature-section {
-        background-color: #ffecd9;
-        /* Light Peach */
-        border: 1px solid black;
+        background-color: var(--clr-surface-alt);
+        border: 1px solid var(--clr-border);
         text-align: center;
         padding: 20px;
         font-weight: bold;
@@ -268,8 +264,7 @@
     }
 
     .prepared-by {
-        background-color: #eaf1dd;
-        /* Light Greenish */
+        background-color: var(--clr-surface-alt);
     }
 
     ul.legend {
@@ -310,7 +305,7 @@
 
     /* Grey */
     .theme-classic .text-subject {
-        color: black;
+        color: var(--clr-text);
     }
 
     /* THEME: MODERN BLUE */
@@ -500,6 +495,19 @@
         </form>
 
         <a href="{% url 'add_entry' %}" class="btn btn-primary">+ Add Entry</a>
+        {% if current_timetable %}
+        {% if current_timetable.is_published %}
+        <form action="{% url 'publish_timetable' current_timetable.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">✓ Published (Click to Unpublish)</button>
+        </form>
+        {% else %}
+        <button type="button" class="btn btn-warning"
+            onclick="document.getElementById('publishPanel').style.display = document.getElementById('publishPanel').style.display === 'none' ? 'block' : 'none'">
+            📌 Publish to Students
+        </button>
+        {% endif %}
+        {% endif %}
         <a href="{% url 'setup' %}" class="btn btn-secondary">Configure</a>
         {% if current_timetable %}
         <form action="{% url 'auto_generate_timetable' current_timetable.id %}" method="post" style="display:inline;"
@@ -517,7 +525,34 @@
         {% endif %}
     </div>
 
-    <!-- Title Header -->
+    <!-- Publish Confirmation Panel -->
+    {% if current_timetable and not current_timetable.is_published %}
+    <div id="publishPanel" style="display: none; padding: 24px; background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: var(--radius); margin-bottom: 10px; box-shadow: var(--shadow-md);">
+        <h5 style="margin: 0 0 6px 0; color: var(--clr-text); font-weight: 700; font-size: 1.1rem;">Publish Timetable</h5>
+        <p style="color: var(--clr-text-muted); font-size: 0.9rem; margin-bottom: 20px;">Confirm the department, branch, and name before publishing to students.</p>
+        <form action="{% url 'publish_timetable' current_timetable.id %}" method="post">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                {% for field in publish_form %}
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 5px; color: var(--clr-text); font-size: 0.85rem;">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button type="submit" style="padding: 8px 20px; background: var(--clr-success, #28a745); color: white; border: none; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; font-size: 0.9rem;">
+                    Confirm & Publish
+                </button>
+                <button type="button" style="padding: 8px 20px; background: var(--clr-surface-alt); color: var(--clr-text); border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; font-size: 0.9rem;"
+                    onclick="document.getElementById('publishPanel').style.display = 'none'">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
     <!-- Title Header -->
     <div class="header-section position-relative">
         <h1 class="text-uppercase">{{ current_timetable.heading_1 }}</h1>
@@ -526,36 +561,29 @@
 
         <!-- Edit Button (Hidden in Print) -->
         <button type="button" class="btn btn-sm btn-light position-absolute top-0 end-0 m-2 d-print-none"
-            data-bs-toggle="modal" data-bs-target="#editHeaderModal" title="Edit Headers">
+            onclick="document.getElementById('editHeaderForm').style.display = document.getElementById('editHeaderForm').style.display === 'none' ? 'block' : 'none'"
+            title="Edit Headers">
             ✏️
         </button>
     </div>
 
-    <!-- Edit Header Modal -->
-    <div class="modal fade" id="editHeaderModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Timetable Headers</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{% url 'edit_timetable_header' current_timetable.id %}" method="post">
-                    <div class="modal-body">
-                        {% csrf_token %}
-                        {% for field in header_form %}
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">{{ field.label }}</label>
-                            {{ field }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
+    <!-- Edit Header Inline Form -->
+    <div id="editHeaderForm" style="display: none; padding: 20px; background: var(--clr-surface); border: 1px solid var(--clr-border); border-top: none; border-radius: 0 0 var(--radius) var(--radius);">
+        <h5 style="margin-bottom: 15px; color: var(--clr-text); font-weight: 700;">Edit Timetable Headers</h5>
+        <form action="{% url 'edit_timetable_header' current_timetable.id %}" method="post">
+            {% csrf_token %}
+            {% for field in header_form %}
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 4px; color: var(--clr-text); font-size: 0.9rem;">{{ field.label }}</label>
+                {{ field }}
             </div>
-        </div>
+            {% endfor %}
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary"
+                    onclick="document.getElementById('editHeaderForm').style.display = 'none'">Cancel</button>
+            </div>
+        </form>
     </div>
 
     <!-- Timetable Grid -->
@@ -597,7 +625,7 @@
             <tr class="break-row">
                 <!-- Day Left -->
                 {% if forloop.first %}
-                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: white;">
+                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: var(--clr-surface-alt);">
                     <div class="vertical-text-wrapper">{{ day.day_code }}</div>
                 </td>
                 {% endif %}
@@ -609,7 +637,7 @@
 
                 <!-- Day Right -->
                 {% if forloop.first %}
-                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: white;">
+                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: var(--clr-surface-alt);">
                     <div class="vertical-text-wrapper">{{ day.day_code }}</div>
                 </td>
                 {% endif %}
@@ -618,7 +646,7 @@
             <tr class="row-normal">
                 <!-- Day Column (First slot only) -->
                 {% if forloop.first %}
-                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: white;">
+                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: var(--clr-surface-alt);">
                     <div class="vertical-text-wrapper">{{ day.day_code }}</div>
                 </td>
                 {% endif %}
@@ -651,7 +679,7 @@
 
                 <!-- Right Day Column -->
                 {% if forloop.first %}
-                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: white;">
+                <td rowspan="{{ slots|length }}" class="vertical-text-cell" style="background-color: var(--clr-surface-alt);">
                     <div class="vertical-text-wrapper">{{ day.day_code }}</div>
                 </td>
                 {% endif %}
@@ -666,8 +694,7 @@
     <!-- Footer Legend -->
     <table class="footer-table">
         <tr>
-            <td colspan="4" class="footer-heading" style="background-color: #dbadbd;">{{
-                current_timetable.footer_semester_text }}</td>
+            <td colspan="4" class="footer-heading">{{ current_timetable.footer_semester_text }}</td>
         </tr>
         <tr>
             <!-- Legends split into 2 massive columns for simplicity, or 4 to match image if possible -->
@@ -722,4 +749,53 @@
     </table>
 
 </div>
+
+<script>
+// Filter branch dropdown based on selected department
+(function() {
+    var deptSelect = document.getElementById('publish-department');
+    var branchSelect = document.getElementById('publish-branch');
+    if (!deptSelect || !branchSelect) return;
+
+    // Store all branch options with their department IDs
+    var allOptions = [];
+    for (var i = 0; i < branchSelect.options.length; i++) {
+        allOptions.push({
+            value: branchSelect.options[i].value,
+            text: branchSelect.options[i].text,
+            el: branchSelect.options[i].cloneNode(true)
+        });
+    }
+
+    // Build dept-to-branch mapping via data from the backend
+    // We'll use a simple fetch approach
+    function filterBranches() {
+        var deptId = deptSelect.value;
+        if (!deptId) {
+            // Show all branches
+            branchSelect.innerHTML = '';
+            allOptions.forEach(function(opt) {
+                branchSelect.appendChild(opt.el.cloneNode(true));
+            });
+            return;
+        }
+        // Fetch branches for selected department
+        fetch('/generator/api/branches/?department=' + deptId)
+            .then(function(r) { return r.json(); })
+            .catch(function() { return null; })
+            .then(function(data) {
+                if (!data) return;
+                branchSelect.innerHTML = '<option value="">---------</option>';
+                data.forEach(function(b) {
+                    var opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.text = b.name;
+                    branchSelect.appendChild(opt);
+                });
+            });
+    }
+
+    deptSelect.addEventListener('change', filterBranches);
+})();
+</script>
 {% endblock %}

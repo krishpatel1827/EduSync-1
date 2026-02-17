@@ -22,6 +22,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
+    path('api/auth/', include('accounts.api_urls')),  # JWT Auth API endpoints
+    path('api/student/', include('student.api_urls')),  # Student API endpoints
+    path('api/teacher/', include('teacher.api_urls')),  # Teacher API endpoints
     path('generator/', include('generator.urls')),
     path('institution/', include('institution.urls')),
     path('student/', include('student.urls')),

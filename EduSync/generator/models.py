@@ -5,9 +5,16 @@ from institution.models import Institution
 
 class Timetable(models.Model):
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE, null=True, blank=True)
+    department = models.ForeignKey('institution.Department', on_delete=models.CASCADE, null=True, blank=True)
+    course = models.ForeignKey('academics.Course', on_delete=models.CASCADE, null=True, blank=True)
+    branch = models.ForeignKey('academics.Branch', on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    
     name = models.CharField(max_length=100, default="My Timetable")
+    status = models.CharField(max_length=20, default='Draft', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    is_published = models.BooleanField(default=False)
     days_count = models.IntegerField(default=6)
     heading_1 = models.CharField(max_length=255, default="L.J. INSTITUTE OF ENGINEERING AND TECHNOLOGY, L.J. UNIVERSITY")
     heading_2 = models.CharField(max_length=255, default="SY CE/IT- 4 DEPARTMENT")
@@ -63,9 +70,9 @@ class TimetableEntry(models.Model):
     # Relationships with CASCADE/PROTECT/SET_NULL as appropriate
     timeslot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE)
     division = models.ForeignKey(Division, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True) # If course is deleted, entry is deleted
-    faculty = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True) # If teacher leaves, slot remains but empty faculty
-    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, blank=True) # If room deleted, slot remains
+    subject = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
+    faculty = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True)
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Timetable Entries"
@@ -74,11 +81,8 @@ class TimetableEntry(models.Model):
             models.Index(fields=['timeslot']),
         ]
         unique_together = [
-             # A room can't be in two places at once
             ('room', 'timeslot', 'day'),
-             # A division can't be in two places at once
             ('division', 'timeslot', 'day'),
-            # A faculty can't be in two places at once
             ('faculty', 'timeslot', 'day'),   
         ]
     

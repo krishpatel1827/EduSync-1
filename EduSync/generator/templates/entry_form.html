@@ -1,27 +1,29 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-    <h2>Add Timetable Entry</h2>
+<div
+    style="max-width: 600px; margin: 40px auto; padding: 30px; border: 1px solid var(--clr-border); border-radius: var(--radius); background: var(--clr-surface); box-shadow: var(--shadow-md);">
+    <h2 style="color: var(--clr-text); margin-bottom: 20px;">Add Timetable Entry</h2>
     <form method="post">
         {% csrf_token %}
         <div style="display: flex; flex-direction: column; gap: 15px;">
             {% for field in form %}
             <div style="display: flex; flex-direction: column;">
-                <label style="font-weight: bold; margin-bottom: 5px;">{{ field.label }}</label>
+                <label style="font-weight: 600; margin-bottom: 5px; color: var(--clr-text); font-size: 0.9rem;">{{
+                    field.label }}</label>
                 {{ field }}
                 {% if field.errors %}
-                <div style="color: red; font-size: 0.9em;">{{ field.errors }}</div>
+                <div style="color: #ef4444; font-size: 0.9em;">{{ field.errors }}</div>
                 {% endif %}
             </div>
             {% endfor %}
 
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 20px; display: flex; align-items: center; gap: 12px;">
                 <button type="submit"
-                    style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">Save
+                    style="padding: 10px 24px; background: var(--clr-accent); color: white; border: none; cursor: pointer; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.95rem;">Save
                     Entry</button>
                 <a href="{% url 'timetable' %}"
-                    style="margin-left: 10px; text-decoration: none; color: #333;">Cancel</a>
+                    style="text-decoration: none; color: var(--clr-text-muted); font-weight: 600;">Cancel</a>
             </div>
         </div>
     </form>

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    .attendance-wrapper {
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
+
+    .attendance-card {
+        background: var(--clr-surface);
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--clr-border);
+    }
+
+    .card-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .card-title {
+        font-family: var(--font-head);
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, var(--clr-accent), var(--clr-success));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .card-subtitle {
+        font-size: 0.95rem;
+        color: var(--clr-text-muted);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--clr-text);
+        margin-bottom: 0.5rem;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control {
+        background: var(--clr-bg);
+        border: 1px solid var(--clr-border);
+        padding: 0.85rem 1rem;
+        border-radius: 12px;
+        font-size: 1rem;
+        width: 100%;
+        color: var(--clr-text);
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--clr-accent);
+        box-shadow: 0 0 0 4px var(--clr-accent-soft);
+        background: var(--clr-surface);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--clr-accent), var(--clr-accent-hover));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        margin-top: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        filter: brightness(1.1);
+    }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: var(--clr-text-muted);
+        margin-top: 0.3rem;
+    }
+
+    @media (max-width: 768px) {
+        .attendance-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+        }
+    }
+</style>
+
+<div class="attendance-wrapper">
+    <div class="attendance-card">
+        <div class="card-header">
+            <h1 class="card-title">📊 Attendance Generator</h1>
+            <p class="card-subtitle">Create attendance sheet for your department</p>
+        </div>
+
+        {% if messages %}
+        <div class="alert-container mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="department">Select Department</label>
+                <select name="department_id" id="department" class="form-control" required>
+                    <option value="">-- Choose a department --</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+                <p class="help-text">You can only select departments where you teach</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="date_from">From Date</label>
+                <input type="date" name="date_from" id="date_from" class="form-control" required>
+                <p class="help-text">Start date for this attendance period</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="date_to">To Date</label>
+                <input type="date" name="date_to" id="date_to" class="form-control" required>
+                <p class="help-text">End date for this attendance period</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="total_lectures">Total Lectures</label>
+                <input type="number" name="total_lectures" id="total_lectures" class="form-control" min="1" required>
+                <p class="help-text">Total number of lectures during this period</p>
+            </div>
+
+            <button type="submit" class="btn-submit">Generate Sheet →</button>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="{% url 'teacher_dashboard' %}" style="color: var(--clr-text-muted); text-decoration: none;">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Set today's date as default
+    document.getElementById('date_from').valueAsDate = new Date();
+    document.getElementById('date_to').valueAsDate = new Date();
+
+    // Ensure date_to is not before date_from
+    document.getElementById('date_from').addEventListener('change', function () {
+        if (document.getElementById('date_to').value < this.value) {
+            document.getElementById('date_to').value = this.value;
+        }
+    });
+</script>
+
+{% endblock %}

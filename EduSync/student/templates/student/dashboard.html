@@ -10,7 +10,7 @@
     }
 
     .welcome-card {
-        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        background: linear-gradient(135deg, var(--clr-accent) 0%, var(--clr-accent-hover) 100%);
         border-radius: 24px;
         padding: 3rem;
         color: white;
@@ -50,21 +50,33 @@
     }
 
     .feature-card {
-        background: var(--clr-surface);
-        border: 1px solid var(--clr-border);
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 20px;
         padding: 2rem;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
         color: inherit;
         display: block;
         height: 100%;
     }
 
+    [data-bs-theme="dark"] .feature-card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
     .feature-card:hover {
-        transform: translateY(-8px);
+        transform: translateY(-8px) scale(1.01);
         box-shadow: var(--shadow-lg);
         border-color: var(--clr-accent);
+        background: rgba(255, 255, 255, 0.85);
+    }
+
+    [data-bs-theme="dark"] .feature-card:hover {
+        background: rgba(15, 23, 42, 0.8);
     }
 
     .card-icon-box {
@@ -90,6 +102,11 @@
     .icon-green {
         background: rgba(16, 185, 129, 0.1);
         color: #10B981;
+    }
+
+    .icon-orange {
+        background: rgba(249, 115, 22, 0.1);
+        color: #F97316;
     }
 
     .feature-card h3 {
@@ -153,8 +170,7 @@
                 </svg>
             </div>
             <h3>My Timetable</h3>
-            <p>View your personalized class schedule for {{ student.course.name|default:"your course" }} - {{
-                semester_text|default:"Current Semester" }}.</p>
+            <p>View your personalized class schedule for {{ student.course.name|default:"your course" }} - {{ semester_text|default:"Current Semester" }}.</p>
         </a>
 
         <!-- Grades Access -->
@@ -186,99 +202,288 @@
                     {{ student.course.name }}</span>
             </div>
         </div>
+
+        <!-- My Attendance -->
+        <a href="{% url 'my_attendance' %}" class="feature-card">
+            <div class="card-icon-box icon-orange">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    <path d="M9 14l2 2 4-4"></path>
+                </svg>
+            </div>
+            <h3>My Attendance</h3>
+            {% if shared_attendance_count > 0 %}
+            <p style="margin-bottom: 0.25rem;"><strong>{{ shared_overall_percentage }}%</strong> overall attendance</p>
+            <p class="text-muted" style="font-size: 0.85rem; margin: 0;">{{ shared_total_attended }}/{{ shared_total_lectures }} lectures from {{ shared_attendance_count }} shared sheet{{ shared_attendance_count|pluralize }}.</p>
+            {% else %}
+            <p style="color: var(--clr-warning, #f59e0b); font-weight: 600; margin: 0;">No attendance shared yet.</p>
+            {% endif %}
+        </a>
     </div>
 
     <!-- Student Profile Details -->
     <div class="row mb-5" style="margin-top: 3rem;">
         <div class="col-12">
-            <div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
-                <div class="card-header bg-white border-0 py-3" style="border-left: 4px solid #3B82F6 !important;">
-                    <h5 class="mb-0 fw-bold" style="font-family: var(--font-head);">Student Profile Details</h5>
+            <div class="profile-card" style="
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            ">
+                <div class="card-header" style="
+                    background: linear-gradient(135deg, var(--clr-accent) 0%, var(--clr-accent-hover) 100%);
+                    padding: 2rem;
+                    border: none;
+                    position: relative;
+                    overflow: hidden;
+                ">
+                    <div
+                        style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255, 255, 255, 0.1); border-radius: 50%;">
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between"
+                        style="position: relative; z-index: 1;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="
+                                width: 60px;
+                                height: 60px;
+                                background: rgba(255, 255, 255, 0.2);
+                                border-radius: 16px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                backdrop-filter: blur(10px);
+                            ">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white"
+                                    stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div>
+                                <h5 class="mb-1"
+                                    style="font-family: var(--font-head); font-weight: 700; color: white; font-size: 1.5rem;">
+                                    Student Profile</h5>
+                                <p class="mb-0" style="color: rgba(255, 255, 255, 0.9); font-size: 0.9rem;">Complete
+                                    academic information</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <tbody>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom" style="width: 30%;">Full
-                                        Name</th>
-                                    <td class="py-3 fw-bold border-bottom">{{ student.user.get_full_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Student ID</th>
-                                    <td class="py-3 border-bottom">{{ student.student_id }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Email</th>
-                                    <td class="py-3 border-bottom">{{ student.user.email }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Institution</th>
-                                    <td class="py-3 border-bottom">{{ student.institution.name }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Course</th>
-                                    <td class="py-3 border-bottom">
-                                        {% if student.course %}
-                                        {{ student.course.name }} ({{ student.course.code }})
-                                        {% else %}
-                                        <span class="text-muted">Not Enrolled</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Academic Year</th>
-                                    <td class="py-3 border-bottom">{{ student.academic_year }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Gender</th>
-                                    <td class="py-3 border-bottom">{{ student.get_gender_display }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Date of Birth</th>
-                                    <td class="py-3 border-bottom">{{ student.date_of_birth|date:"F j, Y"|default:"-" }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Address</th>
-                                    <td class="py-3 border-bottom">{{ student.address|default:"-" }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Parent Name</th>
-                                    <td class="py-3 border-bottom">{{ student.parent_name|default:"-" }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Parent Phone</th>
-                                    <td class="py-3 border-bottom">{{ student.parent_phone|default:"-" }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Blood Group</th>
-                                    <td class="py-3 border-bottom">{{ student.blood_group|default:"-" }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">Enrollment Date</th>
-                                    <td class="py-3 border-bottom">{{ student.enrollment_date|date:"F j, Y" }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted border-bottom">GPA</th>
-                                    <td class="py-3 border-bottom">{{ student.gpa|floatformat:2 }}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" class="ps-4 py-3 text-muted">Status</th>
-                                    <td class="py-3">
-                                        <span
-                                            class="badge {% if student.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
-                                            {{ student.get_status_display }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="row g-0">
+                        <!-- Personal Information -->
+                        <div class="col-md-6 p-4" style="border-right: 1px solid var(--clr-border);">
+                            <h6 class="text-uppercase mb-4" style="
+                                color: var(--clr-accent);
+                                font-weight: 700;
+                                font-size: 0.75rem;
+                                letter-spacing: 1.5px;
+                            ">📋 Personal Information</h6>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Full Name</label>
+                                <p class="profile-value">{{ student.user.get_full_name }}</p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Student ID</label>
+                                <p class="profile-value"><span class="badge bg-primary">{{ student.student_id }}</span>
+                                </p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Email</label>
+                                <p class="profile-value">{{ student.user.email }}</p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Gender</label>
+                                <p class="profile-value">{{ student.get_gender_display }}</p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Date of Birth</label>
+                                <p class="profile-value">{{ student.date_of_birth|date:"F j, Y"|default:"-" }}</p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Blood Group</label>
+                                <p class="profile-value"><span class="badge bg-danger">{{ student.blood_group|default:"-" }}</span></p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Phone</label>
+                                <p class="profile-value">{{ student.phone|default:"-" }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Academic Information -->
+                        <div class="col-md-6 p-4">
+                            <h6 class="text-uppercase mb-4" style="
+                                color: var(--clr-accent);
+                                font-weight: 700;
+                                font-size: 0.75rem;
+                                letter-spacing: 1.5px;
+                            ">🎓 Academic Information</h6>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Institution</label>
+                                <p class="profile-value">{{ student.institution.name }}</p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Course</label>
+                                <p class="profile-value">
+                                    {% if student.course %}
+                                    {{ student.course.name }} <span class="text-muted">({{ student.course.code }})</span>
+                                    {% else %}
+                                    <span class="text-muted">Not Enrolled</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Department</label>
+                                <p class="profile-value">
+                                    {% if student.department %}
+                                    {{ student.department.name }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Branch</label>
+                                <p class="profile-value">
+                                    {% if student.branch %}
+                                    {{ student.branch.name }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Current Semester</label>
+                                <p class="profile-value"><span class="badge bg-info">Semester {{ student.semester }}</span></p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Division</label>
+                                <p class="profile-value">
+                                    {% if student.division %}
+                                    {{ student.division.name }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Academic Year</label>
+                                <p class="profile-value">{{ student.academic_year }}</p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Enrollment Date</label>
+                                <p class="profile-value">{{ student.enrollment_date|date:"F j, Y" }}</p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">GPA</label>
+                                <p class="profile-value">
+                                    <span style="
+                                        font-size: 1.5rem;
+                                        font-weight: 800;
+                                        color: var(--clr-accent);
+                                    ">{{ student.gpa|floatformat:2 }}</span>
+                                    <span class="text-muted">/4.0</span>
+                                </p>
+                            </div>
+
+                            <div class="profile-item mb-3">
+                                <label class="profile-label">Status</label>
+                                <p class="profile-value">
+                                    <span
+                                        class="badge {% if student.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}"
+                                        style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                                        {{ student.get_status_display }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="p-4"
+                        style="background: var(--clr-surface-alt); border-top: 1px solid var(--clr-border);">
+                        <h6 class="text-uppercase mb-4" style="
+                            color: var(--clr-accent);
+                            font-weight: 700;
+                            font-size: 0.75rem;
+                            letter-spacing: 1.5px;
+                        ">📞 Contact Information</h6>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="profile-label">Address</label>
+                                <p class="profile-value">{{ student.address|default:"-" }}</p>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="profile-label">Parent Name</label>
+                                <p class="profile-value">{{ student.parent_name|default:"-" }}</p>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="profile-label">Parent Phone</label>
+                                <p class="profile-value">{{ student.parent_phone|default:"-" }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>
+        [data-bs-theme="dark"] .profile-card {
+            background: rgba(15, 23, 42, 0.7) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .profile-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--clr-text-muted);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-value {
+            font-size: 1rem;
+            color: var(--clr-text);
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+
+        .profile-item {
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        [data-bs-theme="dark"] .profile-item {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
     <div class="schedule-section" style="margin-top: 4rem;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 style="font-family: var(--font-head); font-weight: 700;">My Class Schedule</h2>
@@ -311,15 +516,13 @@
                                 {% for entry in day_data.entries %}
                                 <tr>
                                     <td class="ps-3 align-middle">
-                                        <div style="font-weight: 700; font-size: 0.9rem;">{{
-                                            entry.timeslot.start_time|time:"G:i" }}</div>
-                                        <div class="text-muted" style="font-size: 0.75rem;">{{
-                                            entry.timeslot.end_time|time:"G:i" }}</div>
+                                        <div style="font-weight: 700; font-size: 0.9rem;">{{ entry.timeslot.start_time|time:"G:i" }}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">{{ entry.timeslot.end_time|time:"G:i" }}</div>
                                     </td>
                                     <td class="align-middle">
                                         <div style="font-weight: 600;">{{ entry.subject.code }}</div>
-                                        <div class="text-muted" style="font-size: 0.8rem;">Prof. {{
-                                            entry.faculty.user.last_name }}</div>
+                                        <div class="text-muted" style="font-size: 0.8rem;">Prof. {{ entry.faculty.user.get_full_name|default:entry.faculty.user.username }}
+                                        </div>
                                     </td>
                                     <td class="align-middle">
                                         <span class="badge bg-light text-dark"

@@ -8,4 +8,7 @@ urlpatterns = [
     path('add/', views.teacher_create, name='teacher_create'),
     path('edit/<int:teacher_id>/', views.teacher_edit, name='teacher_edit'),
     path('delete/<int:teacher_id>/', views.teacher_delete, name='teacher_delete'),
+    path('attendance/generator/', views.attendance_generator, name='attendance_generator'),
+    path('attendance/archives/', views.attendance_archives, name='attendance_archives'),
+    path('attendance/sheet/<int:dept_id>/<str:date_from>/<str:date_to>/<int:total_lectures>/', views.attendance_sheet, name='attendance_sheet'),
 ]

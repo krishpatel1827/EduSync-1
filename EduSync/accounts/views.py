@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
 from django.contrib import messages
 
 from .models import UserProfile, LoginTable, SignupTable
@@ -14,6 +14,7 @@ from institution.models import Institution
 # LANDING
 # ==============================
 
+@ensure_csrf_cookie
 @never_cache
 @require_http_methods(["GET"])
 def landing_view(request):
@@ -27,6 +28,7 @@ def landing_view(request):
 
 @never_cache
 @ensure_csrf_cookie
+@csrf_protect
 @require_http_methods(["GET", "POST"])
 def unified_login_view(request):
     """
@@ -106,6 +108,7 @@ def _redirect_by_role(user):
 
 @never_cache
 @ensure_csrf_cookie
+@csrf_protect
 @require_http_methods(["GET", "POST"])
 def signup_view(request):
     """Handles new institution registration and admin account creation."""
@@ -172,6 +175,7 @@ def signup_view(request):
 # LOGOUT
 # ==============================
 
+@csrf_exempt
 def logout_view(request):
     """Logs out the user and redirects to landing or previous page."""
     next_url = request.GET.get('next')

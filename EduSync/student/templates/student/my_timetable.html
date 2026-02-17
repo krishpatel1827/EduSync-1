@@ -1,178 +1,371 @@
-{% extends 'base.html' %} {% load custom_filters %}
+{% extends 'base.html' %}
+{% load custom_filters %}
 {% block content %}
 <style>
     .my-tt-container {
-        padding: 20px;
-        background-color: white;
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1rem;
     }
 
-    .tt-header {
+    .tt-card {
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 24px;
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+
+    .tt-header-section {
+        padding: 2.5rem;
+        background: var(--clr-surface-alt);
+        border-bottom: 1px solid var(--clr-border);
         text-align: center;
-        border: 2px solid #333;
-        padding: 15px;
-        margin-bottom: 20px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
     }
 
-    .tt-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-        text-align: center;
-        table-layout: fixed;
+    .tt-breadcrumb {
+        margin-bottom: 1.5rem;
     }
 
-    .tt-table th,
-    .tt-table td {
-        border: 1px solid #ddd;
-        padding: 10px;
-        vertical-align: middle;
-    }
-
-    .tt-table th {
-        background-color: #007bff;
-        color: white;
+    .tt-main-title {
+        font-family: var(--font-head);
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--clr-text) !important;
+        margin-bottom: 0.5rem;
         text-transform: uppercase;
-        font-size: 13px;
+        letter-spacing: 1px;
     }
 
-    /* Theme integration if available */
-    .theme-modern_blue .tt-table th {
-        background-color: #1976d2;
+    .tt-sub-title {
+        color: var(--clr-text-muted);
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
     }
 
-    .slot-info-box {
-        padding: 5px;
-        border-radius: 4px;
-        background-color: #e3f2fd;
-        border: 1px solid #bbdefb;
+    .tt-meta-row {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
-    .subject-code {
-        font-weight: bold;
-        color: #1565c0;
-        font-size: 1.1em;
+    .tt-badge {
+        background: var(--clr-accent-soft);
+        border: 1px solid var(--clr-border);
+        padding: 0.5rem 1.25rem;
+        border-radius: 12px;
+        color: var(--clr-text);
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .faculty-name {
-        font-size: 0.9em;
-        color: #555;
-        margin-top: 2px;
+    .tt-badge strong {
+        color: var(--clr-accent);
     }
 
-    .room-number {
-        font-size: 0.8em;
-        color: #777;
-        margin-top: 2px;
-        font-weight: bold;
+    .table-wrapper {
+        overflow-x: auto;
+        padding: 1.5rem;
     }
 
-    .break-slot {
-        background-color: #ffcc80;
-        color: #e65100;
-        font-weight: bold;
-        writing-mode: vertical-rl;
-        text-orientation: upright;
+    .tt-table-custom {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 4px;
+    }
+
+    .tt-table-custom th {
+        background: var(--clr-surface-alt);
+        color: var(--clr-text-muted);
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .tt-table-custom td {
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 12px;
+        padding: 0.75rem;
         vertical-align: middle;
+        min-width: 180px;
+        transition: all 0.2s ease;
     }
 
-    .empty-slot {
-        color: #ccc;
-        background-color: #fafafa;
+    .tt-table-custom tr:hover td {
+        background: var(--clr-surface-alt);
+    }
+
+    .division-active {
+        background: var(--clr-accent-soft) !important;
+        border: 1px solid var(--clr-accent) !important;
+    }
+
+    .day-col {
+        background: var(--clr-surface-alt) !important;
+        width: 50px;
+        min-width: 50px !important;
+        font-weight: 800;
+        color: var(--clr-text) !important;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        text-align: center;
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+    }
+
+    .time-chip-premium {
+        display: inline-block;
+        background: var(--clr-accent-soft);
+        color: var(--clr-accent);
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border: 1px solid var(--clr-accent);
+    }
+
+    .slot-box-premium {
+        background: var(--clr-surface-alt);
+        border: 1px solid var(--clr-border);
+        padding: 1rem;
+        border-radius: 12px;
+        text-align: left;
+        height: 100%;
+    }
+
+    .sub-name-premium {
+        color: var(--clr-text);
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .faculty-premium {
+        color: var(--clr-text-muted);
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .room-premium {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed var(--clr-border);
+        color: var(--clr-accent);
+        font-weight: 700;
+        font-size: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .room-premium span {
+        color: var(--clr-text-muted);
+        font-weight: 500;
+    }
+
+    .break-row-premium {
+        background: var(--clr-warning-soft, rgba(245, 158, 11, 0.1)) !important;
+        color: var(--clr-warning) !important;
+        text-align: center;
+        font-weight: 800;
+        letter-spacing: 4px;
+        font-size: 0.8rem;
+        padding: 1rem !important;
+        border-radius: 12px;
+    }
+
+    .empty-slot-premium {
+        color: var(--clr-text-muted);
+        font-size: 1.5rem;
+        font-weight: 300;
+        text-align: center;
+        opacity: 0.4;
+    }
+
+    .tt-footer {
+        padding: 2rem;
+        background: var(--clr-surface-alt);
+        border-top: 1px solid var(--clr-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--clr-text-muted);
+        font-size: 0.85rem;
+    }
+
+    .btn-glass {
+        background: var(--clr-surface-alt);
+        border: 1px solid var(--clr-border);
+        color: var(--clr-text);
+        padding: 0.6rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-glass:hover {
+        background: var(--clr-accent-soft);
+        color: var(--clr-accent);
+        border-color: var(--clr-accent);
+        transform: translateX(-4px);
     }
 </style>
 
-<div class="container my-tt-container">
-
-    <div class="mb-3 d-flex justify-content-between align-items-center">
-        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">&larr; Back to Dashboard</a>
-        <h4 class="m-0 text-primary">My Timetable</h4>
+<div class="my-tt-container">
+    <div class="tt-breadcrumb">
+        <a href="{% if is_admin_view %}{% url 'student_list' %}{% else %}{% url 'student_dashboard' %}{% endif %}"
+            class="btn-glass">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            {% if is_admin_view %}Back to Student List{% else %}Back to Dashboard{% endif %}
+        </a>
     </div>
 
     {% if error %}
-    <div class="alert alert-warning text-center">
-        <h3>{{ error }}</h3>
+    <div class="tt-card p-5 text-center">
+        <div class="mb-4">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--clr-warning)" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <h2 style="color: var(--clr-text); margin-bottom: 12px;">{{ error }}</h2>
+        <p style="color: var(--clr-text-muted);">Please contact your department head or system administrator to verify your schedule
+            availability.</p>
     </div>
     {% else %}
 
-    <div class="tt-header">
-        <h3 class="mb-1 text-uppercase">{{ current_timetable.heading_1 }}</h3>
-        <h5 class="text-muted mb-2">{{ current_timetable.heading_2 }}</h5>
-        <div class="alert alert-info py-2 mb-0 d-inline-block">
-            <strong>{{ student.course.name }}</strong> &middot; {{ semester_text }}
+    <div class="tt-card">
+        <div class="tt-header-section">
+            <h1 class="tt-main-title">{{ current_timetable.heading_1 }}</h1>
+            <p class="tt-sub-title">{{ current_timetable.heading_2 }}</p>
+
+            <div class="tt-meta-row">
+                <div class="tt-badge">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                    <span>COURSE: <strong>{{ student.course.name|default:"General" }}</strong></span>
+                </div>
+                <div class="tt-badge">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>{{ semester_text|default:"Semester I" }}</span>
+                </div>
+                {% if student.division %}
+                <div class="tt-badge" style="border-color: var(--clr-accent);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--clr-accent)" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 010 7.75"></path>
+                    </svg>
+                    <span>YOUR DIVISION: <strong>{{ student.division.name }}</strong></span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="tt-table-custom">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">DAY</th>
+                        {% for div in divisions %}
+                        <th class="{% if student.division.id == div.id %}division-active{% endif %}">
+                            {{ div.name }}
+                            {% if student.division.id == div.id %}<br><small>(Your Div)</small>{% endif %}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in timetable_data %}
+                    {% for slot_data in day.slots %}
+                    <tr>
+                        {% if forloop.first %}
+                        <td rowspan="{{ day.slots|length }}" class="day-col">{{ day.day_name }}</td>
+                        {% endif %}
+
+                        {% if slot_data.slot.is_break %}
+                        <td colspan="{{ divisions|length }}" class="break-row-premium">
+                            ⚡ BREAK ({{ slot_data.slot.start_time|time:"H:i" }} - {{ slot_data.slot.end_time|time:"H:i" }})
+                        </td>
+                        {% else %}
+                        {% for div in divisions %}
+                        {% with entry=slot_data.entries|get_item:div.id %}
+                        <td class="{% if student.division.id == div.id %}division-active{% endif %}">
+                            <div class="time-chip-premium">{{ slot_data.slot.start_time|time:"H:i" }} - {{ slot_data.slot.end_time|time:"H:i" }}</div>
+                            {% if entry %}
+                            <div class="slot-box-premium">
+                                <div class="sub-name-premium">{{ entry.subject.name|truncatechars:28 }}</div>
+                                <div class="faculty-premium">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    {{ entry.faculty.user.get_full_name|default:entry.faculty.user.username }}
+                                </div>
+                                <div class="room-premium">
+                                    <span>ROOM {{ entry.room.number }}</span>
+                                    <span>{{ entry.subject.code }}</span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="empty-slot-premium">-</div>
+                            {% endif %}
+                        </td>
+                        {% endwith %}
+                        {% endfor %}
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tt-footer">
+            <div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="vertical-align: middle; margin-right: 4px;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                EduSync Management System
+            </div>
+            <div>
+                Generated on {{ current_timetable.created_at|date:"F d, Y" }}
+            </div>
         </div>
     </div>
-
-    <div class="table-responsive">
-        <table class="tt-table table-bordered">
-            <thead>
-                <tr>
-                    <th style="width: 80px; background-color: #343a40;">Day / Time</th>
-                    <!-- Render Time Headers from the first day's slots -->
-                    {% for day in timetable_data %}
-                    {% if forloop.first %}
-                    {% for slot_data in day.slots %}
-                    <th style="width: 120px;">
-                        {% if slot_data.slot.is_break %}
-                        <div class="text-warning">BREAK</div>
-                        {% else %}
-                        <div>Lec {{ slot_data.slot.lecture_number }}</div>
-                        <div style="font-size: 0.85em; font-weight: normal; opacity: 0.9;">
-                            {{ slot_data.slot.start_time|date:"g:i" }} - {{ slot_data.slot.end_time|date:"g:i" }}
-                        </div>
-                        {% endif %}
-                    </th>
-                    {% endfor %}
-                    {% endif %}
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for day in timetable_data %}
-                <tr>
-                    <!-- Day Name Column -->
-                    <td style="background-color: #f1f3f5; font-weight: bold; vertical-align: middle;">
-                        {{ day.day_code }}
-                    </td>
-
-                    <!-- Slots -->
-                    {% for slot_data in day.slots %}
-                    {% if slot_data.slot.is_break %}
-                    <td style="background-color: #fff3e0; vertical-align: middle; padding: 0;">
-                        <div style="font-size: 10px; color: #ef6c00; font-weight: bold; transform: rotate(0deg);">BREAK
-                        </div>
-                    </td>
-                    {% else %}
-                    {% if slot_data.entry %}
-                    <td style="padding: 5px;">
-                        <div class="slot-info-box">
-                            <div class="subject-code">{{ slot_data.entry.subject.code }}</div>
-                            <div class="small" title="{{ slot_data.entry.subject.name }}">
-                                {{ slot_data.entry.subject.name|truncatechars:15 }}
-                            </div>
-                            <div class="faculty-name">
-                                {{ slot_data.entry.faculty.user.first_name }} {{
-                                slot_data.entry.faculty.user.last_name|slice:":1" }}.
-                            </div>
-                            <div class="room-number">{{ slot_data.entry.room.number|default:"-" }}</div>
-                        </div>
-                    </td>
-                    {% else %}
-                    <td class="empty-slot">-</td>
-                    {% endif %}
-                    {% endif %}
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-3 text-end text-muted small">
-        Last Updated: {{ current_timetable.created_at|date:"M d, Y" }}
-    </div>
-
     {% endif %}
 </div>
 {% endblock %}

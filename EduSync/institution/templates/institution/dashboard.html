@@ -416,8 +416,12 @@
           </div>
         </div>
 
-        <a href="{% url 'student_list' %}" class="btn btn-panel w-100">
+        <a href="{% url 'student_list' %}" class="btn btn-panel w-100 mb-2">
           Access Student Panel →
+        </a>
+        <a href="#" class="btn btn-outline-success w-100" data-bs-toggle="modal" data-bs-target="#studentLoginModal"
+          style="border-radius: 12px; padding: 10px;">
+          Portal Login →
         </a>
       </div>
     </div>
@@ -449,8 +453,12 @@
           </div>
         </div>
 
-        <a href="{% url 'teacher_list' %}" class="btn btn-panel w-100">
+        <a href="{% url 'teacher_list' %}" class="btn btn-panel w-100 mb-2">
           Access Teacher Panel →
+        </a>
+        <a href="#" class="btn btn-outline-warning w-100" data-bs-toggle="modal" data-bs-target="#teacherLoginModal"
+          style="border-radius: 12px; padding: 10px; color: var(--clr-gold); border-color: var(--clr-gold);">
+          Portal Login →
         </a>
       </div>
     </div>
@@ -505,4 +513,81 @@
   }
 </style>
 
+</style>
+
+<!-- Teacher Login Modal -->
+<div class="modal fade" id="teacherLoginModal" tabindex="-1" aria-labelledby="teacherLoginLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content"
+      style="border-radius: 20px; border: none; box-shadow: var(--shadow-lg); background: var(--clr-surface);">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="teacherLoginLabel" style="color: var(--clr-text);">👨‍🏫 Teacher Portal
+          Login</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'teacher_portal_login' %}">
+        {% csrf_token %}
+        <div class="modal-body py-4">
+          <div class="mb-3">
+            <label class="form-label fw-600" style="color: var(--clr-text);">Teacher Full Name / Username</label>
+            <input type="text" name="name" class="form-control"
+              style="border-radius: 10px; padding: 12px; background: var(--clr-surface-alt); border: 1px solid var(--clr-border); color: var(--clr-text);"
+              placeholder="Enter teacher full name or username">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-600" style="color: var(--clr-text);">Employee ID</label>
+            <input type="text" name="code" class="form-control"
+              style="border-radius: 10px; padding: 12px; background: var(--clr-surface-alt); border: 1px solid var(--clr-border); color: var(--clr-text);"
+              placeholder="Enter teacher employee ID" required>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+            style="border-radius: 10px;">Cancel</button>
+          <button type="submit" class="btn btn-primary"
+            style="background: var(--clr-gold); border: none; border-radius: 10px; padding: 10px 24px;">Access Portal
+            →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Student Login Modal -->
+<div class="modal fade" id="studentLoginModal" tabindex="-1" aria-labelledby="studentLoginLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content"
+      style="border-radius: 20px; border: none; box-shadow: var(--shadow-lg); background: var(--clr-surface);">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="studentLoginLabel" style="color: var(--clr-text);">👨‍🎓 Student Portal
+          Login</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'student_portal_login' %}">
+        {% csrf_token %}
+        <div class="modal-body py-4">
+          <div class="mb-3">
+            <label class="form-label fw-600" style="color: var(--clr-text);">Student Full Name / Username</label>
+            <input type="text" name="name" class="form-control"
+              style="border-radius: 10px; padding: 12px; background: var(--clr-surface-alt); border: 1px solid var(--clr-border); color: var(--clr-text);"
+              placeholder="Enter student full name or username">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-600" style="color: var(--clr-text);">Student ID</label>
+            <input type="text" name="code" class="form-control"
+              style="border-radius: 10px; padding: 12px; background: var(--clr-surface-alt); border: 1px solid var(--clr-border); color: var(--clr-text);"
+              placeholder="Enter student ID" required>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+            style="border-radius: 10px;">Cancel</button>
+          <button type="submit" class="btn btn-primary"
+            style="background: var(--clr-green); border: none; border-radius: 10px; padding: 10px 24px;">Access Portal
+            →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
