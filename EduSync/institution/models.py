@@ -13,6 +13,18 @@ class Institution(models.Model):
     def __str__(self):
         return self.name
 
+class Department(models.Model):
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        unique_together = ('institution', 'name')
+
 class News(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

@@ -8,7 +8,7 @@ class Student(models.Model):
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
-    course = models.ForeignKey('academics.Course', on_delete=models.SET_NULL, null=True, blank=True)
+    course = models.ForeignKey('academics.Course', on_delete=models.SET_NULL, null=True, blank=True, db_index=True)
     student_id = models.CharField(max_length=20, unique=True)
     academic_year = models.CharField(max_length=20, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='M')
@@ -22,6 +22,7 @@ class Student(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     semester = models.IntegerField(default=3, help_text="Current semester (1-8)")
     division = models.ForeignKey('generator.Division', on_delete=models.SET_NULL, null=True, blank=True, help_text="Student's division for timetable")
+    department = models.ForeignKey('institution.Department', on_delete=models.SET_NULL, null=True, blank=True)
     
     class Meta:
         db_table = 'student_student'

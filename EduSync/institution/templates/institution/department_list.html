@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .dashboard-header {
+        text-align: center;
+        padding: 40px 20px 30px;
+    }
+
+    .dashboard-title {
+        color: var(--clr-text);
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    .dashboard-subtitle {
+        color: var(--clr-text-muted);
+    }
+
+    .admin-card {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(0, 0, 0, .06);
+    }
+
+    .form-control-custom {
+        background: var(--clr-surface-alt);
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: 10px;
+        padding: 12px 15px;
+        color: var(--clr-text);
+        width: 100%;
+    }
+
+    .btn-primary-custom {
+        background: var(--clr-accent);
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-custom th,
+    .table-custom td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--clr-surface-alt);
+    }
+
+    .btn-danger-sm {
+        background: #e53935;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h3 class="dashboard-title">Manage Departments</h3>
+    <p class="dashboard-subtitle">Add and remove departments for your institution</p>
+    <a href="{% url 'institution_admin_dashboard' %}" style="color: var(--clr-accent); text-decoration: none;">&larr;
+        Back to Dashboard</a>
+</div>
+
+<div class="container" style="max-width: 1000px; padding-bottom: 50px;">
+    <div class="row g-4">
+        <!-- Add Department -->
+        <div class="col-md-4">
+            <div class="admin-card">
+                <h5 class="mb-3">Add Department</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Department Name</label>
+                        <input type="text" name="name" class="form-control-custom" required
+                            placeholder="e.g. Computer Science">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description (Optional)</label>
+                        <textarea name="description" class="form-control-custom" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary-custom">Add Department</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- List Departments -->
+        <div class="col-md-8">
+            <div class="admin-card">
+                <h5 class="mb-3">Existing Departments</h5>
+                {% if departments %}
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr>
+                            <td>{{ dept.name }}</td>
+                            <td>{{ dept.description }}</td>
+                            <td>
+                                <a href="{% url 'delete_department' dept.id %}" class="btn-danger-sm"
+                                    onclick="return confirm('Are you sure? This may affect linked students/teachers.')">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted">No departments found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

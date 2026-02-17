@@ -3,6 +3,7 @@ from academics.models import Course
 
 
 from .models import Student
+from institution.models import Department
 
 class StudentCreateForm(forms.Form):
     name = forms.CharField(max_length=150, label="Student Name")
@@ -15,11 +16,13 @@ class StudentCreateForm(forms.Form):
     parent_phone = forms.CharField(max_length=15, required=False)
     blood_group = forms.CharField(max_length=5, required=False)
     course = forms.ModelChoiceField(queryset=Course.objects.none(), required=False)
+    department = forms.ModelChoiceField(queryset=Department.objects.none(), required=False)
 
     def __init__(self, *args, institution=None, **kwargs):
         super().__init__(*args, **kwargs)
         if institution is not None:
             self.fields["course"].queryset = Course.objects.filter(institution=institution)
+            self.fields["department"].queryset = Department.objects.filter(institution=institution)
 
     def clean_student_id(self):
         student_id = self.cleaned_data.get('student_id')
@@ -39,12 +42,14 @@ class StudentEditForm(forms.Form):
     parent_phone = forms.CharField(max_length=15, required=False)
     blood_group = forms.CharField(max_length=5, required=False)
     course = forms.ModelChoiceField(queryset=Course.objects.none(), required=False)
+    department = forms.ModelChoiceField(queryset=Department.objects.none(), required=False)
 
     def __init__(self, *args, student=None, institution=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.student = student
         if institution is not None:
             self.fields["course"].queryset = Course.objects.filter(institution=institution)
+            self.fields["department"].queryset = Department.objects.filter(institution=institution)
         if student is not None:
             self.fields["name"].initial = student.user.get_full_name() or student.user.username
             self.fields["student_id"].initial = student.student_id
@@ -56,6 +61,7 @@ class StudentEditForm(forms.Form):
             self.fields["parent_phone"].initial = student.parent_phone
             self.fields["blood_group"].initial = student.blood_group
             self.fields["course"].initial = student.course
+            self.fields["department"].initial = student.department
 
     def clean_student_id(self):
         student_id = self.cleaned_data.get('student_id')

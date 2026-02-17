@@ -57,17 +57,30 @@ class TimeSlot(models.Model):
         return f"Rec {self.lecture_number}: {self.start_time.strftime('%H:%M')} - {self.end_time.strftime('%H:%M')}"
 
 class TimetableEntry(models.Model):
-    timetable = models.ForeignKey(Timetable, on_delete=models.CASCADE, related_name='entries', null=True, blank=True)
+    timetable = models.ForeignKey(Timetable, on_delete=models.CASCADE, related_name='entries')
     day = models.CharField(max_length=3, choices=TimeSlot.DAY_CHOICES)
+    
+    # Relationships with CASCADE/PROTECT/SET_NULL as appropriate
     timeslot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE)
     division = models.ForeignKey(Division, on_delete=models.CASCADE)
-    
-    subject = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
-    faculty = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, blank=True)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, null=True, blank=True)
+    subject = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True) # If course is deleted, entry is deleted
+    faculty = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True) # If teacher leaves, slot remains but empty faculty
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, blank=True) # If room deleted, slot remains
 
     class Meta:
         verbose_name_plural = "Timetable Entries"
+        indexes = [
+            models.Index(fields=['division']),
+            models.Index(fields=['timeslot']),
+        ]
+        unique_together = [
+             # A room can't be in two places at once
+            ('room', 'timeslot', 'day'),
+             # A division can't be in two places at once
+            ('division', 'timeslot', 'day'),
+            # A faculty can't be in two places at once
+            ('faculty', 'timeslot', 'day'),   
+        ]
     
     def __str__(self):
         return f"{self.day} - {self.timeslot} - {self.division}"

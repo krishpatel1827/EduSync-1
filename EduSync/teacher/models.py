@@ -7,9 +7,9 @@ class Teacher(models.Model):
     CONTRACT_CHOICES = [('Full-Time', 'Full-Time'), ('Part-Time', 'Part-Time'), ('Contract', 'Contract'), ('Guest', 'Guest')]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, db_index=True)
     employee_id = models.CharField(max_length=20, unique=True)
-    department = models.CharField(max_length=100)
+    department = models.ForeignKey('institution.Department', on_delete=models.SET_NULL, null=True, blank=True, db_index=True)
     qualification = models.CharField(max_length=200)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='M')
     date_of_birth = models.DateField(null=True, blank=True)
@@ -28,4 +28,4 @@ class Teacher(models.Model):
         return "".join([n[0].upper() for n in full_name.split() if n])
 
     def __str__(self):
-        return f"{self.employee_id} - {self.user.get_full_name()}"
+        return f"{self.employee_id} - {self.user}"

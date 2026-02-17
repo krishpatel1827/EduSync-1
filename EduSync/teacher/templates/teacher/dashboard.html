@@ -141,6 +141,25 @@
     </div>
 
     <div class="dashboard-grid">
+
+        <!-- tt gen-->
+        <div class="feature-card ">
+            <div class="card-icon-box icon-purple">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+            <h3 style="font-family: var(--font-head); font-weight: 700;">Time Table Generator
+
+            </h3>
+            <p>Generate a time table for your courses.</p>
+            <div style="margin-top: 1rem;">
+                <a href="{% url 'generator' %}" class="btn btn-primary d-flex justify-content-center ">Generate</a>
+
+            </div>
+        </div>
         <!-- Students Access -->
         <a href="{% url 'teacher_students' %}" class="feature-card">
             <div class="card-icon-box icon-blue">
@@ -176,6 +195,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Embedded Schedule -->
     <div class="schedule-section" style="margin-top: 4rem;">

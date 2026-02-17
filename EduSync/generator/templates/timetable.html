@@ -492,7 +492,7 @@
 <div class="timetable-body theme-{{ current_timetable.theme_palette }}">
     <!-- Controls -->
     <div class="controls">
-        <a href="{% url 'dashboard' %}" class="btn btn-dark">&larr; Dashboard</a>
+        <a href="{% url 'generator' %}" class="btn btn-dark">&larr; Dashboard</a>
 
         <form action="{% url 'toggle_theme' current_timetable.id %}" method="post" style="display:inline;">
             {% csrf_token %}

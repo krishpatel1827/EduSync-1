@@ -383,7 +383,7 @@
           </div>
         </div>
 
-        <a href="{% url 'institution_admin_login' %}" class="btn-panel">
+        <a href="{% url 'institution_admin_dashboard' %}" class="btn-panel">
           Access Admin Panel →
         </a>
       </div>
@@ -416,9 +416,9 @@
           </div>
         </div>
 
-        <button type="button" class="btn btn-panel w-100" data-bs-toggle="modal" data-bs-target="#studentLoginModal">
+        <a href="{% url 'student_list' %}" class="btn btn-panel w-100">
           Access Student Panel →
-        </button>
+        </a>
       </div>
     </div>
 
@@ -449,83 +449,15 @@
           </div>
         </div>
 
-        <button type="button" class="btn btn-panel w-100" data-bs-toggle="modal" data-bs-target="#teacherLoginModal">
+        <a href="{% url 'teacher_list' %}" class="btn btn-panel w-100">
           Access Teacher Panel →
-        </button>
+        </a>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Teacher Login Modal -->
-<div class="modal fade" id="teacherLoginModal" tabindex="-1" aria-labelledby="teacherLoginLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: var(--shadow-lg);">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold" id="teacherLoginLabel">👨‍🏫 Teacher Portal Login</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form method="post" action="{% url 'teacher_portal_login' %}">
-        {% csrf_token %}
-        <input type="hidden" name="role" value="teacher">
-        <div class="modal-body py-4">
-          <div class="mb-3">
-            <label class="form-label fw-600">Full Name / Username</label>
-            <input type="text" name="name" class="form-control" style="border-radius: 10px; padding: 12px;"
-              placeholder="Enter your full name or username" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-600">Employee ID (Password)</label>
-            <input type="password" name="code" class="form-control" style="border-radius: 10px; padding: 12px;"
-              placeholder="Enter your employee ID" required>
-          </div>
-        </div>
-        <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
-            style="border-radius: 10px;">Cancel</button>
-          <button type="submit" class="btn btn-primary"
-            style="background: var(--clr-gold); border: none; border-radius: 10px; padding: 10px 24px;">Login to
-            Portal</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
 
-<!-- Student Login Modal -->
-<div class="modal fade" id="studentLoginModal" tabindex="-1" aria-labelledby="studentLoginLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: var(--shadow-lg);">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold" id="studentLoginLabel">🎓 Student Portal Login</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form method="post" action="{% url 'student_portal_login' %}">
-        {% csrf_token %}
-        <input type="hidden" name="role" value="student">
-        <div class="modal-body py-4">
-          <div class="mb-3">
-            <label class="form-label fw-600">Full Name / Username</label>
-            <input type="text" name="name" class="form-control" style="border-radius: 10px; padding: 12px;"
-              placeholder="Enter your full name or username" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-600">Roll Number / Student ID (Password)</label>
-            <input type="password" name="code" class="form-control" style="border-radius: 10px; padding: 12px;"
-              placeholder="Enter your roll number" required>
-          </div>
-        </div>
-        <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
-            style="border-radius: 10px;">Cancel</button>
-          <button type="submit" class="btn btn-primary"
-            style="background: var(--clr-green); border: none; border-radius: 10px; padding: 10px 24px;">Login to
-            Portal</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
 
 <script>
   // Add click ripple effect

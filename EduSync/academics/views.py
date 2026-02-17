@@ -45,7 +45,7 @@ def course_create(request):
         })
 
     if request.method == 'POST':
-        form = CourseForm(request.POST)
+        form = CourseForm(request.POST, institution=institution)
         if form.is_valid():
             try:
                 course = form.save(commit=False)
@@ -56,7 +56,7 @@ def course_create(request):
             except IntegrityError:
                 form.add_error('code', 'A course with this code already exists for your institution.')
     else:
-        form = CourseForm()
+        form = CourseForm(institution=institution)
 
     return render(request, 'academics/course_form.html', {
         'form': form,
@@ -74,12 +74,12 @@ def course_edit(request, course_id):
         course = get_object_or_404(Course, id=course_id)
 
     if request.method == 'POST':
-        form = CourseForm(request.POST, instance=course)
+        form = CourseForm(request.POST, instance=course, institution=institution)
         if form.is_valid():
             form.save()
             return redirect('course_list')
     else:
-        form = CourseForm(instance=course)
+        form = CourseForm(instance=course, institution=institution)
 
     return render(request, 'academics/course_form.html', {
         'form': form,

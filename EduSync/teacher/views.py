@@ -15,7 +15,6 @@ from generator.models import Timetable, TimetableEntry
 
 
 def _unique_username(base):
-    from django.contrib.auth.models import User
     username = base
     suffix = 1
     while User.objects.filter(username=username).exists():

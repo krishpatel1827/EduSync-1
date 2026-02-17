@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
-    path('generator/', views.dashboard, name='generator'),
+    path('timetable-generator/', views.dashboard, name='generator'),
     path('timetable/', views.timetable_view, name='timetable'),
     path('timetable/<int:timetable_id>/', views.timetable_view, name='timetable'),
     path('history/', views.history, name='history'),

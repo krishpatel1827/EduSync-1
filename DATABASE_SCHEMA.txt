@@ -1,0 +1,622 @@
+================================================================================
+                    EDUSYNC DATABASE SCHEMA DOCUMENTATION
+                      ER Diagram Reference Guide
+================================================================================
+
+OVERVIEW:
+---------
+This document describes the complete database schema for the EduSync Education
+Management System. The database is normalized to 3NF (Third Normal Form) with
+proper relational integrity constraints, indexes, and cascading behaviors.
+
+================================================================================
+                              CORE ENTITIES
+================================================================================
+
+1. USER (Django Built-in - auth_user)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- username          VARCHAR(150)    UNIQUE, NOT NULL
+- first_name        VARCHAR(150)    
+- last_name         VARCHAR(150)    
+- email             VARCHAR(254)    
+- password          VARCHAR(128)    NOT NULL (hashed)
+- is_staff          BOOLEAN         DEFAULT: False
+- is_active         BOOLEAN         DEFAULT: True
+- is_superuser      BOOLEAN         DEFAULT: False
+- date_joined       DATETIME        AUTO_NOW_ADD
+
+Notes:
+- Django's built-in user authentication system
+- Used as base for Institution Admins, Teachers, and Students
+- One-to-One relationships with Institution, Teacher, Student models
+
+
+2. INSTITUTION (institution_institution)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- name              VARCHAR(200)    UNIQUE, NOT NULL
+- email             EMAIL           UNIQUE, NOT NULL
+- phone             VARCHAR(15)     NULLABLE
+- address           TEXT            
+- established_year  INTEGER         NULLABLE
+- created_at        DATETIME        AUTO_NOW_ADD
+
+Foreign Keys:
+-------------
+- admin_id          → User.id       ON DELETE CASCADE (OneToOne)
+
+Indexes:
+--------
+- admin_id (automatic for FK)
+
+Business Rules:
+---------------
+- Each institution has exactly one admin user
+- Institution name must be unique across system
+- Deleting admin user will delete the institution
+
+
+3. DEPARTMENT (institution_department)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- name              VARCHAR(100)    NOT NULL
+- description       TEXT            
+- created_at        DATETIME        AUTO_NOW_ADD
+
+Foreign Keys:
+-------------
+- institution_id    → Institution.id    ON DELETE CASCADE, INDEXED
+
+Constraints:
+------------
+UNIQUE (institution_id, name)
+- Prevents duplicate department names within same institution
+- Allows different institutions to have same department name
+
+Indexes:
+--------
+- institution_id (explicit index)
+
+Business Rules:
+---------------
+- Each department belongs to exactly one institution
+- Department names must be unique within an institution
+- Deleting institution will delete all its departments
+
+
+4. USER_PROFILE (accounts_userprofile)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- role              VARCHAR(50)     NOT NULL
+  Choices: 'institution_admin', 'teacher', 'student'
+- institution       VARCHAR(200)    NOT NULL (denormalized for quick access)
+
+Foreign Keys:
+-------------
+- user_id           → User.id       ON DELETE CASCADE (OneToOne)
+
+Business Rules:
+---------------
+- Stores additional metadata for users
+- Role determines access permissions
+- institution field stores institution name (not FK for flexibility)
+
+
+5. TEACHER (teacher_teacher)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- employee_id       VARCHAR(20)     UNIQUE, NOT NULL
+- qualification     VARCHAR(200)    NOT NULL
+- gender            CHAR(1)         DEFAULT: 'M'
+  Choices: 'M' (Male), 'F' (Female), 'O' (Other)
+- date_of_birth     DATE            NULLABLE
+- hire_date         DATE            AUTO_NOW_ADD
+- phone             VARCHAR(15)     
+- address           TEXT            
+- salary            DECIMAL(12,2)   DEFAULT: 0.00
+- contract_type     VARCHAR(20)     DEFAULT: 'Full-Time'
+  Choices: 'Full-Time', 'Part-Time', 'Contract', 'Guest'
+- photo             IMAGE           NULLABLE (upload_to='teachers/')
+
+Foreign Keys:
+-------------
+- user_id           → User.id               ON DELETE CASCADE (OneToOne)
+- institution_id    → Institution.id        ON DELETE CASCADE, INDEXED
+- department_id     → Department.id         ON DELETE SET_NULL, NULLABLE, INDEXED
+
+Indexes:
+--------
+- user_id (automatic OneToOne)
+- institution_id (explicit index)
+- department_id (explicit index)
+- employee_id (automatic unique)
+
+Business Rules:
+---------------
+- Each teacher linked to exactly one user account
+- Employee ID must be unique across all institutions
+- If department is deleted, teacher remains but department becomes NULL
+- If institution is deleted, all its teachers are deleted
+- Teachers can be assigned to multiple courses (M2M via Course.teachers)
+
+
+6. STUDENT (student_student)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- student_id        VARCHAR(20)     UNIQUE, NOT NULL
+- academic_year     VARCHAR(20)     
+- gender            CHAR(1)         DEFAULT: 'M'
+  Choices: 'M' (Male), 'F' (Female), 'O' (Other)
+- date_of_birth     DATE            NULLABLE
+- address           TEXT            
+- parent_name       VARCHAR(150)    
+- parent_phone      VARCHAR(15)     
+- blood_group       VARCHAR(5)      
+- enrollment_date   DATE            AUTO_NOW_ADD
+- gpa               FLOAT           DEFAULT: 0.0
+- status            VARCHAR(20)     DEFAULT: 'active'
+  Choices: 'active', 'inactive'
+- semester          INTEGER         DEFAULT: 3
+
+Foreign Keys:
+-------------
+- user_id           → User.id               ON DELETE CASCADE (OneToOne)
+- institution_id    → Institution.id        ON DELETE CASCADE
+- course_id         → Course.id             ON DELETE SET_NULL, NULLABLE, INDEXED
+- department_id     → Department.id         ON DELETE SET_NULL, NULLABLE
+- division_id       → Division.id           ON DELETE SET_NULL, NULLABLE
+
+Indexes:
+--------
+- user_id (automatic OneToOne)
+- institution_id (automatic FK)
+- course_id (explicit index for performance)
+
+Meta Options:
+-------------
+- db_table: 'student_student'
+- ordering: ['student_id']
+
+Business Rules:
+---------------
+- Each student linked to exactly one user account
+- Student ID must be unique across all institutions
+- Students can be enrolled in one course at a time
+- If course is deleted, student remains but course becomes NULL
+- Students are assigned to divisions for timetable scheduling
+
+
+7. COURSE (academics_course)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- code              VARCHAR(20)     NOT NULL
+- name              VARCHAR(200)    NOT NULL
+- description       TEXT            
+- credits           INTEGER         DEFAULT: 3
+- duration_months   INTEGER         DEFAULT: 0
+- tuition_fee       DECIMAL(10,2)   DEFAULT: 0.00
+- created_at        DATETIME        AUTO_NOW_ADD
+
+Foreign Keys:
+-------------
+- institution_id    → Institution.id        ON DELETE CASCADE, INDEXED
+- department_id     → Department.id         ON DELETE SET_NULL, NULLABLE
+
+Many-to-Many:
+-------------
+- teachers          → Teacher (ManyToMany, through implicit table)
+
+Constraints:
+------------
+UNIQUE (institution_id, code)
+- Course codes must be unique within an institution
+- Different institutions can use same course code
+
+Indexes:
+--------
+- institution_id (explicit index)
+
+Business Rules:
+---------------
+- Each course belongs to one institution
+- Courses can have multiple teachers assigned
+- Course codes must be unique per institution
+- If department is deleted, course remains but department becomes NULL
+- If institution is deleted, all its courses are deleted
+
+
+8. GRADE (academics_grade)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- grade             CHAR(1)         NOT NULL
+  Choices: 'A', 'B', 'C', 'D', 'F'
+- marks             FLOAT           NOT NULL
+- date_assigned     DATETIME        AUTO_NOW_ADD
+
+Foreign Keys:
+-------------
+- student_id        → Student.id            ON DELETE CASCADE
+- course_id         → Course.id             ON DELETE CASCADE
+
+Constraints:
+------------
+UNIQUE (student_id, course_id)
+- One grade per student per course
+
+Business Rules:
+---------------
+- Each grade record represents a student's performance in a course
+- Student can have only one grade per course
+- If student or course is deleted, grade is deleted (CASCADE)
+
+
+================================================================================
+                          TIMETABLE SYSTEM ENTITIES
+================================================================================
+
+9. TIMETABLE (generator_timetable)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- name                      VARCHAR(100)    DEFAULT: 'My Timetable'
+- created_at                DATETIME        AUTO_NOW_ADD
+- is_active                 BOOLEAN         DEFAULT: True
+- days_count                INTEGER         DEFAULT: 6
+- heading_1                 VARCHAR(255)    
+- heading_2                 VARCHAR(255)    
+- footer_semester_text      VARCHAR(100)    
+- footer_prepared_by        TEXT            
+- footer_hod                TEXT            
+- theme_palette             VARCHAR(20)     DEFAULT: 'classic'
+
+Foreign Keys:
+-------------
+- institution_id    → Institution.id        ON DELETE CASCADE, NULLABLE
+
+Business Rules:
+---------------
+- Each timetable belongs to an institution
+- Multiple timetables can exist, but typically one is_active=True
+- Contains metadata for timetable generation and display
+
+
+10. ROOM (generator_room)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- number            VARCHAR(20)     NOT NULL (e.g., '410-C', 'Lab-A')
+
+Foreign Keys:
+-------------
+- institution_id    → Institution.id        ON DELETE CASCADE, NULLABLE
+
+Business Rules:
+---------------
+- Represents physical classrooms/labs
+- Room numbers are institution-specific
+
+
+11. DIVISION (generator_division)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- name              VARCHAR(10)     NOT NULL (e.g., 'D1', 'A', 'Batch-1')
+
+Foreign Keys:
+-------------
+- timetable_id      → Timetable.id          ON DELETE CASCADE, NULLABLE
+
+Business Rules:
+---------------
+- Represents student groups/sections for scheduling
+- Students are assigned to divisions
+- Used to organize class schedules
+
+
+12. TIMESLOT (generator_timeslot)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- lecture_number    INTEGER         NOT NULL (1, 2, 3, ...)
+- start_time        TIME            NOT NULL
+- end_time          TIME            NOT NULL
+- is_break          BOOLEAN         DEFAULT: False
+
+Foreign Keys:
+-------------
+- timetable_id      → Timetable.id          ON DELETE CASCADE, NULLABLE
+
+Meta Options:
+-------------
+- ordering: ['lecture_number']
+
+Business Rules:
+---------------
+- Defines time periods in the day (e.g., 9:00-10:00, 10:00-11:00)
+- is_break=True for recess/lunch periods
+- Ordered by lecture_number for display
+
+
+13. TIMETABLE_ENTRY (generator_timetableentry)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- day               CHAR(3)         NOT NULL
+  Choices: 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'
+
+Foreign Keys:
+-------------
+- timetable_id      → Timetable.id          ON DELETE CASCADE, NULLABLE
+- timeslot_id       → TimeSlot.id           ON DELETE CASCADE
+- division_id       → Division.id           ON DELETE CASCADE
+- subject_id        → Course.id             ON DELETE CASCADE, NULLABLE
+- faculty_id        → Teacher.id            ON DELETE SET_NULL, NULLABLE
+- room_id           → Room.id               ON DELETE SET_NULL, NULLABLE
+
+Constraints:
+------------
+UNIQUE TOGETHER:
+1. (division_id, timeslot_id, day)
+   - A division can't be in two places at the same time
+2. (faculty_id, timeslot_id, day)
+   - A teacher can't teach in two places at the same time
+3. (room_id, timeslot_id, day)
+   - A room can't be used for two classes at the same time
+
+Indexes:
+--------
+- division_id (explicit index for query performance)
+- timeslot_id (explicit index for query performance)
+
+Business Rules:
+---------------
+- Represents a single scheduled class/lecture
+- Prevents double-booking of rooms, faculty, and divisions
+- If subject (course) is deleted, entry is deleted (CASCADE)
+- If teacher leaves, entry remains but faculty becomes NULL (SET_NULL)
+- If room is deleted, entry remains but room becomes NULL (SET_NULL)
+
+
+14. NEWS (institution_news)
+================================================================================
+Primary Key: id (AutoField)
+
+Attributes:
+-----------
+- content           TEXT            NOT NULL
+- created_at        DATETIME        AUTO_NOW_ADD
+
+Notes:
+- Simple announcements/news model
+- Not linked to specific institution (global or need to add FK)
+
+
+================================================================================
+                        RELATIONSHIP SUMMARY
+================================================================================
+
+ONE-TO-ONE RELATIONSHIPS:
+-------------------------
+1. User ←→ Institution (via admin_id)
+2. User ←→ Teacher (via user_id)
+3. User ←→ Student (via user_id)
+4. User ←→ UserProfile (via user_id)
+
+ONE-TO-MANY RELATIONSHIPS:
+--------------------------
+1. Institution → Department (1 institution has many departments)
+2. Institution → Teacher (1 institution has many teachers)
+3. Institution → Student (1 institution has many students)
+4. Institution → Course (1 institution has many courses)
+5. Institution → Timetable (1 institution has many timetables)
+6. Institution → Room (1 institution has many rooms)
+7. Department → Teacher (1 department has many teachers)
+8. Department → Student (1 department has many students)
+9. Department → Course (1 department has many courses)
+10. Course → Student (1 course has many students)
+11. Course → Grade (1 course has many grades)
+12. Student → Grade (1 student has many grades)
+13. Timetable → Division (1 timetable has many divisions)
+14. Timetable → TimeSlot (1 timetable has many timeslots)
+15. Timetable → TimetableEntry (1 timetable has many entries)
+16. Division → Student (1 division has many students)
+17. Division → TimetableEntry (1 division has many entries)
+18. TimeSlot → TimetableEntry (1 timeslot has many entries)
+19. Teacher → TimetableEntry (1 teacher has many entries)
+20. Course → TimetableEntry (1 course/subject has many entries)
+21. Room → TimetableEntry (1 room has many entries)
+
+MANY-TO-MANY RELATIONSHIPS:
+---------------------------
+1. Teacher ←→ Course (via academics_course_teachers join table)
+   - Teachers can teach multiple courses
+   - Courses can have multiple teachers
+
+
+================================================================================
+                        CASCADE BEHAVIORS
+================================================================================
+
+ON DELETE CASCADE (Child deleted when parent deleted):
+-------------------------------------------------------
+- User deleted → Institution deleted
+- User deleted → Teacher deleted
+- User deleted → Student deleted
+- User deleted → UserProfile deleted
+- Institution deleted → Department deleted
+- Institution deleted → Teacher deleted
+- Institution deleted → Student deleted
+- Institution deleted → Course deleted
+- Timetable deleted → Division deleted
+- Timetable deleted → TimeSlot deleted
+- Timetable deleted → TimetableEntry deleted
+- Division deleted → TimetableEntry deleted
+- TimeSlot deleted → TimetableEntry deleted
+- Course deleted → TimetableEntry deleted
+- Course deleted → Grade deleted
+- Student deleted → Grade deleted
+
+ON DELETE SET_NULL (FK becomes NULL when parent deleted):
+---------------------------------------------------------
+- Department deleted → Teacher.department_id = NULL
+- Department deleted → Student.department_id = NULL
+- Department deleted → Course.department_id = NULL
+- Course deleted → Student.course_id = NULL
+- Teacher deleted → TimetableEntry.faculty_id = NULL
+- Room deleted → TimetableEntry.room_id = NULL
+- Division deleted → Student.division_id = NULL
+
+
+================================================================================
+                        DATABASE INDEXES
+================================================================================
+
+Automatic Indexes (created by Django for performance):
+-------------------------------------------------------
+- All Primary Keys (id fields)
+- All UNIQUE constraints (username, email, employee_id, student_id, etc.)
+- All OneToOne ForeignKeys
+
+Explicit Indexes (added for query optimization):
+-------------------------------------------------
+1. academics_course.institution_id
+2. teacher_teacher.institution_id
+3. teacher_teacher.department_id
+4. student_student.course_id
+5. generator_timetableentry.division_id
+6. generator_timetableentry.timeslot_id
+
+
+================================================================================
+                    NORMALIZATION STATUS
+================================================================================
+
+1st Normal Form (1NF): ✓
+- All attributes contain atomic values
+- No repeating groups
+
+2nd Normal Form (2NF): ✓
+- All non-key attributes fully dependent on primary key
+- No partial dependencies
+
+3rd Normal Form (3NF): ✓
+- No transitive dependencies
+- All FKs reference primary keys
+- Department data not duplicated in Teacher/Course (proper FK)
+
+Note: UserProfile.institution stores institution NAME (not ID) for quick
+access. This is a controlled denormalization for performance.
+
+
+================================================================================
+                    ER DIAGRAM CREATION GUIDE
+================================================================================
+
+ENTITY REPRESENTATION:
+----------------------
+Each table should be represented as a rectangle with:
+- Table name at top
+- Primary Key (id) underlined
+- All attributes listed
+- Foreign Keys indicated with (FK)
+
+RELATIONSHIP REPRESENTATION:
+----------------------------
+- One-to-One: Single line with 1:1
+- One-to-Many: Single line with 1:∞ or 1:N
+- Many-to-Many: Diamond shape with entity name or implicit join table
+
+CARDINALITY NOTATION:
+---------------------
+- Use crow's foot notation:
+  - One: Single line (|)
+  - Many: Crow's foot (⋈)
+  - Optional: Circle (○)
+  - Mandatory: Perpendicular line (|)
+
+SUGGESTED GROUPING FOR DIAGRAM:
+--------------------------------
+1. Core Auth & Institution: User, Institution, Department, UserProfile
+2. Academic Entities: Teacher, Student, Course, Grade
+3. Timetable System: Timetable, Room, Division, TimeSlot, TimetableEntry
+4. Miscellaneous: News
+
+COLOR CODING SUGGESTIONS:
+-------------------------
+- Blue: Core entities (Institution, User)
+- Green: Academic entities (Teacher, Student, Course)
+- Orange: Timetable entities
+- Gray: Utility entities (News)
+
+
+================================================================================
+                        KEY CONSTRAINTS CHECKLIST
+================================================================================
+
+UNIQUE Constraints:
+-------------------
+✓ Institution.name
+✓ Institution.email
+✓ User.username
+✓ Teacher.employee_id
+✓ Student.student_id
+
+UNIQUE_TOGETHER Constraints:
+----------------------------
+✓ (Institution.id, Department.name)
+✓ (Institution.id, Course.code)
+✓ (Student.id, Course.id) for Grade
+✓ (Division.id, TimeSlot.id, day) for TimetableEntry
+✓ (Faculty.id, TimeSlot.id, day) for TimetableEntry
+✓ (Room.id, TimeSlot.id, day) for TimetableEntry
+
+NOT NULL Constraints:
+---------------------
+All required business fields are NOT NULL
+Optional fields (phone, address, etc.) are NULLABLE
+
+
+================================================================================
+                            END OF SCHEMA
+================================================================================
+
+Document Version: 1.0
+Last Updated: 2026-02-17
+System: EduSync Education Management Platform
+Database: SQLite (Development) / PostgreSQL (Production Ready)
+================================================================================

@@ -3,87 +3,109 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
-from .models import UserProfile, LoginTable, SignupTable
-from institution.models import Institution
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.contrib import messages
 
+from .models import UserProfile, LoginTable, SignupTable
+from institution.models import Institution
+
+
+# ==============================
+# LANDING
+# ==============================
+
 @never_cache
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["GET"])
 def landing_view(request):
     """Renders the public landing page."""
     return render(request, 'landing.html', {'force_public_nav': True})
 
 
+# ==============================
+# UNIFIED LOGIN
+# ==============================
+
 @never_cache
+@ensure_csrf_cookie
 @require_http_methods(["GET", "POST"])
-def login_view(request):
+def unified_login_view(request):
     """
-    Handles user login.
-    Requires Institution Name, Username, and Password.
+    Handles unified login for Students, Teachers, and Admins.
     """
-    # If user is already logged in, redirect them to dashboard
-    if request.user.is_authenticated and request.method == 'GET':
+    if request.user.is_authenticated:
         return _redirect_by_role(request.user)
 
     if request.method == 'POST':
+        role = request.POST.get('role', 'student') 
         institution_name = request.POST.get('institution_name', '').strip()
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
-        
+
         if not institution_name or not username or not password:
             messages.error(request, "❌ Please fill in all fields.")
-            return render(request, 'login.html')
+            return render(request, 'unified_login.html')
 
         # 1. Verify Institution exists
         try:
             signup = SignupTable.objects.get(institution_name__iexact=institution_name)
         except SignupTable.DoesNotExist:
             messages.error(request, f"❌ Institution '{institution_name}' not found.")
-            return render(request, 'login.html')
-        
-        # 2. Verify Institution Password (Gatekeeper)
-        try:
-            login_entry = LoginTable.objects.get(signup=signup)
-            # Historically, the project used LoginTable for a shared institution password?
-            # We'll check it to maintain the 'two-tier' auth requested by user.
-            # However, if this is confusing, we could just rely on personal credentials.
-            # Based on user's request: "first of all user have to login to his institution"
-            # we keep this check. 
-            # Note: We don't check the password here yet if the user wants separate personal login.
-            # Actually, let's just make it a unified check if credentials are correct.
-        except LoginTable.DoesNotExist:
-            pass
+            return render(request, 'unified_login.html')
 
-        # 3. Authenticate specific user
+        # 2. Authenticate User
         user = authenticate(request, username=username, password=password)
-        
+
         if user is not None:
-            # 4. Verify user belongs to the institution
             try:
                 profile = UserProfile.objects.get(user=user)
+                
+                # 3. Verify Institution Match
                 if profile.institution.lower() != institution_name.lower():
                     messages.error(request, f"❌ This account is not registered under {institution_name}.")
-                    return render(request, 'login.html')
-                
-                # Success!
+                    return render(request, 'unified_login.html')
+
+                # 4. Verify Role Match
+                if profile.role != role:
+                     messages.error(request, f"❌ Account found, but it is not a {role} account. Please switch tabs.")
+                     return render(request, 'unified_login.html')
+
+                # Success
                 login(request, user)
                 messages.success(request, f"✅ Welcome back, {user.first_name or user.username}!")
                 return _redirect_by_role(user)
-                
+
             except UserProfile.DoesNotExist:
                 messages.error(request, "❌ User profile not found.")
-                return render(request, 'login.html')
+                return render(request, 'unified_login.html')
         else:
             messages.error(request, "❌ Invalid username or password.")
-            return render(request, 'login.html')
-    
-    return render(request, 'login.html')
+            return render(request, 'unified_login.html')
+
+    return render(request, 'unified_login.html')
 
 def _redirect_by_role(user):
-    """Redirects user based on their specific role/portal."""
+    """Redirects user based on their specific role."""
+    try:
+        profile = user.userprofile
+        if profile.role == 'institution_admin':
+            return redirect('institution_admin_dashboard')
+        elif profile.role == 'teacher':
+             return redirect('teacher_dashboard')
+        elif profile.role == 'student':
+             return redirect('student_dashboard')
+    except UserProfile.DoesNotExist:
+        pass
+    
+    # Fallback
     return redirect('dashboard')
 
+
+# ==============================
+# SIGNUP
+# ==============================
+
 @never_cache
+@ensure_csrf_cookie
 @require_http_methods(["GET", "POST"])
 def signup_view(request):
     """Handles new institution registration and admin account creation."""
@@ -145,6 +167,11 @@ def signup_view(request):
     
     return render(request, 'signup.html')
 
+
+# ==============================
+# LOGOUT
+# ==============================
+
 def logout_view(request):
     """Logs out the user and redirects to landing or previous page."""
     next_url = request.GET.get('next')
@@ -155,4 +182,3 @@ def logout_view(request):
         return redirect(next_url)   # Redirect where navbar asked
 
     return redirect('landing') 
-

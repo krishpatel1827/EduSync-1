@@ -13,7 +13,6 @@ from generator.models import Timetable, TimetableEntry
 
 
 def _unique_username(base):
-    from django.contrib.auth.models import User
     username = base
     suffix = 1
     while User.objects.filter(username=username).exists():
@@ -130,6 +129,7 @@ def student_create(request):
                         parent_phone=form.cleaned_data.get('parent_phone', ''),
                         blood_group=form.cleaned_data.get('blood_group', ''),
                         course=form.cleaned_data.get('course'),
+                        department=form.cleaned_data.get('department'),
                     )
 
                     UserProfile.objects.create(
@@ -176,6 +176,7 @@ def student_edit(request, student_id):
             student.parent_phone = form.cleaned_data.get('parent_phone', '')
             student.blood_group = form.cleaned_data.get('blood_group', '')
             student.course = form.cleaned_data.get('course')
+            student.department = form.cleaned_data.get('department')
             student.save()
 
             messages.success(request, 'Student updated successfully.')

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex flex-column align-items-center justify-content-center min-vh-100 text-center"
+    style="background: var(--clr-bg);">
+    <h1 class="display-1 fw-bold" style="color: var(--clr-text-muted); font-size: 8rem;">404</h1>
+    <h2 class="mb-3" style="color: var(--clr-text);">Page Not Found</h2>
+    <p class="lead mb-4" style="color: var(--clr-text-muted); max-width: 500px;">
+        The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+    </p>
+    <a href="{% url 'landing' %}" class="btn px-4 py-2"
+        style="background: var(--clr-accent); color: white; border-radius: 12px; font-weight: 600;">
+        Go to Homepage
+    </a>
+</div>
+{% endblock %}

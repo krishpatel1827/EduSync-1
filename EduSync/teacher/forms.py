@@ -3,11 +3,12 @@ from academics.models import Course
 
 
 from .models import Teacher
+from institution.models import Department
 
 class TeacherCreateForm(forms.Form):
     name = forms.CharField(max_length=150, label="Teacher Name")
     employee_id = forms.CharField(max_length=20)
-    department = forms.CharField(max_length=100)
+    department = forms.ModelChoiceField(queryset=Department.objects.none(), required=False)
     qualification = forms.CharField(max_length=200)
     gender = forms.ChoiceField(choices=Teacher.GENDER_CHOICES)
     date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
@@ -26,6 +27,7 @@ class TeacherCreateForm(forms.Form):
         super().__init__(*args, **kwargs)
         if institution is not None:
             self.fields["courses"].queryset = Course.objects.filter(institution=institution)
+            self.fields["department"].queryset = Department.objects.filter(institution=institution)
 
     def clean_employee_id(self):
         employee_id = self.cleaned_data.get('employee_id')
@@ -37,8 +39,9 @@ class TeacherCreateForm(forms.Form):
 class TeacherEditForm(forms.Form):
     name = forms.CharField(max_length=150, label="Teacher Name")
     employee_id = forms.CharField(max_length=20)
-    department = forms.CharField(max_length=100)
+    department = forms.ModelChoiceField(queryset=Department.objects.none(), required=False)
     qualification = forms.CharField(max_length=200)
+
     gender = forms.ChoiceField(choices=Teacher.GENDER_CHOICES)
     date_of_birth = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
     phone = forms.CharField(max_length=15, required=False)
@@ -57,6 +60,7 @@ class TeacherEditForm(forms.Form):
         self.teacher = teacher
         if institution is not None:
             self.fields["courses"].queryset = Course.objects.filter(institution=institution)
+            self.fields["department"].queryset = Department.objects.filter(institution=institution)
         if teacher is not None:
             self.fields["name"].initial = teacher.user.get_full_name() or teacher.user.username
             self.fields["employee_id"].initial = teacher.employee_id
