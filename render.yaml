@@ -25,3 +25,9 @@ services:
         value: "False"
       - key: RENDER
         value: "True"
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: "admin"
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: "admin@edusync.com"
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
