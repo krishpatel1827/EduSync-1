@@ -9,7 +9,8 @@ services:
     name: edusync
     runtime: python
     plan: free
-    buildCommand: "./build.sh"
+    rootDir: EduSync
+    buildCommand: "chmod +x build.sh && ./build.sh"
     startCommand: "gunicorn EduSync.wsgi:application"
     envVars:
       - key: DATABASE_URL
