@@ -31,3 +31,5 @@ services:
         value: "admin@edusync.com"
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
+      - key: FORCE_LOAD_FIXTURES
+        value: "true"

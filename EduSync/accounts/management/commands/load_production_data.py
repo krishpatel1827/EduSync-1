@@ -13,11 +13,15 @@ class Command(BaseCommand):
     help = 'Load production data from fixtures if database is empty'
 
     def handle(self, *args, **options):
+        # Force load if env var is set (for resetting production)
+        force_load = os.environ.get('FORCE_LOAD_FIXTURES', 'false').lower() == 'true'
+        
         # Check if data already exists
-        if Institution.objects.exists():
+        if Institution.objects.exists() and not force_load:
             self.stdout.write(self.style.SUCCESS(
                 'Data already exists in database. Skipping fixture load.'
             ))
+            self.stdout.write('Set FORCE_LOAD_FIXTURES=true to override.')
             return
 
         # Find the fixture file using Django's BASE_DIR
