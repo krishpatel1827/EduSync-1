@@ -32,3 +32,32 @@ class News(models.Model):
 
     def __str__(self):
         return self.content[:30]
+
+
+class AcademicCalendarEvent(models.Model):
+    """Academic calendar events like exams, holidays, semester dates, etc."""
+    EVENT_TYPES = [
+        ('exam', 'Examination'),
+        ('holiday', 'Holiday'),
+        ('semester_start', 'Semester Start'),
+        ('semester_end', 'Semester End'),
+        ('event', 'Event'),
+        ('deadline', 'Deadline'),
+        ('other', 'Other'),
+    ]
+    
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, related_name='calendar_events')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES, default='event')
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    is_published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['start_date', 'title']
+    
+    def __str__(self):
+        return f"{self.title} ({self.start_date})"

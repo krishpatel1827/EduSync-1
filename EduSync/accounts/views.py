@@ -98,8 +98,8 @@ def _redirect_by_role(user):
     except UserProfile.DoesNotExist:
         pass
     
-    # Fallback
-    return redirect('dashboard')
+    # Fallback - redirect to landing page instead of generator
+    return redirect('landing')
 
 
 # ==============================
@@ -113,7 +113,7 @@ def _redirect_by_role(user):
 def signup_view(request):
     """Handles new institution registration and admin account creation."""
     if request.user.is_authenticated:
-         return redirect('dashboard')
+         return _redirect_by_role(request.user)
 
     if request.method == 'POST':
 
@@ -160,11 +160,9 @@ def signup_view(request):
             # Create Institution
             Institution.objects.create(name=institution_name, admin=user, email=email)
             
-            login(request, user)
-            
-            # Render with success message and redirect
-            messages.success(request, "✅ Account created successfully! Welcome to EduSync.")
-            return redirect('dashboard')
+            # Don't auto-login, redirect to login page with success message
+            messages.success(request, "✅ Account created successfully! Please log in to access your dashboard.")
+            return redirect('login')
         except Exception as e:
             return render(request, 'signup.html', {'error': f'❌ Error creating account: {str(e)}'})
     
@@ -175,14 +173,10 @@ def signup_view(request):
 # LOGOUT
 # ==============================
 
-@csrf_exempt
+@never_cache
+@require_http_methods(["GET", "POST"])
 def logout_view(request):
-    """Logs out the user and redirects to landing or previous page."""
-    next_url = request.GET.get('next')
-
+    """Logs out the user and redirects to landing page."""
     logout(request)
-
-    if next_url:
-        return redirect(next_url)   # Redirect where navbar asked
-
+    messages.success(request, "✅ You have been logged out successfully.")
     return redirect('landing') 

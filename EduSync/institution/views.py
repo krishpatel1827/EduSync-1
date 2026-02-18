@@ -5,11 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
-from .models import Institution, News, Department
+from .models import Institution, News, Department, AcademicCalendarEvent
 from academics.models import Course, Branch
 from teacher.models import Teacher
 from student.models import Student
 from generator.models import Room
+from datetime import date
 
 
 # 🔹 INSTITUTION DASHBOARD (WELCOME PAGE)
@@ -259,7 +260,7 @@ def department_list(request):
         institution = Institution.objects.get(admin=request.user)
     except Institution.DoesNotExist:
         messages.error(request, "Institution profile not found.")
-        return redirect('dashboard')
+        return redirect('landing')
 
     if request.method == "POST":
         name = request.POST.get("name")
@@ -444,3 +445,156 @@ def room_delete(request, room_id):
     room.delete()
     messages.success(request, f"Room '{room_number}' deleted successfully.")
     return redirect('room_list')
+
+
+# ============ ACADEMIC CALENDAR MANAGEMENT ============
+
+@ensure_csrf_cookie
+@login_required(login_url='login')
+def calendar_list(request):
+    """List all academic calendar events for the institution"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to view calendar.")
+        return redirect('institution_admin_dashboard')
+    
+    events = AcademicCalendarEvent.objects.filter(institution=institution)
+    upcoming_events = events.filter(start_date__gte=date.today()).order_by('start_date')
+    past_events = events.filter(start_date__lt=date.today()).order_by('-start_date')
+    
+    return render(request, 'institution/calendar_list.html', {
+        'upcoming_events': upcoming_events,
+        'past_events': past_events,
+        'institution': institution,
+        'event_types': AcademicCalendarEvent.EVENT_TYPES,
+    })
+
+
+@ensure_csrf_cookie
+@csrf_protect
+@login_required(login_url='login')
+def calendar_create(request):
+    """Create a new calendar event"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to create events.")
+        return redirect('institution_admin_dashboard')
+    
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        event_type = request.POST.get('event_type', 'event')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date') or None
+        is_published = request.POST.get('is_published') == 'on'
+        
+        if not title or not start_date:
+            messages.error(request, "Title and start date are required.")
+            return render(request, 'institution/calendar_form.html', {
+                'action': 'Add',
+                'institution': institution,
+                'event_types': AcademicCalendarEvent.EVENT_TYPES,
+            })
+        
+        AcademicCalendarEvent.objects.create(
+            institution=institution,
+            title=title,
+            description=description,
+            event_type=event_type,
+            start_date=start_date,
+            end_date=end_date,
+            is_published=is_published,
+        )
+        messages.success(request, f"Event '{title}' created successfully.")
+        return redirect('calendar_list')
+    
+    return render(request, 'institution/calendar_form.html', {
+        'action': 'Add',
+        'institution': institution,
+        'event_types': AcademicCalendarEvent.EVENT_TYPES,
+    })
+
+
+@ensure_csrf_cookie
+@csrf_protect
+@login_required(login_url='login')
+def calendar_edit(request, event_id):
+    """Edit an existing calendar event"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to edit events.")
+        return redirect('institution_admin_dashboard')
+    
+    event = get_object_or_404(AcademicCalendarEvent, id=event_id, institution=institution)
+    
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        event_type = request.POST.get('event_type', 'event')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date') or None
+        is_published = request.POST.get('is_published') == 'on'
+        
+        if not title or not start_date:
+            messages.error(request, "Title and start date are required.")
+            return render(request, 'institution/calendar_form.html', {
+                'action': 'Edit',
+                'event': event,
+                'institution': institution,
+                'event_types': AcademicCalendarEvent.EVENT_TYPES,
+            })
+        
+        event.title = title
+        event.description = description
+        event.event_type = event_type
+        event.start_date = start_date
+        event.end_date = end_date
+        event.is_published = is_published
+        event.save()
+        
+        messages.success(request, f"Event '{title}' updated successfully.")
+        return redirect('calendar_list')
+    
+    return render(request, 'institution/calendar_form.html', {
+        'action': 'Edit',
+        'event': event,
+        'institution': institution,
+        'event_types': AcademicCalendarEvent.EVENT_TYPES,
+    })
+
+
+@login_required(login_url='login')
+def calendar_delete(request, event_id):
+    """Delete a calendar event"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to delete events.")
+        return redirect('institution_admin_dashboard')
+    
+    event = get_object_or_404(AcademicCalendarEvent, id=event_id, institution=institution)
+    title = event.title
+    event.delete()
+    messages.success(request, f"Event '{title}' deleted successfully.")
+    return redirect('calendar_list')
+
+
+@login_required(login_url='login')
+def calendar_toggle_publish(request, event_id):
+    """Toggle publish status of an event"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized.")
+        return redirect('institution_admin_dashboard')
+    
+    event = get_object_or_404(AcademicCalendarEvent, id=event_id, institution=institution)
+    event.is_published = not event.is_published
+    event.save()
+    
+    status = "published" if event.is_published else "unpublished"
+    messages.success(request, f"Event '{event.title}' {status}.")
+    return redirect('calendar_list')

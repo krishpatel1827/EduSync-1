@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .settings-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        font-family: var(--font-head);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+        color: var(--clr-text-muted);
+    }
+
+    .settings-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    [data-bs-theme="dark"] .settings-card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .settings-card h3 {
+        font-family: var(--font-head);
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .settings-card .description {
+        color: var(--clr-text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .icon-box {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon-blue {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3B82F6;
+    }
+
+    .icon-red {
+        background: rgba(239, 68, 68, 0.1);
+        color: #EF4444;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--clr-accent);
+        box-shadow: 0 0 0 3px rgba(var(--clr-accent-rgb), 0.1);
+    }
+
+    .btn-save {
+        background: var(--clr-accent);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        background: var(--clr-accent-hover);
+        transform: translateY(-2px);
+    }
+
+    .current-value {
+        display: inline-block;
+        background: var(--clr-accent-soft);
+        color: var(--clr-accent);
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--clr-text-muted);
+        text-decoration: none;
+        margin-bottom: 1.5rem;
+        transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+        color: var(--clr-accent);
+    }
+
+    .password-requirements {
+        font-size: 0.8rem;
+        color: var(--clr-text-muted);
+        margin-top: 0.5rem;
+    }
+</style>
+
+<div class="settings-container">
+    <a href="{% url 'teacher_dashboard' %}" class="back-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5"></path>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Dashboard
+    </a>
+
+    <div class="page-header">
+        <h1>Account Settings</h1>
+        <p>Update your login credentials and account information.</p>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert" style="border-radius: 12px;">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Update Username -->
+    <div class="settings-card">
+        <h3>
+            <div class="icon-box icon-blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            Change Username
+        </h3>
+        <p class="description">Update your login username. This will be used to sign in to your account.</p>
+        
+        <div class="current-value">Current: {{ user.username }}</div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_username">
+            <div class="mb-3">
+                <label for="new_username" class="form-label">New Username</label>
+                <input type="text" class="form-control" id="new_username" name="new_username" 
+                       placeholder="Enter new username" minlength="3" required>
+                <div class="password-requirements">Username must be at least 3 characters and contain only letters, numbers, and underscores.</div>
+            </div>
+            <button type="submit" class="btn btn-save">Update Username</button>
+        </form>
+    </div>
+
+    <!-- Update Password -->
+    <div class="settings-card">
+        <h3>
+            <div class="icon-box icon-red">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            Change Password
+        </h3>
+        <p class="description">Update your account password. Make sure to use a strong, unique password.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_password">
+            <div class="mb-3">
+                <label for="current_password" class="form-label">Current Password</label>
+                <input type="password" class="form-control" id="current_password" name="current_password" 
+                       placeholder="Enter your current password" required>
+            </div>
+            <div class="mb-3">
+                <label for="new_password" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="new_password" name="new_password" 
+                       placeholder="Enter new password" minlength="8" required>
+                <div class="password-requirements">Password must be at least 8 characters long.</div>
+            </div>
+            <div class="mb-3">
+                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                       placeholder="Confirm your new password" minlength="8" required>
+            </div>
+            <button type="submit" class="btn btn-save">Update Password</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

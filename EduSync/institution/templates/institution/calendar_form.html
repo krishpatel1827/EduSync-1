@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .dashboard-header {
+        text-align: center;
+        padding: 40px 20px 30px;
+    }
+
+    .dashboard-title {
+        color: var(--clr-text);
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    .dashboard-subtitle {
+        color: var(--clr-text-muted);
+    }
+
+    .admin-card {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(0, 0, 0, .06);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .form-control-custom {
+        background: var(--clr-surface-alt);
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: 10px;
+        padding: 12px 15px;
+        color: var(--clr-text);
+        width: 100%;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--clr-accent);
+        outline: none;
+        box-shadow: 0 0 0 3px var(--clr-accent-soft);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--clr-text);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .btn-primary-custom {
+        background: var(--clr-accent);
+        color: #fff;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary-custom:hover {
+        background: var(--clr-accent-hover);
+    }
+
+    .btn-outline-custom {
+        border: 1px solid var(--clr-accent);
+        color: var(--clr-accent);
+        background: transparent;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+    }
+
+    .form-check-label {
+        color: var(--clr-text);
+        cursor: pointer;
+    }
+
+    .help-text {
+        font-size: 13px;
+        color: var(--clr-text-muted);
+        margin-top: 5px;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h3 class="dashboard-title">{{ action }} Calendar Event</h3>
+    <p class="dashboard-subtitle">{% if action == 'Add' %}Create a new academic calendar event{% else %}Update event
+        details{% endif %}</p>
+    <a href="{% url 'calendar_list' %}" style="color: var(--clr-accent); text-decoration: none;">&larr; Back to
+        Calendar</a>
+</div>
+
+<div class="container" style="padding-bottom: 50px;">
+    <div class="admin-card">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label class="form-label">Event Title *</label>
+                <input type="text" name="title" class="form-control-custom" required
+                    value="{% if event %}{{ event.title }}{% endif %}" placeholder="e.g., Mid-term Examinations">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Event Type</label>
+                <select name="event_type" class="form-control-custom">
+                    {% for val, lbl in event_types %}
+                    {% with current_type=event.event_type|default:"" %}
+                    <option value="{{ val }}" {% if current_type==val %}selected{% endif %}>{{ lbl }}</option>
+                    {% endwith %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Start Date *</label>
+                    <input type="date" name="start_date" class="form-control-custom" required
+                        value="{% if event %}{{ event.start_date|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">End Date (optional)</label>
+                    <input type="date" name="end_date" class="form-control-custom"
+                        value="{% if event and event.end_date %}{{ event.end_date|date:'Y-m-d' }}{% endif %}">
+                    <div class="help-text">Leave blank for single-day events</div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Description (optional)</label>
+                <textarea name="description" class="form-control-custom" rows="4"
+                    placeholder="Add details about this event...">{% if event %}{{ event.description }}{% endif %}</textarea>
+            </div>
+
+            <div class="mb-4">
+                <div class="form-check d-flex align-items-center">
+                    <input type="checkbox" name="is_published" id="is_published" class="form-check-input" {% if event
+                        and event.is_published %}checked{% endif %}>
+                    <label for="is_published" class="form-check-label">
+                        <strong>Publish immediately</strong>
+                        <div class="help-text" style="margin-top: 0;">Published events will be visible to all teachers
+                            and students</div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 justify-content-end">
+                <a href="{% url 'calendar_list' %}" class="btn-outline-custom">Cancel</a>
+                <button type="submit" class="btn-primary-custom">{{ action }} Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

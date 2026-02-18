@@ -1,47 +1,243 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
-    <h2 class="mb-0">Courses</h2>
-    <div class="d-flex gap-2">
-      <a class="btn btn-primary" href="{% url 'course_create' %}">Add Course</a>
-      <a class="btn btn-outline-dark" href="{% url 'institution_admin_dashboard' %}">Back to Admin Dashboard</a>
-    </div>
-  </div>
+<style>
+    .course-list-wrap {
+        min-height: 100vh;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
 
-  {% if courses %}
-  <div class="table-responsive">
-    <table class="table table-striped align-middle">
-      <thead>
-        <tr>
-          <th>Code</th>
-          <th>Name</th>
-          <th>Credits</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for course in courses %}
-        <tr>
-          <td>{{ course.code }}</td>
-          <td>{{ course.name }}</td>
-          <td>{{ course.credits }}</td>
-          <td class="text-end">
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'course_detail' course.id %}">View</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'course_edit' course.id %}">Edit</a>
-            <form method="post" action="{% url 'course_delete' course.id %}" class="d-inline" onsubmit="return confirm('Delete this course?');">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="alert alert-info mb-0">No courses found.</div>
-  {% endif %}
+    .course-list-card {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 16px;
+        padding: 1.75rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .page-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .page-title {
+        font-family: var(--font-head);
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin: 0;
+    }
+
+    .page-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-add {
+        padding: 0.6rem 1.25rem;
+        background: var(--clr-accent);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .btn-add:hover {
+        background: var(--clr-accent-hover);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .btn-back {
+        padding: 0.6rem 1.25rem;
+        border: 1px solid var(--clr-border);
+        color: var(--clr-text-muted);
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: transparent;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        border-color: var(--clr-accent);
+        color: var(--clr-accent);
+        background: var(--clr-accent-soft);
+    }
+
+    .course-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .course-table th,
+    .course-table td {
+        padding: 0.9rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--clr-border);
+    }
+
+    .course-table thead {
+        background: var(--clr-surface-alt);
+    }
+
+    .course-table thead th {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--clr-text);
+    }
+
+    .course-table tbody tr {
+        transition: background 0.2s;
+    }
+
+    .course-table tbody tr:hover {
+        background: var(--clr-surface-alt);
+    }
+
+    .course-code {
+        font-weight: 700;
+        color: var(--clr-accent);
+    }
+
+    .course-name {
+        color: var(--clr-text);
+    }
+
+    .course-credits {
+        font-weight: 600;
+        color: var(--clr-text-muted);
+    }
+
+    .action-btns {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn-action {
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-view {
+        background: var(--clr-accent-soft);
+        color: var(--clr-accent);
+        border: 1px solid transparent;
+    }
+
+    .btn-view:hover {
+        background: var(--clr-accent);
+        color: white;
+    }
+
+    .btn-edit {
+        background: var(--clr-surface-alt);
+        color: var(--clr-text-muted);
+        border: 1px solid var(--clr-border);
+    }
+
+    .btn-edit:hover {
+        border-color: var(--clr-accent);
+        color: var(--clr-accent);
+    }
+
+    .btn-delete {
+        background: transparent;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+
+    .btn-delete:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--clr-text-muted);
+    }
+
+    .empty-state svg {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 1rem;
+        opacity: 0.4;
+    }
+
+    @media (max-width: 768px) {
+        .course-table {
+            display: block;
+            overflow-x: auto;
+        }
+    }
+</style>
+
+<div class="course-list-wrap">
+    <div class="course-list-card">
+        <div class="page-header">
+            <h2 class="page-title">Courses</h2>
+            <div class="page-actions">
+                <a class="btn-add" href="{% url 'course_create' %}">+ Add Course</a>
+                <a class="btn-back" href="{% url 'institution_admin_dashboard' %}">Back to Dashboard</a>
+            </div>
+        </div>
+
+        {% if courses %}
+        <div class="table-responsive">
+            <table class="course-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Credits</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td class="course-code">{{ course.code }}</td>
+                        <td class="course-name">{{ course.name }}</td>
+                        <td class="course-credits">{{ course.credits }}</td>
+                        <td>
+                            <div class="action-btns">
+                                <a class="btn-action btn-view" href="{% url 'course_detail' course.id %}">View</a>
+                                <a class="btn-action btn-edit" href="{% url 'course_edit' course.id %}">Edit</a>
+                                <form method="post" action="{% url 'course_delete' course.id %}" class="d-inline" onsubmit="return confirm('Delete this course?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action btn-delete">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <p>No courses found. Add your first course!</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

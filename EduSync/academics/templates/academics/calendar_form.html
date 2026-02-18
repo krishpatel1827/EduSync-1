@@ -2,28 +2,24 @@
 
 {% block content %}
 <style>
-    .course-form-wrap {
+    .calendar-form-wrap {
         min-height: 100vh;
         padding: 3rem 1rem;
         background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
     }
 
-    .course-form-card {
+    .calendar-form-container {
         max-width: 700px;
         margin: 0 auto;
-        background: var(--clr-surface);
-        border: 1px solid var(--clr-border);
-        border-radius: 16px;
-        padding: 2rem;
-        box-shadow: var(--shadow-md);
     }
 
     .page-header {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        margin-bottom: 1.75rem;
+        margin-bottom: 1.5rem;
     }
 
     .page-title {
@@ -51,18 +47,27 @@
         color: var(--clr-accent);
     }
 
-    .form-card-inner {
-        background: var(--clr-surface-alt);
-        border-radius: 12px;
-        padding: 1.5rem;
+    .form-card {
+        background: var(--clr-surface);
         border: 1px solid var(--clr-border);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     .form-field {
-        margin-bottom: 1.25rem;
-    }
-
-    .form-field:last-child {
         margin-bottom: 0;
     }
 
@@ -79,7 +84,7 @@
     .form-field textarea {
         width: 100%;
         padding: 0.75rem 1rem;
-        background: var(--clr-surface);
+        background: var(--clr-surface-alt);
         border: 1px solid var(--clr-border);
         border-radius: 10px;
         color: var(--clr-text);
@@ -95,20 +100,46 @@
         box-shadow: 0 0 0 3px var(--clr-accent-soft);
     }
 
-    .form-row {
+    .checkbox-group {
+        margin-top: 1.5rem;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
     }
 
-    @media (max-width: 576px) {
-        .form-row {
-            grid-template-columns: 1fr;
-        }
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: var(--clr-surface-alt);
+        border: 1px solid var(--clr-border);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .checkbox-item:hover {
+        border-color: var(--clr-accent);
+        background: var(--clr-accent-soft);
+    }
+
+    .checkbox-item input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--clr-accent);
+    }
+
+    .checkbox-item label {
+        color: var(--clr-text);
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        margin: 0;
     }
 
     .form-actions {
-        margin-top: 1.5rem;
+        margin-top: 2rem;
         display: flex;
         gap: 0.75rem;
     }
@@ -146,74 +177,50 @@
         border-color: var(--clr-text-muted);
         color: var(--clr-text);
     }
-
-    .alert-error {
-        background: #fef2f2;
-        border: 1px solid #ef4444;
-        border-radius: 10px;
-        padding: 1rem;
-        color: #dc2626;
-        margin-bottom: 1.5rem;
-    }
 </style>
 
-<div class="course-form-wrap">
-    <div class="course-form-card">
+<div class="calendar-form-wrap">
+    <div class="calendar-form-container">
         <div class="page-header">
-            <h2 class="page-title">{% if mode == 'edit' %}Edit Course{% else %}Add Course{% endif %}</h2>
-            <a class="btn-back" href="{% url 'course_list' %}">&larr; Back to Courses</a>
+            <h2 class="page-title">{% if mode == 'edit' %}Edit Calendar{% else %}Create Academic Calendar{% endif %}</h2>
+            <a class="btn-back" href="{% url 'academic_calendar_list' %}">&larr; Back to calendars</a>
         </div>
 
-        {% if error %}
-        <div class="alert-error">{{ error }}</div>
-        {% else %}
-        <div class="form-card-inner">
+        <div class="form-card">
             <form method="post">
                 {% csrf_token %}
-                <div class="form-row">
+                <div class="form-grid">
                     <div class="form-field">
-                        <label>Course Code</label>
-                        {{ form.code }}
+                        <label>Semester</label>
+                        {{ form.semester }}
                     </div>
                     <div class="form-field">
-                        <label>Credits</label>
-                        {{ form.credits }}
-                    </div>
-                </div>
-                
-                <div class="form-field">
-                    <label>Course Name</label>
-                    {{ form.name }}
-                </div>
-                
-                <div class="form-field">
-                    <label>Description</label>
-                    {{ form.description }}
-                </div>
-
-                <div class="form-row">
-                    <div class="form-field">
-                        <label>Course Duration (Months)</label>
-                        {{ form.duration_months }}
+                        <label>Academic Year</label>
+                        {{ form.year }}
                     </div>
                     <div class="form-field">
-                        <label>Tuition Fee</label>
-                        {{ form.tuition_fee }}
+                        <label>Department (optional)</label>
+                        {{ form.department }}
                     </div>
                 </div>
 
-                <div class="form-field">
-                    <label>Department</label>
-                    {{ form.department }}
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        {{ form.shared_with_students }}
+                        <label>Share with students</label>
+                    </div>
+                    <div class="checkbox-item">
+                        {{ form.shared_with_teachers }}
+                        <label>Share with teachers</label>
+                    </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-submit">Save Course</button>
-                    <a class="btn-cancel" href="{% url 'course_list' %}">Cancel</a>
+                    <button type="submit" class="btn-submit">Save Calendar</button>
+                    <a class="btn-cancel" href="{% url 'academic_calendar_list' %}">Cancel</a>
                 </div>
             </form>
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

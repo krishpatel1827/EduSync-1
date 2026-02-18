@@ -1,36 +1,193 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 40px auto; padding: 20px;">
-    <h2 style="text-align: center; margin-bottom: 30px; color: var(--clr-text); font-family: var(--font-head);">Timetable History</h2>
+<style>
+    .history-wrap {
+        min-height: 100vh;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
 
-    <div style="display: grid; gap: 15px;">
-        {% for tt in timetables %}
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: var(--radius); box-shadow: var(--shadow-sm); transition: box-shadow 0.3s ease;">
-            <div>
-                <h3 style="margin: 0 0 5px 0; color: var(--clr-text);">{{ tt.name }}</h3>
-                <div style="font-size: 0.9em; color: var(--clr-text-muted);">Created: {{ tt.created_at|date:"M d, Y H:i" }}</div>
-            </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <a href="{% url 'timetable' tt.id %}"
-                    style="padding: 8px 16px; background: var(--clr-accent); color: white; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;">View</a>
-                <a href="{% url 'history_delete' tt.id %}"
-                    style="padding: 8px 16px; background: #ef4444; color: white; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;">Delete</a>
-                {% if not tt.is_active %}
-                {% else %}
-                <span
-                    style="padding: 8px 16px; background: var(--clr-success); color: white; border-radius: var(--radius-sm); font-size: 0.9em; font-weight: 600;">Active</span>
-                {% endif %}
-            </div>
+    .history-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .history-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .history-title {
+        font-family: var(--font-head);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .history-subtitle {
+        color: var(--clr-text-muted);
+    }
+
+    .history-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .history-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 14px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .history-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--clr-accent);
+    }
+
+    .history-info h3 {
+        margin: 0 0 0.35rem 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--clr-text);
+    }
+
+    .history-meta {
+        font-size: 0.85rem;
+        color: var(--clr-text-muted);
+    }
+
+    .history-meta svg {
+        vertical-align: -2px;
+        margin-right: 4px;
+    }
+
+    .history-actions {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+    }
+
+    .btn-view {
+        padding: 0.5rem 1rem;
+        background: var(--clr-accent);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+    }
+
+    .btn-view:hover {
+        background: var(--clr-accent-hover);
+        color: white;
+    }
+
+    .btn-delete {
+        padding: 0.5rem 1rem;
+        background: #ef4444;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+    }
+
+    .btn-delete:hover {
+        background: #dc2626;
+        color: white;
+    }
+
+    .badge-active {
+        padding: 0.4rem 0.85rem;
+        background: var(--clr-success);
+        color: white;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 14px;
+        color: var(--clr-text-muted);
+    }
+
+    .empty-state svg {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 1rem;
+        opacity: 0.4;
+    }
+
+    .back-nav {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .back-link {
+        color: var(--clr-text-muted);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--clr-accent);
+    }
+</style>
+
+<div class="history-wrap">
+    <div class="history-container">
+        <div class="history-header">
+            <h2 class="history-title">Timetable History</h2>
+            <p class="history-subtitle">View and manage your saved timetables</p>
         </div>
-        {% empty %}
-        <p style="text-align: center; color: var(--clr-text-muted);">No history found. Generate your first timetable!</p>
-        {% endfor %}
-    </div>
 
-    <div style="margin-top: 30px; text-align: center;">
-        <a href="{% url 'generator' %}" style="color: var(--clr-text-muted); text-decoration: none; font-weight: 600;">&larr; Back to Dashboard</a>
+        <div class="history-grid">
+            {% for tt in timetables %}
+            <div class="history-card">
+                <div class="history-info">
+                    <h3>{{ tt.name }}</h3>
+                    <div class="history-meta">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Created: {{ tt.created_at|date:"M d, Y H:i" }}
+                    </div>
+                </div>
+                <div class="history-actions">
+                    <a href="{% url 'timetable' tt.id %}" class="btn-view">View</a>
+                    <a href="{% url 'history_delete' tt.id %}" class="btn-delete" onclick="return confirm('Delete this timetable?')">Delete</a>
+                    {% if tt.is_active %}
+                    <span class="badge-active">Active</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <p>No history found. Generate your first timetable!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="back-nav">
+            <a href="{% url 'generator' %}" class="back-link">&larr; Back to Dashboard</a>
+        </div>
     </div>
 </div>
 {% endblock %}

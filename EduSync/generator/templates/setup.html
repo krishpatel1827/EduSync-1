@@ -1,31 +1,169 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div
-    style="max-width: 600px; margin: 40px auto; padding: 30px; border: 1px solid var(--clr-border); border-radius: var(--radius); background: var(--clr-surface); box-shadow: var(--shadow-md);">
-    <h2 style="text-align: center; color: var(--clr-text); font-family: var(--font-head);">Timetable Configuration</h2>
-    <p style="text-align: center; color: var(--clr-text-muted); margin-bottom: 30px;">Initialize your department timetable structure.</p>
+<style>
+    .setup-wrap {
+        min-height: 100vh;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
 
-    <form method="post">
-        {% csrf_token %}
-        <div style="display: flex; flex-direction: column; gap: 20px;">
+    .setup-card {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+        border: 1px solid var(--clr-border);
+        border-radius: 16px;
+        background: var(--clr-surface);
+        box-shadow: var(--shadow-md);
+    }
+
+    .setup-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .setup-title {
+        font-family: var(--font-head);
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .setup-subtitle {
+        color: var(--clr-text-muted);
+        font-size: 0.95rem;
+    }
+
+    .setup-icon {
+        width: 64px;
+        height: 64px;
+        background: var(--clr-accent-soft);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+
+    .setup-icon svg {
+        width: 32px;
+        height: 32px;
+        stroke: var(--clr-accent);
+    }
+
+    .form-field {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-field label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--clr-text);
+        font-size: 0.9rem;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--clr-surface-alt);
+        border: 1px solid var(--clr-border);
+        border-radius: 10px;
+        color: var(--clr-text);
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+        outline: none;
+        border-color: var(--clr-accent);
+        box-shadow: 0 0 0 3px var(--clr-accent-soft);
+    }
+
+    .form-error {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 0.35rem;
+    }
+
+    .form-actions {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .btn-generate {
+        padding: 0.85rem 2.5rem;
+        background: var(--clr-accent);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px var(--clr-accent-soft);
+    }
+
+    .btn-generate:hover {
+        background: var(--clr-accent-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    }
+
+    .alert-info {
+        background: var(--clr-accent-soft);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: var(--clr-text);
+        font-size: 0.9rem;
+        border-left: 4px solid var(--clr-accent);
+    }
+
+    .alert-info strong {
+        color: var(--clr-accent);
+    }
+</style>
+
+<div class="setup-wrap">
+    <div class="setup-card">
+        <div class="setup-header">
+            <div class="setup-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </div>
+            <h2 class="setup-title">Timetable Configuration</h2>
+            <p class="setup-subtitle">Initialize your department timetable structure</p>
+        </div>
+
+        <div class="alert-info">
+            <strong>Note:</strong> This will reset the current timetable structure and create a fresh template based on your configuration.
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
             {% for field in form %}
-            <div style="display: flex; flex-direction: column;">
-                <label style="font-weight: 600; margin-bottom: 5px; color: var(--clr-text); font-size: 0.9rem;">{{ field.label }}</label>
+            <div class="form-field">
+                <label>{{ field.label }}</label>
                 {{ field }}
                 {% if field.errors %}
-                <div style="color: #ef4444; font-size: 0.9em;">{{ field.errors }}</div>
+                <div class="form-error">{{ field.errors }}</div>
                 {% endif %}
             </div>
             {% endfor %}
 
-            <div style="margin-top: 30px; text-align: center;">
-                <button type="submit"
-                    onclick="return confirm('This will reset the current timetable structure. Continue?')"
-                    style="padding: 12px 30px; background: var(--clr-accent); color: white; border: none; border-radius: var(--radius-sm); font-size: 16px; cursor: pointer; font-weight: 600;">Generate
-                    Structure</button>
+            <div class="form-actions">
+                <button type="submit" class="btn-generate"
+                    onclick="return confirm('This will reset the current timetable structure. Continue?')">
+                    Generate Structure
+                </button>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 {% endblock %}

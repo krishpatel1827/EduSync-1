@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .calendar-list-wrap {
+        min-height: 100vh;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
+
+    .calendar-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-family: var(--font-head);
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin: 0;
+    }
+
+    .page-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn-add {
+        padding: 0.6rem 1.25rem;
+        background: var(--clr-accent);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .btn-add:hover {
+        background: var(--clr-accent-hover);
+        color: white;
+    }
+
+    .btn-back {
+        padding: 0.6rem 1.25rem;
+        border: 1px solid var(--clr-border);
+        color: var(--clr-text-muted);
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: transparent;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        border-color: var(--clr-accent);
+        color: var(--clr-accent);
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .calendar-card {
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .calendar-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--clr-accent);
+    }
+
+    .calendar-card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .calendar-meta {
+        font-size: 0.85rem;
+        color: var(--clr-text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .calendar-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .badge-custom {
+        display: inline-block;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-dept {
+        background: var(--clr-surface-alt);
+        color: var(--clr-text-muted);
+    }
+
+    .badge-shared-students {
+        background: var(--clr-success-soft);
+        color: var(--clr-success);
+    }
+
+    .badge-shared-teachers {
+        background: var(--clr-accent-soft);
+        color: var(--clr-accent);
+    }
+
+    .calendar-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-card {
+        padding: 0.45rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-open {
+        background: var(--clr-accent);
+        color: white;
+    }
+
+    .btn-open:hover {
+        background: var(--clr-accent-hover);
+        color: white;
+    }
+
+    .btn-edit {
+        background: var(--clr-surface-alt);
+        color: var(--clr-text-muted);
+        border: 1px solid var(--clr-border);
+    }
+
+    .btn-edit:hover {
+        border-color: var(--clr-accent);
+        color: var(--clr-accent);
+    }
+
+    .btn-delete {
+        background: transparent;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+
+    .btn-delete:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 16px;
+        color: var(--clr-text-muted);
+    }
+
+    .empty-state svg {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 1rem;
+        opacity: 0.4;
+    }
+</style>
+
+<div class="calendar-list-wrap">
+    <div class="calendar-container">
+        <div class="page-header">
+            <h2 class="page-title">Academic Calendars</h2>
+            <div class="page-actions">
+                {% if is_admin %}
+                <a class="btn-add" href="{% url 'academic_calendar_create' %}">+ Add Calendar</a>
+                {% endif %}
+                <a class="btn-back" href="{% url 'institution_admin_dashboard' %}">Back</a>
+            </div>
+        </div>
+
+        {% if calendars %}
+        <div class="calendar-grid">
+            {% for cal in calendars %}
+            <div class="calendar-card">
+                <h5 class="calendar-card-title">{{ cal.semester }} — {{ cal.year }}</h5>
+                <p class="calendar-meta">
+                    Created by {{ cal.created_by.get_full_name|default:cal.created_by.username }} · {{ cal.created_at|date:"M d, Y" }}
+                </p>
+                <div class="calendar-badges">
+                    {% if cal.department %}
+                    <span class="badge-custom badge-dept">{{ cal.department.name }}</span>
+                    {% endif %}
+                    {% if cal.shared_with_students %}
+                    <span class="badge-custom badge-shared-students">Shared · Students</span>
+                    {% endif %}
+                    {% if cal.shared_with_teachers %}
+                    <span class="badge-custom badge-shared-teachers">Shared · Teachers</span>
+                    {% endif %}
+                </div>
+                <div class="calendar-actions">
+                    <a class="btn-card btn-open" href="{% url 'academic_calendar_detail' cal.id %}">Open</a>
+                    {% if is_admin %}
+                    <a class="btn-card btn-edit" href="{% url 'academic_calendar_edit' cal.id %}">Edit</a>
+                    <form method="post" action="{% url 'academic_calendar_delete' cal.id %}" class="d-inline"
+                        onsubmit="return confirm('Delete this calendar?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-card btn-delete">Delete</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <p>No academic calendars found.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

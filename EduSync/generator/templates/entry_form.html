@@ -1,31 +1,149 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div
-    style="max-width: 600px; margin: 40px auto; padding: 30px; border: 1px solid var(--clr-border); border-radius: var(--radius); background: var(--clr-surface); box-shadow: var(--shadow-md);">
-    <h2 style="color: var(--clr-text); margin-bottom: 20px;">Add Timetable Entry</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div style="display: flex; flex-direction: column; gap: 15px;">
+<style>
+    .entry-form-wrap {
+        min-height: 100vh;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
+
+    .entry-form-card {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+        border: 1px solid var(--clr-border);
+        border-radius: 16px;
+        background: var(--clr-surface);
+        box-shadow: var(--shadow-md);
+    }
+
+    .entry-form-title {
+        font-family: var(--font-head);
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .entry-form-subtitle {
+        color: var(--clr-text-muted);
+        margin-bottom: 1.5rem;
+    }
+
+    .form-field {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-field label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--clr-text);
+        font-size: 0.9rem;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--clr-surface-alt);
+        border: 1px solid var(--clr-border);
+        border-radius: 10px;
+        color: var(--clr-text);
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+        outline: none;
+        border-color: var(--clr-accent);
+        box-shadow: 0 0 0 3px var(--clr-accent-soft);
+    }
+
+    .form-error {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 0.35rem;
+    }
+
+    .form-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-submit {
+        padding: 0.75rem 1.75rem;
+        background: var(--clr-accent);
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: background 0.2s, transform 0.2s;
+    }
+
+    .btn-submit:hover {
+        background: var(--clr-accent-hover);
+        transform: translateY(-1px);
+    }
+
+    .btn-cancel {
+        text-decoration: none;
+        color: var(--clr-text-muted);
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .btn-cancel:hover {
+        color: var(--clr-accent);
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--clr-text-muted);
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--clr-accent);
+    }
+</style>
+
+<div class="entry-form-wrap">
+    <div class="entry-form-card">
+        <a href="{% url 'timetable' %}" class="back-link">&larr; Back to Timetable</a>
+        <h2 class="entry-form-title">Add Timetable Entry</h2>
+        <p class="entry-form-subtitle">Create a new entry for your timetable schedule</p>
+        
+        <form method="post">
+            {% csrf_token %}
             {% for field in form %}
-            <div style="display: flex; flex-direction: column;">
-                <label style="font-weight: 600; margin-bottom: 5px; color: var(--clr-text); font-size: 0.9rem;">{{
-                    field.label }}</label>
+            <div class="form-field">
+                <label>{{ field.label }}</label>
                 {{ field }}
                 {% if field.errors %}
-                <div style="color: #ef4444; font-size: 0.9em;">{{ field.errors }}</div>
+                <div class="form-error">{{ field.errors }}</div>
                 {% endif %}
             </div>
             {% endfor %}
 
-            <div style="margin-top: 20px; display: flex; align-items: center; gap: 12px;">
-                <button type="submit"
-                    style="padding: 10px 24px; background: var(--clr-accent); color: white; border: none; cursor: pointer; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.95rem;">Save
-                    Entry</button>
-                <a href="{% url 'timetable' %}"
-                    style="text-decoration: none; color: var(--clr-text-muted); font-weight: 600;">Cancel</a>
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Save Entry</button>
+                <a href="{% url 'timetable' %}" class="btn-cancel">Cancel</a>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 {% endblock %}

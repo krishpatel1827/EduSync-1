@@ -109,6 +109,11 @@
         color: #F97316;
     }
 
+    .icon-purple {
+        background: rgba(147, 51, 234, 0.1);
+        color: #9333EA;
+    }
+
     .feature-card h3 {
         font-family: var(--font-head);
         font-size: 1.25rem;
@@ -220,6 +225,38 @@
             {% else %}
             <p style="color: var(--clr-warning, #f59e0b); font-weight: 600; margin: 0;">No attendance shared yet.</p>
             {% endif %}
+        </a>
+
+        <!-- Academic Calendar -->
+        <a href="{% url 'academic_calendar_list' %}" class="feature-card">
+            <div class="card-icon-box icon-blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                    <line x1="8" y1="14" x2="8" y2="14"></line>
+                    <line x1="12" y1="14" x2="12" y2="14"></line>
+                    <line x1="16" y1="14" x2="16" y2="14"></line>
+                    <line x1="8" y1="18" x2="8" y2="18"></line>
+                    <line x1="12" y1="18" x2="12" y2="18"></line>
+                </svg>
+            </div>
+            <h3>Academic Calendar</h3>
+            {% if shared_calendars %}<p>View calendars shared by admins; see important academic events and schedules.</p>{% else %}<p style="color: var(--clr-warning, #f59e0b); font-weight: 600; margin: 0;">No shared calendar yet.</p>{% endif %}
+        </a>
+
+        <!-- Account Settings -->
+        <a href="{% url 'student_account_settings' %}" class="feature-card">
+            <div class="card-icon-box" style="background: rgba(107, 114, 128, 0.1); color: #6B7280;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </div>
+            <h3>Account Settings</h3>
+            <p>Update your username and password to keep your account secure.</p>
         </a>
     </div>
 
@@ -341,7 +378,8 @@
                                 <label class="profile-label">Course</label>
                                 <p class="profile-value">
                                     {% if student.course %}
-                                    {{ student.course.name }} <span class="text-muted">({{ student.course.code }})</span>
+                                    {{ student.course.name }} <span class="text-muted">({{ student.course.code
+                                        }})</span>
                                     {% else %}
                                     <span class="text-muted">Not Enrolled</span>
                                     {% endif %}
@@ -372,7 +410,8 @@
 
                             <div class="profile-item mb-3">
                                 <label class="profile-label">Current Semester</label>
-                                <p class="profile-value"><span class="badge bg-info">Semester {{ student.semester }}</span></p>
+                                <p class="profile-value"><span class="badge bg-info">Semester {{ student.semester
+                                        }}</span></p>
                             </div>
 
                             <div class="profile-item mb-3">
@@ -521,12 +560,10 @@
                                     </td>
                                     <td class="align-middle">
                                         <div style="font-weight: 600;">{{ entry.subject.code }}</div>
-                                        <div class="text-muted" style="font-size: 0.8rem;">Prof. {{ entry.faculty.user.get_full_name|default:entry.faculty.user.username }}
-                                        </div>
+                                        <div class="text-muted" style="font-size: 0.8rem;">Prof. {{ entry.faculty.user.get_full_name|default:entry.faculty.user.username }}</div>
                                     </td>
                                     <td class="align-middle">
-                                        <span class="badge bg-light text-dark"
-                                            style="border: 1px solid var(--clr-border);">{{ entry.room.number }}</span>
+                                        <span class="badge bg-light text-dark" style="border: 1px solid var(--clr-border);">{{ entry.room.number }}</span>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -549,6 +586,45 @@
             </div>
             <h5 class="text-muted">No classes scheduled for your course yet.</h5>
             <p class="text-muted small">Check back later or contact the academic office.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Academic Calendar Section -->
+    <div class="calendar-section" style="margin-top: 4rem;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 style="font-family: var(--font-head); font-weight: 700;">📅 Upcoming Events</h2>
+            <a href="{% url 'academic_calendar_list' %}" class="badge" style="color: var(--clr-accent); background: var(--clr-accent-soft); padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none;">View All Calendars</a>
+        </div>
+        {% if shared_calendars %}
+            {% if calendar_events %}
+        <div class="row g-3">
+            {% for event in calendar_events %}
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card" style="border-left: 4px solid {{ event.color_code }};">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="text-center" style="min-width: 50px;">
+                            <div style="font-size: 1.8rem; font-weight: 700; line-height: 1;" class="event-date-day"><span style="color: {{ event.color_code }};">{{ event.date|date:'d' }}</span></div>
+                            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--clr-text-muted); font-weight: 600;">{{ event.date|date:'M' }}</div>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 4px;">{{ event.title }}</h4>
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: {{ event.color_code }}22; color: {{ event.color_code }};">{{ event.type }}</span>
+                            {% if event.description %}<p style="font-size: 0.85rem; color: var(--clr-text-muted); margin-top: 8px; margin-bottom: 0;">{{ event.description|truncatewords:15 }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+            {% else %}
+        <div class="text-center py-4 text-muted">
+            <p class="mb-0">No upcoming events scheduled. Check the calendar for more details.</p>
+        </div>
+            {% endif %}
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <p class="mb-0" style="color: var(--clr-warning, #f59e0b); font-weight: 600;">No shared calendar yet.</p>
         </div>
         {% endif %}
     </div>

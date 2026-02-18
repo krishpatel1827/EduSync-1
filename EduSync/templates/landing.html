@@ -10,6 +10,8 @@
         align-items: center;
         overflow: hidden;
         padding-top: 4rem;
+        z-index: 1;
+        isolation: isolate;
     }
 
     /* Animated Gradient Blobs */
@@ -17,7 +19,7 @@
         position: absolute;
         border-radius: 50%;
         filter: blur(80px);
-        opacity: 0.4;
+        opacity: 0.25;
         animation: float 10s infinite ease-in-out;
         z-index: -1;
     }
@@ -101,18 +103,17 @@
         line-height: 1.1;
         letter-spacing: -2px;
         margin-bottom: 1.5rem;
-        background: linear-gradient(135deg, var(--clr-text) 30%, var(--clr-text-muted) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: var(--clr-text);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .hero-sub {
         font-size: 1.125rem;
-        color: var(--clr-text-muted);
+        color: var(--clr-text);
         line-height: 1.7;
         max-width: 600px;
         margin: 0 auto 2.5rem;
+        opacity: 0.8;
     }
 
     .btn-hero {
@@ -284,20 +285,24 @@
 
     /* ═══ CTA ═══ */
     .cta-box {
-        background: var(--clr-text);
-        /* Slate 900 equivalent */
+        background: linear-gradient(135deg, var(--clr-accent) 0%, var(--clr-accent-hover) 100%);
         color: white;
         border-radius: 32px;
         padding: 5rem 2rem;
         text-align: center;
         position: relative;
         overflow: hidden;
+        border: 1px solid var(--clr-border);
+        box-shadow: var(--shadow-xl);
     }
 
     .cta-box h2 {
         font-family: var(--font-head);
         font-size: clamp(2rem, 5vw, 3.5rem);
         margin-bottom: 1.5rem;
+        font-weight: 700;
+        color: white;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .cta-blob {
@@ -306,11 +311,27 @@
         height: 600px;
         background: var(--clr-accent);
         filter: blur(120px);
-        opacity: 0.3;
+        opacity: 0.15;
         top: -50%;
         left: 50%;
         transform: translateX(-50%);
         pointer-events: none;
+    }
+
+    .cta-paragraph {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        opacity: 0.95;
+        color: white;
+    }
+
+    .cta-button {
+        font-weight: 700;
+        background: white !important;
+        color: var(--clr-accent) !important;
     }
 
     @media (max-width: 768px) {
@@ -472,11 +493,10 @@
             <div class="cta-blob"></div>
             <div style="position: relative; z-index: 5;">
                 <h2>Start your transformation today.</h2>
-                <p
-                    style="color: #cbd5e1; font-size: 1.2rem; margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+                <p class="cta-paragraph">
                     Join over 150 institutions modernising their campus with EduSync.
                 </p>
-                <a href="{% url 'signup' %}" class="btn-hero" style="background: white; color: var(--clr-accent);">
+                <a href="{% url 'signup' %}" class="btn-hero cta-button">
                     Create Free Account
                 </a>
             </div>

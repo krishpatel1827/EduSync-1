@@ -2,121 +2,252 @@
 
 {% block content %}
 <style>
-  .teacher-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 18px;
-  }
+    .teacher-list-wrap {
+        min-height: 100vh;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+    }
 
-  .teacher-card {
-    background: var(--clr-surface);
-    border-radius: 16px;
-    padding: 18px;
-    border: 1px solid rgba(0, 0, 0, .06);
-    box-shadow: var(--shadow-sm);
-    transition: transform .2s ease, box-shadow .2s ease;
-  }
+    .teacher-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
 
-  .teacher-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-  }
+    .page-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
 
-  .teacher-photo {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--clr-accent);
-  }
+    .page-title {
+        font-family: var(--font-head);
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin: 0;
+    }
 
-  .teacher-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--clr-surface-alt);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    color: var(--clr-text);
-  }
+    .page-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
 
-  .teacher-name {
-    font-weight: 700;
-    font-size: 18px;
-    color: var(--clr-text);
-  }
+    .btn-add {
+        padding: 0.6rem 1.25rem;
+        background: var(--clr-accent);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
 
-  .teacher-meta {
-    color: var(--clr-text-muted);
-    font-size: 13px;
-  }
+    .btn-add:hover {
+        background: var(--clr-accent-hover);
+        color: white;
+        transform: translateY(-1px);
+    }
 
-  .badge-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
-  }
+    .btn-back {
+        padding: 0.6rem 1.25rem;
+        border: 1px solid var(--clr-border);
+        color: var(--clr-text-muted);
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: transparent;
+        transition: all 0.2s;
+    }
 
-  .course-badge {
-    background: var(--clr-surface-alt);
-    border-radius: 999px;
-    padding: 4px 10px;
-    font-size: 12px;
-    color: var(--clr-text);
-  }
+    .btn-back:hover {
+        border-color: var(--clr-accent);
+        color: var(--clr-accent);
+    }
+
+    .alert-success-custom {
+        background: var(--clr-success-soft);
+        border: 1px solid var(--clr-success);
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        color: var(--clr-success);
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .teacher-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .teacher-card {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid var(--clr-border);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .teacher-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--clr-accent);
+    }
+
+    .teacher-photo {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--clr-accent);
+    }
+
+    .teacher-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--clr-accent-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: var(--clr-accent);
+    }
+
+    .teacher-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--clr-text);
+    }
+
+    .teacher-dept {
+        color: var(--clr-accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .teacher-qual {
+        color: var(--clr-text-muted);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .teacher-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn-card {
+        padding: 0.45rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-edit {
+        background: var(--clr-surface-alt);
+        color: var(--clr-text-muted);
+        border: 1px solid var(--clr-border);
+    }
+
+    .btn-edit:hover {
+        border-color: var(--clr-accent);
+        color: var(--clr-accent);
+    }
+
+    .btn-delete {
+        background: transparent;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+
+    .btn-delete:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 16px;
+        color: var(--clr-text-muted);
+    }
+
+    .alert-error-custom {
+        background: #fef2f2;
+        border: 1px solid #ef4444;
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        color: #dc2626;
+        margin-bottom: 1.5rem;
+    }
 </style>
 
-<div class="container py-5">
-
-  {% if messages %}
-  {% for message in messages %}
-  <div class="alert alert-success">{{ message }}</div>
-  {% endfor %}
-  {% endif %}
-
-  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
-    <h2 class="mb-0">Teachers</h2>
-    <div class="d-flex gap-2">
-      <a class="btn btn-primary" href="{% url 'teacher_create' %}">Add Teacher</a>
-      <a class="btn btn-outline-dark" href="{% url 'institution_admin_dashboard' %}">Back to Admin Dashboard</a>
-    </div>
-  </div>
-
-  {% if error %}
-  <div class="alert alert-danger">{{ error }}</div>
-  {% elif teachers %}
-  <div class="teacher-grid">
-    {% for t in teachers %}
-    <div class="teacher-card">
-      <div class="d-flex align-items-center gap-3 mb-2">
-        {% if t.photo %}
-        <img class="teacher-photo" src="{{ t.photo.url }}" alt="{{ t.user.get_full_name|default:t.user.username }}">
-        {% else %}
-        <div class="teacher-avatar">{{ t.user.first_name|default:t.user.username|slice:":1" }}</div>
+<div class="teacher-list-wrap">
+    <div class="teacher-container">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert-success-custom">{{ message }}</div>
+        {% endfor %}
         {% endif %}
-        <div>
-          <div class="teacher-name">{{ t.user.get_full_name|default:t.user.username }}</div>
-          <div class="teacher-meta">{{ t.department }}</div>
+
+        <div class="page-header">
+            <h2 class="page-title">Teachers</h2>
+            <div class="page-actions">
+                <a class="btn-add" href="{% url 'teacher_create' %}">+ Add Teacher</a>
+                <a class="btn-back" href="{% url 'institution_admin_dashboard' %}">Back to Dashboard</a>
+            </div>
         </div>
-      </div>
 
-      <div class="teacher-meta">{{ t.qualification }}</div>
+        {% if error %}
+        <div class="alert-error-custom">{{ error }}</div>
+        {% elif teachers %}
+        <div class="teacher-grid">
+            {% for t in teachers %}
+            <div class="teacher-card">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    {% if t.photo %}
+                    <img class="teacher-photo" src="{{ t.photo.url }}" alt="{{ t.user.get_full_name|default:t.user.username }}">
+                    {% else %}
+                    <div class="teacher-avatar">{{ t.user.first_name|default:t.user.username|slice:":1" }}</div>
+                    {% endif %}
+                    <div>
+                        <div class="teacher-name">{{ t.user.get_full_name|default:t.user.username }}</div>
+                        <div class="teacher-dept">{{ t.department }}</div>
+                    </div>
+                </div>
 
-      <div class="d-flex gap-2 mt-3">
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'teacher_edit' t.id %}">Edit</a>
-        <form method="post" action="{% url 'teacher_delete' t.id %}" onsubmit="return confirm('Delete this teacher?');">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-        </form>
-      </div>
+                <div class="teacher-qual">{{ t.qualification }}</div>
+
+                <div class="teacher-actions">
+                    <a class="btn-card btn-edit" href="{% url 'teacher_edit' t.id %}">Edit</a>
+                    <form method="post" action="{% url 'teacher_delete' t.id %}" onsubmit="return confirm('Delete this teacher?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-card btn-delete">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No teachers found. Add your first teacher!</p>
+        </div>
+        {% endif %}
     </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div class="alert alert-info mb-0">No teachers found.</div>
-  {% endif %}
 </div>
 {% endblock %}

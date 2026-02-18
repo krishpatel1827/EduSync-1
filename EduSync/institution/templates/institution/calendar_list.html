@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .dashboard-header {
+        text-align: center;
+        padding: 40px 20px 30px;
+    }
+
+    .dashboard-title {
+        color: var(--clr-text);
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    .dashboard-subtitle {
+        color: var(--clr-text-muted);
+    }
+
+    .admin-card {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(0, 0, 0, .06);
+        margin-bottom: 20px;
+    }
+
+    .form-control-custom {
+        background: var(--clr-surface-alt);
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: 10px;
+        padding: 12px 15px;
+        color: var(--clr-text);
+        width: 100%;
+    }
+
+    .btn-primary-custom {
+        background: var(--clr-accent);
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary-custom:hover {
+        background: var(--clr-accent-hover);
+        color: #fff;
+    }
+
+    .event-card {
+        background: var(--clr-surface-alt);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid var(--clr-accent);
+        transition: transform 0.2s;
+    }
+
+    .event-card:hover {
+        transform: translateX(5px);
+    }
+
+    .event-card.exam {
+        border-left-color: #e53935;
+    }
+
+    .event-card.holiday {
+        border-left-color: #43a047;
+    }
+
+    .event-card.semester_start {
+        border-left-color: #1e88e5;
+    }
+
+    .event-card.semester_end {
+        border-left-color: #fb8c00;
+    }
+
+    .event-card.deadline {
+        border-left-color: #d81b60;
+    }
+
+    .event-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--clr-text);
+        margin-bottom: 5px;
+    }
+
+    .event-date {
+        font-size: 14px;
+        color: var(--clr-accent);
+        margin-bottom: 8px;
+    }
+
+    .event-description {
+        font-size: 14px;
+        color: var(--clr-text-muted);
+        margin-bottom: 10px;
+    }
+
+    .event-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-published {
+        background: #c8e6c9;
+        color: #2e7d32;
+    }
+
+    .badge-draft {
+        background: #ffecb3;
+        color: #f57f17;
+    }
+
+    .badge-exam {
+        background: #ffcdd2;
+        color: #c62828;
+    }
+
+    .badge-holiday {
+        background: #c8e6c9;
+        color: #2e7d32;
+    }
+
+    .badge-event {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .btn-action {
+        padding: 5px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        margin-right: 5px;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: var(--clr-accent);
+        color: #fff;
+    }
+
+    .btn-delete {
+        background: #e53935;
+        color: #fff;
+    }
+
+    .btn-publish {
+        background: #43a047;
+        color: #fff;
+    }
+
+    .btn-unpublish {
+        background: #ff9800;
+        color: #fff;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--clr-text);
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--clr-accent);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: var(--clr-text-muted);
+    }
+</style>
+
+<div class="dashboard-header">
+    <h3 class="dashboard-title">📅 Academic Calendar</h3>
+    <p class="dashboard-subtitle">Manage academic events, exams, holidays, and important dates</p>
+    <a href="{% url 'institution_admin_dashboard' %}" style="color: var(--clr-accent); text-decoration: none;">&larr;
+        Back to Dashboard</a>
+</div>
+
+<div class="container" style="max-width: 1200px; padding-bottom: 50px;">
+    <div class="d-flex justify-content-end mb-4">
+        <a href="{% url 'calendar_create' %}" class="btn-primary-custom">➕ Add New Event</a>
+    </div>
+
+    <div class="row">
+        <!-- Upcoming Events -->
+        <div class="col-lg-6">
+            <div class="admin-card">
+                <h4 class="section-title">📆 Upcoming Events ({{ upcoming_events.count }})</h4>
+                {% if upcoming_events %}
+                {% for event in upcoming_events %}
+                <div class="event-card {{ event.event_type }}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="flex: 1;">
+                            <div class="event-title">{{ event.title }}</div>
+                            <div class="event-date">
+                                📅 {{ event.start_date|date:"M d, Y" }}
+                                {% if event.end_date and event.end_date != event.start_date %}
+                                - {{ event.end_date|date:"M d, Y" }}
+                                {% endif %}
+                            </div>
+                            {% if event.description %}
+                            <div class="event-description">{{ event.description|truncatewords:20 }}</div>
+                            {% endif %}
+                            <span class="event-badge badge-{{ event.event_type }}">{{ event.get_event_type_display
+                                }}</span>
+                            {% if event.is_published %}
+                            <span class="event-badge badge-published">Published</span>
+                            {% else %}
+                            <span class="event-badge badge-draft">Draft</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-end" style="min-width: 200px;">
+                            <a href="{% url 'calendar_edit' event.id %}" class="btn-action btn-edit">Edit</a>
+                            <a href="{% url 'calendar_toggle_publish' event.id %}"
+                                class="btn-action {% if event.is_published %}btn-unpublish{% else %}btn-publish{% endif %}">
+                                {% if event.is_published %}Unpublish{% else %}Publish{% endif %}
+                            </a>
+                            <a href="{% url 'calendar_delete' event.id %}" class="btn-action btn-delete"
+                                onclick="return confirm('Delete event \'{{ event.title }}\'?')">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📭</div>
+                    <p>No upcoming events scheduled</p>
+                    <a href="{% url 'calendar_create' %}" class="btn-primary-custom">Add First Event</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Past Events -->
+        <div class="col-lg-6">
+            <div class="admin-card">
+                <h4 class="section-title">📋 Past Events ({{ past_events.count }})</h4>
+                {% if past_events %}
+                {% for event in past_events|slice:":10" %}
+                <div class="event-card {{ event.event_type }}" style="opacity: 0.7;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="flex: 1;">
+                            <div class="event-title">{{ event.title }}</div>
+                            <div class="event-date">
+                                📅 {{ event.start_date|date:"M d, Y" }}
+                                {% if event.end_date and event.end_date != event.start_date %}
+                                - {{ event.end_date|date:"M d, Y" }}
+                                {% endif %}
+                            </div>
+                            <span class="event-badge badge-{{ event.event_type }}">{{ event.get_event_type_display
+                                }}</span>
+                        </div>
+                        <div class="text-end">
+                            <a href="{% url 'calendar_delete' event.id %}" class="btn-action btn-delete"
+                                onclick="return confirm('Delete event \'{{ event.title }}\'?')">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📜</div>
+                    <p>No past events</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

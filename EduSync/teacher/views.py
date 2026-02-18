@@ -4,8 +4,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.db.models import Q
 from .models import Teacher
-from academics.models import Course, AttendanceSheet
+from academics.models import Course, AttendanceSheet, AcademicCalendar, CalendarEvent
 
 from student.models import Student
 from institution.models import Institution
@@ -13,6 +14,7 @@ from accounts.models import UserProfile
 from django.db import transaction, IntegrityError
 from .forms import TeacherCreateForm, TeacherEditForm
 from generator.models import Timetable, TimetableEntry
+from datetime import date
 
 
 def _unique_username(base):
@@ -69,17 +71,29 @@ def teacher_dashboard(request):
 
         attendance_archive_count = AttendanceSheet.objects.filter(teacher=teacher).count()
 
+        # Get upcoming calendar events from shared calendars
+        # When a calendar is shared with teachers, show it to ALL teachers
+        # (department field is informational, not a visibility restriction)
+        shared_calendars = AcademicCalendar.objects.filter(shared_with_teachers=True)
+        
+        calendar_events = CalendarEvent.objects.filter(
+            calendar__in=shared_calendars,
+            date__gte=date.today()
+        ).order_by('date')[:5]
+
         context = {
             'teacher': teacher,
             'courses': courses,
             'schedule': schedule,
             'attendance_archive_count': attendance_archive_count,
             'has_attendance_archives': attendance_archive_count > 0,
+            'calendar_events': calendar_events,
+            'shared_calendars': shared_calendars,
         }
         return render(request, 'teacher/dashboard.html', context)
     except Teacher.DoesNotExist:
         messages.error(request, 'Teacher not found.')
-        return redirect('dashboard')
+        return redirect('landing')
 
 
 
@@ -394,3 +408,60 @@ def attendance_sheet(request, dept_id, date_from, date_to, total_lectures):
         'total_lectures': total_lectures,
     }
     return render(request, 'teacher/attendance_sheet.html', context)
+
+
+@login_required(login_url='login')
+def teacher_account_settings(request):
+    """Teacher view - update username and password"""
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        messages.error(request, 'Teacher profile not found.')
+        return redirect('login')
+    
+    user = request.user
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'update_username':
+            new_username = request.POST.get('new_username', '').strip()
+            if new_username:
+                if User.objects.filter(username=new_username).exclude(pk=user.pk).exists():
+                    messages.error(request, 'This username is already taken.')
+                elif len(new_username) < 3:
+                    messages.error(request, 'Username must be at least 3 characters.')
+                elif not new_username.isalnum() and '_' not in new_username:
+                    messages.error(request, 'Username can only contain letters, numbers, and underscores.')
+                else:
+                    user.username = new_username
+                    user.save()
+                    messages.success(request, 'Username updated successfully!')
+            else:
+                messages.error(request, 'Please enter a valid username.')
+        
+        elif action == 'update_password':
+            current_password = request.POST.get('current_password', '')
+            new_password = request.POST.get('new_password', '')
+            confirm_password = request.POST.get('confirm_password', '')
+            
+            if not user.check_password(current_password):
+                messages.error(request, 'Current password is incorrect.')
+            elif len(new_password) < 8:
+                messages.error(request, 'New password must be at least 8 characters.')
+            elif new_password != confirm_password:
+                messages.error(request, 'New passwords do not match.')
+            else:
+                user.set_password(new_password)
+                user.save()
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Password updated successfully!')
+        
+        return redirect('teacher_account_settings')
+    
+    context = {
+        'teacher': teacher,
+        'user': user,
+    }
+    return render(request, 'teacher/account_settings.html', context)

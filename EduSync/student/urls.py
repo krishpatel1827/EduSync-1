@@ -10,4 +10,5 @@ urlpatterns = [
     path('delete/<int:student_id>/', views.student_delete, name='student_delete'),
     path('my-timetable/', views.student_timetable, name='student_timetable'),
     path('my-attendance/', views.my_attendance, name='my_attendance'),
+    path('account-settings/', views.student_account_settings, name='student_account_settings'),
 ]
