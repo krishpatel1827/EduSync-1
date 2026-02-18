@@ -415,11 +415,10 @@
         <!-- Card Header (Clickable for Collapse) -->
         <div class="card-header-custom dept-toggle"
           style="padding: 25px 30px; cursor: pointer; border-bottom: none; margin-bottom: 0; transition: background 0.3s;"
-          onclick="toggleDepartment({{ dept.id }})" onmouseover="this.style.background='var(--clr-surface-alt)'"
-          onmouseout="this.style.background='transparent'">
+          onmouseover="this.style.background='var(--clr-surface-alt)'" onmouseout="this.style.background='transparent'">
 
           <div class="d-flex align-items-center justify-content-between w-100">
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center" onclick="toggleDepartment('{{ dept.id }}')">
               <div class="card-icon me-3" style="font-size: 24px;">🏢</div>
               <div>
                 <h5 class="mb-1" style="font-weight: 600;">{{ dept.name }}</h5>
@@ -430,9 +429,14 @@
                 </small>
               </div>
             </div>
-            <div>
-              <span class="badge" id="badge-{{ dept.id }}"
-                style="background: var(--clr-accent); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px;">
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn-danger-custom"
+                style="padding: 6px 12px; font-size: 11px; border-radius: 8px;"
+                onclick="event.stopPropagation(); showDeleteDeptModal('{{ dept.id }}', '{{ dept.name }}', {{ dept.teacher_set.count }}, {{ dept.branch_set.count }});">
+                🗑️ Delete
+              </button>
+              <span class="badge" id="badge-{{ dept.id }}" onclick="toggleDepartment('{{ dept.id }}')"
+                style="background: var(--clr-accent); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer;">
                 Click to Expand ▼
               </span>
             </div>
@@ -485,23 +489,28 @@
                   </h6>
                   <button class="btn-sm btn-success-custom"
                     style="padding: 4px 10px; font-size: 10px; border-radius: 6px;"
-                    onclick="toggleBranchForm({{ dept.id }})">
+                    onclick="toggleBranchForm('{{ dept.id }}');">
                     + Add Branch
                   </button>
                 </div>
 
                 <!-- Inline Add Branch Form -->
                 <div id="addBranchForm{{ dept.id }}" style="display: none; margin-bottom: 15px;">
-                  <div style="background: var(--clr-surface); padding: 15px; border-radius: 10px; border: 1px solid var(--clr-accent);">
-                    <h6 style="color: var(--clr-text); font-weight: 600; margin-bottom: 10px; font-size: 13px;">Add Branch to {{ dept.name }}</h6>
+                  <div
+                    style="background: var(--clr-surface); padding: 15px; border-radius: 10px; border: 1px solid var(--clr-accent);">
+                    <h6 style="color: var(--clr-text); font-weight: 600; margin-bottom: 10px; font-size: 13px;">Add
+                      Branch to {{ dept.name }}</h6>
                     <form method="post">
                       {% csrf_token %}
                       <input type="hidden" name="action" value="add_branch">
                       <input type="hidden" name="dept_id" value="{{ dept.id }}">
-                      <input type="text" name="branch_name" class="form-control-custom w-100 mb-2" placeholder="e.g. AI & ML" required>
+                      <input type="text" name="branch_name" class="form-control-custom w-100 mb-2"
+                        placeholder="e.g. AI & ML" required>
                       <div class="d-flex gap-2">
-                        <button type="submit" class="btn-success-custom" style="padding: 6px 16px; font-size: 12px;">Add Branch</button>
-                        <button type="button" class="btn-outline-custom" style="padding: 6px 16px; font-size: 12px;" onclick="toggleBranchForm({{ dept.id }})">Cancel</button>
+                        <button type="submit" class="btn-success-custom" style="padding: 6px 16px; font-size: 12px;">Add
+                          Branch</button>
+                        <button type="button" class="btn-outline-custom" style="padding: 6px 16px; font-size: 12px;"
+                          onclick="toggleBranchForm('{{ dept.id }}');">Cancel</button>
                       </div>
                     </form>
                   </div>
@@ -545,7 +554,7 @@
                 <div class="text-center py-4" style="color: var(--clr-text-muted);">
                   <p class="mb-2" style="font-size: 13px;">No branches created yet</p>
                   <button class="btn-sm btn-success-custom" style="padding: 6px 14px; font-size: 11px;"
-                    onclick="toggleBranchForm({{ dept.id }})">
+                    onclick="toggleBranchForm('{{ dept.id }}');">
                     Create First Branch
                   </button>
                 </div>
@@ -629,6 +638,74 @@
   </div>
 </div>
 
+<!-- Delete Department Confirmation Modal -->
+<div id="deleteDeptModal" class="modal-overlay" style="display: none;">
+  <div class="modal-content"
+    style="background: var(--clr-surface); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+    <div class="text-center mb-4">
+      <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+      <h4 style="color: var(--clr-text); font-weight: 700;">Delete Department?</h4>
+    </div>
+    <div id="deleteDeptModalBody"
+      style="color: var(--clr-text-muted); font-size: 14px; line-height: 1.6; text-align: center; margin-bottom: 25px;">
+      <!-- Content populated by JavaScript -->
+    </div>
+    <div class="d-flex justify-content-center gap-3">
+      <button type="button" class="btn-outline-custom" onclick="hideDeleteDeptModal();" style="padding: 10px 25px;">
+        Cancel
+      </button>
+      <form id="deleteDeptForm" method="get" style="display: inline;">
+        <button type="submit" class="btn-danger-custom" style="padding: 10px 25px;">
+          🗑️ Yes, Delete Department
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  .modal-content {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+</style>
+
 <script>
   // Toggle inline branch form
   function toggleBranchForm(deptId) {
@@ -677,6 +754,52 @@
       }
     });
   });
+
+  // Delete Department Modal Functions
+  function showDeleteDeptModal(deptId, deptName, teacherCount, branchCount) {
+    const modal = document.getElementById('deleteDeptModal');
+    const modalBody = document.getElementById('deleteDeptModalBody');
+    const form = document.getElementById('deleteDeptForm');
+
+    // Set the form action URL
+    form.action = "{% url 'delete_department' 0 %}".replace('/0/', '/' + deptId + '/');
+
+    // Build the warning message
+    let message = `<p><strong>You are about to delete "${deptName}"</strong></p>`;
+    message += `<p style="margin-top: 15px;">This action will:</p>`;
+    message += `<ul style="text-align: left; margin: 15px auto; max-width: 350px;">`;
+    message += `<li>Remove <strong>${teacherCount}</strong> teacher(s) from this department</li>`;
+    message += `<li>Remove <strong>${branchCount}</strong> branch(es) from this department</li>`;
+    message += `<li><span style="color: var(--clr-danger);">Delete all timetables</span> for this department</li>`;
+    message += `<li><span style="color: var(--clr-danger);">Delete all attendance records</span> for this department</li>`;
+    message += `</ul>`;
+    message += `<p style="color: var(--clr-danger); font-weight: 600;">This action cannot be undone!</p>`;
+
+    modalBody.innerHTML = message;
+    modal.style.display = 'flex';
+
+    // Close modal on click outside
+    modal.onclick = function (e) {
+      if (e.target === modal) {
+        hideDeleteDeptModal();
+      }
+    };
+
+    // Close on escape key
+    document.addEventListener('keydown', handleEscapeKey);
+  }
+
+  function hideDeleteDeptModal() {
+    const modal = document.getElementById('deleteDeptModal');
+    modal.style.display = 'none';
+    document.removeEventListener('keydown', handleEscapeKey);
+  }
+
+  function handleEscapeKey(e) {
+    if (e.key === 'Escape') {
+      hideDeleteDeptModal();
+    }
+  }
 </script>
 
 {% endblock %}

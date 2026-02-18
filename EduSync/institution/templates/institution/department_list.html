@@ -117,7 +117,7 @@
                             <td>{{ dept.description }}</td>
                             <td>
                                 <a href="{% url 'delete_department' dept.id %}" class="btn-danger-sm"
-                                    onclick="return confirm('Are you sure? This may affect linked students/teachers.')">Delete</a>
+                                    onclick="return confirm('Delete department \'{{ dept.name }}\'?\n\nThis will:\n- Remove {{ dept.teacher_set.count }} teacher(s) from this department\n- Remove {{ dept.branch_set.count }} branch(es)\n- DELETE all related timetables and attendance records\n\nThis action cannot be undone!')">Delete</a>
                             </td>
                         </tr>
                         {% endfor %}

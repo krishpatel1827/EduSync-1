@@ -274,6 +274,53 @@ def department_list(request):
 
 @login_required
 def delete_department(request, dept_id):
-    Department.objects.filter(id=dept_id).delete()
-    messages.success(request, "Department deleted.")
-    return redirect('department_list')
+    """Delete a department with proper authorization and cascading"""
+    from django.db import transaction
+    from generator.models import Timetable
+    from academics.models import AttendanceSheet
+    
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to delete departments.")
+        return redirect('institution_admin_dashboard')
+    
+    # Ensure department belongs to this institution
+    department = get_object_or_404(Department, id=dept_id, institution=institution)
+    dept_name = department.name
+    
+    # Gather related data info for logging/confirmation
+    related_info = {
+        'teachers': department.teacher_set.count(),
+        'students': Student.objects.filter(department=department).count(),
+        'branches': department.branch_set.count(),
+        'timetables': Timetable.objects.filter(department=department).count(),
+        'attendance_sheets': AttendanceSheet.objects.filter(department=department).count(),
+    }
+    
+    try:
+        with transaction.atomic():
+            # The FK relationships handle cascading:
+            # - Teacher.department: SET_NULL (teachers remain, dept becomes null)
+            # - Student.department: SET_NULL (students remain, dept becomes null)
+            # - Branch.department: SET_NULL (branches remain, dept becomes null)
+            # - Course.department: SET_NULL (courses remain, dept becomes null)
+            # - Timetable.department: CASCADE (timetables deleted)
+            # - AttendanceSheet.department: CASCADE (attendance sheets deleted)
+            department.delete()
+            
+        messages.success(
+            request, 
+            f"Department '{dept_name}' deleted successfully. "
+            f"Related data: {related_info['timetables']} timetable(s) and "
+            f"{related_info['attendance_sheets']} attendance sheet(s) removed. "
+            f"{related_info['teachers']} teacher(s) and {related_info['students']} student(s) unassigned."
+        )
+    except Exception as e:
+        messages.error(request, f"Error deleting department: {str(e)}")
+    
+    # Check referer to redirect appropriately
+    referer = request.META.get('HTTP_REFERER', '')
+    if 'department_list' in referer:
+        return redirect('department_list')
+    return redirect('institution_admin_dashboard')

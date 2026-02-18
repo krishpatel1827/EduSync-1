@@ -48,11 +48,14 @@ def teacher_dashboard(request):
         teacher = Teacher.objects.get(user=request.user)
         courses = Course.objects.filter(teachers=teacher)
         
-        # Fetch personal schedule
-        active_tt = Timetable.objects.filter(institution=teacher.institution, is_active=True).first()
+        # Fetch personal schedule from ALL active timetables
+        active_tts = Timetable.objects.filter(institution=teacher.institution, is_active=True)
         schedule = []
-        if active_tt:
-            entries = TimetableEntry.objects.filter(faculty=teacher, timetable=active_tt).select_related('timeslot', 'subject', 'room', 'division').order_by('timeslot__start_time')
+        if active_tts.exists():
+            entries = TimetableEntry.objects.filter(
+                faculty=teacher, 
+                timetable__in=active_tts
+            ).select_related('timeslot', 'subject', 'room', 'division', 'timetable').order_by('timeslot__start_time')
             
             # Group by day
             days_map = {'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday'}

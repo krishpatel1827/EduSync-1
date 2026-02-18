@@ -322,7 +322,8 @@ def student_timetable(request):
         if not timetable:
             return render(request, 'student/my_timetable.html', {
                 'error': f'Timetable is not generated for {student.department.name if student.department else "your department"}.',
-                'student': student
+                'student': student,
+                'is_admin_view': student.user != request.user
             })
 
         # Prepare Grid Data
