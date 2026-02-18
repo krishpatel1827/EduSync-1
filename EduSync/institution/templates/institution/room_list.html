@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .dashboard-header {
+        text-align: center;
+        padding: 40px 20px 30px;
+    }
+
+    .dashboard-title {
+        color: var(--clr-text);
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    .dashboard-subtitle {
+        color: var(--clr-text-muted);
+    }
+
+    .admin-card {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(0, 0, 0, .06);
+    }
+
+    .form-control-custom {
+        background: var(--clr-surface-alt);
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: 10px;
+        padding: 12px 15px;
+        color: var(--clr-text);
+        width: 100%;
+    }
+
+    .btn-primary-custom {
+        background: var(--clr-accent);
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .btn-primary-custom:hover {
+        background: var(--clr-accent-hover);
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-custom th,
+    .table-custom td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--clr-surface-alt);
+    }
+
+    .btn-action {
+        padding: 5px 10px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        margin-right: 5px;
+    }
+
+    .btn-edit {
+        background: var(--clr-accent);
+        color: #fff;
+    }
+
+    .btn-danger-sm {
+        background: #e53935;
+        color: #fff;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h3 class="dashboard-title">🏫 Manage Rooms</h3>
+    <p class="dashboard-subtitle">Add, edit, or remove rooms for your institution</p>
+    <a href="{% url 'institution_admin_dashboard' %}" style="color: var(--clr-accent); text-decoration: none;">&larr;
+        Back to Dashboard</a>
+</div>
+
+<div class="container" style="max-width: 1000px; padding-bottom: 50px;">
+    <div class="row g-4">
+        <!-- Add Room -->
+        <div class="col-md-4">
+            <div class="admin-card">
+                <h5 class="mb-3">➕ Add Room</h5>
+                <form method="post" action="{% url 'room_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Room Number</label>
+                        <input type="text" name="number" class="form-control-custom" required
+                            placeholder="e.g., 410-C, Lab-1, Seminar Hall">
+                    </div>
+                    <button type="submit" class="btn-primary-custom">Add Room</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- List Rooms -->
+        <div class="col-md-8">
+            <div class="admin-card">
+                <h5 class="mb-3">📋 Existing Rooms ({{ rooms.count }})</h5>
+                {% if rooms %}
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Room Number</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for room in rooms %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ room.number }}</td>
+                            <td>
+                                <a href="{% url 'room_edit' room.id %}" class="btn-action btn-edit">Edit</a>
+                                <a href="{% url 'room_delete' room.id %}" class="btn-action btn-danger-sm"
+                                    onclick="return confirm('Delete room \'{{ room.number }}\'?\n\nThis may affect timetable entries using this room.')">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted">No rooms found. Add your first room to get started!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

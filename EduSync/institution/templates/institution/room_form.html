@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .dashboard-header {
+        text-align: center;
+        padding: 40px 20px 30px;
+    }
+
+    .dashboard-title {
+        color: var(--clr-text);
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    .dashboard-subtitle {
+        color: var(--clr-text-muted);
+    }
+
+    .admin-card {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(0, 0, 0, .06);
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .form-control-custom {
+        background: var(--clr-surface-alt);
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: 10px;
+        padding: 12px 15px;
+        color: var(--clr-text);
+        width: 100%;
+    }
+
+    .btn-primary-custom {
+        background: var(--clr-accent);
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary-custom:hover {
+        background: var(--clr-accent-hover);
+    }
+
+    .btn-outline-custom {
+        border: 1px solid var(--clr-accent);
+        color: var(--clr-accent);
+        background: transparent;
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h3 class="dashboard-title">{{ action }} Room</h3>
+    <p class="dashboard-subtitle">{% if action == 'Add' %}Create a new room for your institution{% else %}Update room
+        details{% endif %}</p>
+    <a href="{% url 'room_list' %}" style="color: var(--clr-accent); text-decoration: none;">&larr;
+        Back to Rooms</a>
+</div>
+
+<div class="container" style="padding-bottom: 50px;">
+    <div class="admin-card">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="form-label">Room Number / Name</label>
+                <input type="text" name="number" class="form-control-custom" required
+                    value="{% if room %}{{ room.number }}{% endif %}" placeholder="e.g., 410-C, Lab-1, Seminar Hall">
+                <small class="text-muted">Enter a unique identifier for this room</small>
+            </div>
+            <div class="d-flex gap-3 justify-content-end">
+                <a href="{% url 'room_list' %}" class="btn-outline-custom">Cancel</a>
+                <button type="submit" class="btn-primary-custom">{{ action }} Room</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

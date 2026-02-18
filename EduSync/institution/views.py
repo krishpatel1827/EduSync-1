@@ -9,6 +9,7 @@ from .models import Institution, News, Department
 from academics.models import Course, Branch
 from teacher.models import Teacher
 from student.models import Student
+from generator.models import Room
 
 
 # 🔹 INSTITUTION DASHBOARD (WELCOME PAGE)
@@ -324,3 +325,122 @@ def delete_department(request, dept_id):
     if 'department_list' in referer:
         return redirect('department_list')
     return redirect('institution_admin_dashboard')
+
+
+# ============ ROOM MANAGEMENT ============
+
+@ensure_csrf_cookie
+@login_required(login_url='login')
+def room_list(request):
+    """List all rooms for the institution"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to view rooms.")
+        return redirect('institution_admin_dashboard')
+    
+    rooms = Room.objects.filter(institution=institution).order_by('number')
+    return render(request, 'institution/room_list.html', {
+        'rooms': rooms,
+        'institution': institution,
+    })
+
+
+@ensure_csrf_cookie
+@csrf_protect
+@login_required(login_url='login')
+def room_create(request):
+    """Create a new room"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to create rooms.")
+        return redirect('institution_admin_dashboard')
+    
+    if request.method == 'POST':
+        room_number = request.POST.get('number', '').strip()
+        
+        if not room_number:
+            messages.error(request, "Room number is required.")
+            return render(request, 'institution/room_form.html', {
+                'action': 'Add',
+                'institution': institution,
+            })
+        
+        # Check if room already exists
+        if Room.objects.filter(institution=institution, number=room_number).exists():
+            messages.error(request, f"Room '{room_number}' already exists.")
+            return render(request, 'institution/room_form.html', {
+                'action': 'Add',
+                'institution': institution,
+            })
+        
+        Room.objects.create(institution=institution, number=room_number)
+        messages.success(request, f"Room '{room_number}' created successfully.")
+        return redirect('room_list')
+    
+    return render(request, 'institution/room_form.html', {
+        'action': 'Add',
+        'institution': institution,
+    })
+
+
+@ensure_csrf_cookie
+@csrf_protect
+@login_required(login_url='login')
+def room_edit(request, room_id):
+    """Edit an existing room"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to edit rooms.")
+        return redirect('institution_admin_dashboard')
+    
+    room = get_object_or_404(Room, id=room_id, institution=institution)
+    
+    if request.method == 'POST':
+        room_number = request.POST.get('number', '').strip()
+        
+        if not room_number:
+            messages.error(request, "Room number is required.")
+            return render(request, 'institution/room_form.html', {
+                'action': 'Edit',
+                'room': room,
+                'institution': institution,
+            })
+        
+        # Check if another room has this number
+        if Room.objects.filter(institution=institution, number=room_number).exclude(id=room_id).exists():
+            messages.error(request, f"Another room with number '{room_number}' already exists.")
+            return render(request, 'institution/room_form.html', {
+                'action': 'Edit',
+                'room': room,
+                'institution': institution,
+            })
+        
+        room.number = room_number
+        room.save()
+        messages.success(request, f"Room updated to '{room_number}'.")
+        return redirect('room_list')
+    
+    return render(request, 'institution/room_form.html', {
+        'action': 'Edit',
+        'room': room,
+        'institution': institution,
+    })
+
+
+@login_required(login_url='login')
+def room_delete(request, room_id):
+    """Delete a room"""
+    try:
+        institution = Institution.objects.get(admin=request.user)
+    except Institution.DoesNotExist:
+        messages.error(request, "Not authorized to delete rooms.")
+        return redirect('institution_admin_dashboard')
+    
+    room = get_object_or_404(Room, id=room_id, institution=institution)
+    room_number = room.number
+    room.delete()
+    messages.success(request, f"Room '{room_number}' deleted successfully.")
+    return redirect('room_list')

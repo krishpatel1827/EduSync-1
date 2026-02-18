@@ -635,6 +635,22 @@
         </div>
       </div>
     </div>
+
+    <div class="col-lg-4 col-md-6">
+      <div class="admin-card" style="height: 100%; transition: transform 0.2s, box-shadow 0.2s;"
+        onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.3)'"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow=''">
+        <div class="quick-action-card">
+          <div style="font-size: 32px; margin-bottom: 15px;">🏫</div>
+          <h5 style="margin-bottom: 10px;">Manage Rooms</h5>
+          <p style="color: var(--clr-text-muted); font-size: 13px; margin-bottom: 20px;">
+            Add, edit, or remove rooms for timetable scheduling
+          </p>
+          <a href="{% url 'room_list' %}" class="btn-outline-custom" style="text-decoration: none;">Go to Rooms
+            →</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
