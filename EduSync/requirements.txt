@@ -18,3 +18,9 @@ python-dotenv>=1.0.0
 
 # Excel support
 openpyxl>=3.1.0
+
+# PDF support
+reportlab>=4.0.0
+
+# Image handling (required by Django ImageField)
+Pillow>=10.0.0
