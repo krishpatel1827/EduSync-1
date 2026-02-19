@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Grade, AttendanceSheet, Attendance, Branch
+from .models import Course, Grade, AttendanceSheet, Attendance, Branch, AcademicCalendar, CalendarEvent, EventTypeColor
 
 
 @admin.register(Course)
@@ -51,3 +51,25 @@ class BranchAdmin(admin.ModelAdmin):
     list_display = ('name', 'department', 'institution')
     list_filter = ('institution', 'department')
     search_fields = ('name',)
+
+
+@admin.register(AcademicCalendar)
+class AcademicCalendarAdmin(admin.ModelAdmin):
+    list_display = ('semester', 'year', 'department', 'created_by', 'shared_with_students', 'shared_with_teachers', 'created_at')
+    list_filter = ('shared_with_students', 'shared_with_teachers', 'department')
+    search_fields = ('semester', 'year')
+    ordering = ('-created_at',)
+
+
+@admin.register(CalendarEvent)
+class CalendarEventAdmin(admin.ModelAdmin):
+    list_display = ('date', 'title', 'type', 'color_code', 'calendar')
+    list_filter = ('type', 'calendar')
+    search_fields = ('title', 'description')
+    ordering = ('date',)
+
+
+@admin.register(EventTypeColor)
+class EventTypeColorAdmin(admin.ModelAdmin):
+    list_display = ('event_type', 'color_code', 'updated_at')
+    search_fields = ('event_type',)

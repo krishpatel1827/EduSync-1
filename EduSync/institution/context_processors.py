@@ -2,26 +2,29 @@ from .models import News, Institution
 
 def news_processor(request):
     """
-    Makes news_list available to all templates.
+    Makes news_list and dashboard_url available to all templates.
     """
     news_list = []
+    dashboard_url = 'landing'  # safe fallback
+
     if request.user.is_authenticated:
-        # Try to find the institution associated with the user
-        # This implementation might vary depending on how users are linked to institutions
-        # For an admin, it's request.user.institution
-        # For others, we might need a different lookup.
-        # But for now, let's just get all news if we can't find a specific one, or filter by user's institution if possible.
-        
+        # Resolve correct dashboard URL based on role
         try:
-            # Check if user is an admin of an institution
+            role = request.user.userprofile.role
+            if role == 'institution_admin':
+                dashboard_url = 'institution_admin_dashboard'
+            elif role == 'teacher':
+                dashboard_url = 'teacher_dashboard'
+            elif role == 'student':
+                dashboard_url = 'student_dashboard'
+        except Exception:
+            pass
+
+        # Fetch news for the user's institution
+        try:
             inst = Institution.objects.get(admin=request.user)
             news_list = News.objects.filter(institution=inst).order_by('-created_at')
         except Institution.DoesNotExist:
-            # Maybe the user is a student/teacher? 
-            # If so, they should have an institution link.
-            # Let's check accounts.UserProfile or similar if it exists.
-            # For now, let's just return all news as a fallback if the project is simple,
-            # or try to find any institution the user belongs to.
             news_list = News.objects.all().order_by('-created_at')
-            
-    return {'news_list': news_list}
+
+    return {'news_list': news_list, 'dashboard_url': dashboard_url}

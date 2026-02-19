@@ -209,7 +209,7 @@
             <h2 class="page-title">Teachers</h2>
             <div class="page-actions">
                 <a class="btn-add" href="{% url 'teacher_create' %}">+ Add Teacher</a>
-                <a class="btn-back" href="{% url 'institution_admin_dashboard' %}">Back to Dashboard</a>
+                <a class="btn-back" href="{% url dashboard_url %}">Back to Dashboard</a>
             </div>
         </div>
 
@@ -221,7 +221,8 @@
             <div class="teacher-card">
                 <div class="d-flex align-items-center gap-3 mb-2">
                     {% if t.photo %}
-                    <img class="teacher-photo" src="{{ t.photo.url }}" alt="{{ t.user.get_full_name|default:t.user.username }}">
+                    <img class="teacher-photo" src="{{ t.photo.url }}"
+                        alt="{{ t.user.get_full_name|default:t.user.username }}">
                     {% else %}
                     <div class="teacher-avatar">{{ t.user.first_name|default:t.user.username|slice:":1" }}</div>
                     {% endif %}
@@ -235,7 +236,8 @@
 
                 <div class="teacher-actions">
                     <a class="btn-card btn-edit" href="{% url 'teacher_edit' t.id %}">Edit</a>
-                    <form method="post" action="{% url 'teacher_delete' t.id %}" onsubmit="return confirm('Delete this teacher?');">
+                    <form method="post" action="{% url 'teacher_delete' t.id %}"
+                        onsubmit="return confirm('Delete this teacher?');">
                         {% csrf_token %}
                         <button type="submit" class="btn-card btn-delete">Delete</button>
                     </form>

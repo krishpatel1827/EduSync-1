@@ -24,7 +24,19 @@ from accounts.utils import get_user_institution
 @login_required
 @ensure_csrf_cookie
 def dashboard(request):
-    return render(request, 'dashboard.html')
+    # Determine back URL based on user's role
+    back_url = '/'
+    try:
+        role = request.user.userprofile.role
+        if role == 'institution_admin':
+            back_url = 'institution_admin_dashboard'
+        elif role == 'teacher':
+            back_url = 'teacher_dashboard'
+        elif role == 'student':
+            back_url = 'student_dashboard'
+    except Exception:
+        pass
+    return render(request, 'dashboard.html', {'back_url': back_url})
 
 @login_required
 @ensure_csrf_cookie

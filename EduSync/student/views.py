@@ -235,6 +235,7 @@ def student_create(request):
                         blood_group=form.cleaned_data.get('blood_group', ''),
                         course=form.cleaned_data.get('course'),
                         department=form.cleaned_data.get('department'),
+                        division=form.cleaned_data.get('division'),
                     )
 
                     UserProfile.objects.create(
@@ -282,6 +283,7 @@ def student_edit(request, student_id):
             student.blood_group = form.cleaned_data.get('blood_group', '')
             student.course = form.cleaned_data.get('course')
             student.department = form.cleaned_data.get('department')
+            student.division = form.cleaned_data.get('division')
             student.save()
 
             messages.success(request, 'Student updated successfully.')
