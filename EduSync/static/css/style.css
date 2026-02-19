@@ -275,7 +275,7 @@ td {
 
 /* Styling */
 thead th {
-    background-color: var(--primary-color);
+    background-color: #15203b;
     color: white;
     font-weight: 600;
     text-transform: uppercase;

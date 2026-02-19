@@ -1,119 +1,266 @@
 {% extends "base.html" %}
-
 {% block content %}
 <style>
-    .student-list-wrap {
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .sl-wrapper {
         min-height: 100vh;
-        padding: 3rem 1rem;
-        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+        padding-bottom: 80px;
     }
 
-    .student-list-card {
-        max-width: 1200px;
-        margin: 0 auto;
+    .sl-hero {
+        position: relative;
+        text-align: center;
+        padding: 60px 20px 44px;
+        overflow: hidden;
+    }
+
+    .sl-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(99, 102, 241, 0.16) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .sl-hero-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin: 0 auto 18px;
+        box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+        animation: heroFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes heroFloat {
+
+        0%,
+        100% {
+            transform: translateY(0)
+        }
+
+        50% {
+            transform: translateY(-8px)
+        }
+    }
+
+    .sl-hero h1 {
+        font-size: clamp(26px, 5vw, 40px);
+        font-weight: 800;
+        color: var(--clr-text);
+        margin-bottom: 8px;
+    }
+
+    .sl-hero p {
+        color: var(--clr-text-muted);
+        font-size: 15px;
+        margin-bottom: 22px;
+    }
+
+    .sl-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        border-radius: 50px;
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        color: #818cf8;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.25s;
+        background: rgba(99, 102, 241, 0.07);
+    }
+
+    .sl-back-btn:hover {
+        background: rgba(99, 102, 241, 0.18);
+        color: #a5b4fc;
+        transform: translateX(-3px);
+    }
+
+    .sl-stats {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 36px;
+        padding: 0 20px;
+    }
+
+    .sl-stat-pill {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 22px;
+        border-radius: 50px;
         background: var(--clr-surface);
-        border: 1px solid var(--clr-border);
-        border-radius: 16px;
-        padding: 1.75rem;
-        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     }
 
-    .page-header {
+    .sl-stat-pill .pv {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--clr-text);
+        line-height: 1;
+    }
+
+    .sl-stat-pill .pl {
+        font-size: 11px;
+        color: var(--clr-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .sl-main {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .sl-glass-card {
+        background: var(--clr-surface);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 22px;
+        padding: 28px;
+        box-shadow: 0 4px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    .sl-toolbar {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+        gap: 14px;
+        margin-bottom: 24px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .page-title {
-        font-family: var(--font-head);
-        font-size: 1.8rem;
+    .sl-toolbar-title {
+        font-size: 18px;
         font-weight: 700;
         color: var(--clr-text);
-        margin: 0;
     }
 
-    .page-actions {
+    .sl-toolbar-right {
         display: flex;
-        gap: 0.75rem;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
     }
 
-    .btn-add {
-        padding: 0.6rem 1.25rem;
-        background: var(--clr-accent);
-        color: white;
-        text-decoration: none;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.2s;
+    .sl-search-wrap {
+        position: relative;
     }
 
-    .btn-add:hover {
-        background: var(--clr-accent-hover);
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .btn-back {
-        padding: 0.6rem 1.25rem;
-        border: 1px solid var(--clr-border);
+    .sl-search-wrap svg {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
         color: var(--clr-text-muted);
+        pointer-events: none;
+    }
+
+    .sl-search {
+        padding: 9px 14px 9px 38px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 10px;
+        color: var(--clr-text);
+        font-size: 14px;
+        outline: none;
+        width: 220px;
+        transition: border-color 0.2s;
+    }
+
+    .sl-search:focus {
+        border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .sl-btn-add {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: #fff;
         text-decoration: none;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        background: transparent;
-        transition: all 0.2s;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all 0.25s;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
     }
 
-    .btn-back:hover {
-        border-color: var(--clr-accent);
-        color: var(--clr-accent);
+    .sl-btn-add:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
+        color: #fff;
     }
 
-    .alert-success-custom {
-        background: var(--clr-success-soft);
-        border: 1px solid var(--clr-success);
-        border-radius: 10px;
-        padding: 0.85rem 1rem;
-        color: var(--clr-success);
-        margin-bottom: 1.25rem;
-        font-weight: 600;
-    }
-
-    .student-table {
+    .sl-table {
         width: 100%;
         border-collapse: collapse;
     }
 
-    .student-table th,
-    .student-table td {
-        padding: 0.85rem 1rem;
-        text-align: left;
-        border-bottom: 1px solid var(--clr-border);
-    }
-
-    .student-table thead {
-        background: var(--clr-surface-alt);
-    }
-
-    .student-table thead th {
-        font-size: 0.78rem;
+    .sl-table thead th {
+        border: none;
+        font-size: 16px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--clr-text);
+        letter-spacing: 0.6px;
+        color: var(--clr-text-muted);
+        /* padding: 10px 14px;*/
+        text-align: center;
+        align-content: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
 
-    .student-table tbody tr {
+    .sl-table tbody tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         transition: background 0.2s;
     }
 
-    .student-table tbody tr:hover {
-        background: var(--clr-surface-alt);
+    .sl-table tbody tr:hover {
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .sl-table td {
+        border: none;
+        padding: 14px;
+        vertical-align: middle;
+        font-size: 14px;
+    }
+
+    .student-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        color: #a5b4fc;
+        flex-shrink: 0;
+    }
+
+    .name-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .student-name {
@@ -123,189 +270,273 @@
 
     .student-id {
         font-family: monospace;
-        font-size: 0.9rem;
-        color: var(--clr-accent);
-        font-weight: 600;
+        font-size: 13px;
+        color: #818cf8;
+        font-weight: 700;
     }
 
     .badge-dept {
         display: inline-block;
-        padding: 0.25rem 0.6rem;
-        background: var(--clr-surface-alt);
-        border-radius: 6px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--clr-text-muted);
+        padding: 4px 10px;
+        background: rgba(99, 102, 241, 0.12);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #a5b4fc;
     }
 
-    .btn-timetable {
+    .btn-tt {
         display: inline-flex;
         align-items: center;
-        gap: 0.35rem;
-        padding: 0.4rem 0.75rem;
-        background: var(--clr-accent);
-        color: white;
-        text-decoration: none;
+        gap: 5px;
+        padding: 6px 14px;
         border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.8rem;
+        background: rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        color: #818cf8;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
         transition: all 0.2s;
     }
 
-    .btn-timetable:hover {
-        background: var(--clr-accent-hover);
-        color: white;
-        transform: translateY(-1px);
+    .btn-tt:hover {
+        background: rgba(99, 102, 241, 0.3);
+        color: #a5b4fc;
     }
 
-    .badge-warning-custom {
+    .badge-na {
         display: inline-block;
-        padding: 0.3rem 0.65rem;
-        background: var(--clr-warning-soft);
-        border-radius: 6px;
-        font-size: 0.75rem;
+        padding: 5px 10px;
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 20px;
+        font-size: 11px;
         font-weight: 700;
-        color: var(--clr-warning);
+        color: #fbbf24;
     }
 
-    .action-btns {
+    .action-wrap {
         display: flex;
-        gap: 0.5rem;
+        gap: 7px;
         justify-content: flex-end;
     }
 
-    .btn-action {
-        padding: 0.4rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        font-weight: 600;
+    .btn-act {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
         text-decoration: none;
         border: none;
         cursor: pointer;
         transition: all 0.2s;
+        font-family: 'Inter', sans-serif;
     }
 
-    .btn-edit {
-        background: var(--clr-surface-alt);
+    .btn-edit-act {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--clr-text-muted);
-        border: 1px solid var(--clr-border);
     }
 
-    .btn-edit:hover {
-        border-color: var(--clr-accent);
-        color: var(--clr-accent);
+    .btn-edit-act:hover {
+        border-color: #6366f1;
+        color: #818cf8;
     }
 
-    .btn-delete {
-        background: transparent;
-        color: #ef4444;
-        border: 1px solid #ef4444;
+    .btn-del-act {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #f87171;
     }
 
-    .btn-delete:hover {
-        background: #ef4444;
-        color: white;
+    .btn-del-act:hover {
+        background: rgba(239, 68, 68, 0.25);
+        color: #fca5a5;
     }
 
-    .empty-state {
+    .sl-alert {
+        padding: 14px 18px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        color: #4ade80;
+    }
+
+    .sl-alert-err {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.25);
+        color: #f87171;
+    }
+
+    .sl-empty {
         text-align: center;
-        padding: 3rem;
+        padding: 60px 20px;
         color: var(--clr-text-muted);
     }
 
-    .alert-error-custom {
-        background: #fef2f2;
-        border: 1px solid #ef4444;
-        border-radius: 10px;
-        padding: 0.85rem 1rem;
-        color: #dc2626;
-        margin-bottom: 1.25rem;
+    .sl-empty-icon {
+        font-size: 54px;
+        opacity: 0.35;
+        margin-bottom: 16px;
     }
 
-    @media (max-width: 992px) {
-        .student-table {
+    #noRows {
+        display: none;
+        text-align: center;
+        padding: 30px;
+        color: var(--clr-text-muted);
+        font-size: 14px;
+    }
+
+    @media(max-width:768px) {
+        .sl-table {
             display: block;
             overflow-x: auto;
+        }
+
+        .sl-search {
+            width: 100%;
         }
     }
 </style>
 
-<div class="student-list-wrap">
-    <div class="student-list-card">
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert-success-custom">{{ message }}</div>
-        {% endfor %}
-        {% endif %}
+<div class="sl-wrapper">
+    <div class="sl-hero">
+        <div class="sl-hero-icon">🎓</div>
+        <h1>Students</h1>
+        <p>Manage enrolled students, view their timetables and details</p>
+        <a href="{% url 'institution_admin_dashboard' %}" class="sl-back-btn">← Back to Dashboard</a>
+    </div>
 
-        <div class="page-header">
-            <h2 class="page-title">Students</h2>
-            <div class="page-actions">
-                <a class="btn-add" href="{% url 'student_create' %}">+ Add Student</a>
-                <a class="btn-back" href="{% url 'institution_admin_dashboard' %}">Back</a>
+    <div class="sl-stats">
+        <div class="sl-stat-pill">
+            <span style="font-size:22px">👩‍🎓</span>
+            <div>
+                <div class="pv">{{ students_with_tt|length }}</div>
+                <div class="pl">Total Students</div>
             </div>
         </div>
+    </div>
 
-        {% if error %}
-        <div class="alert-error-custom">{{ error }}</div>
-        {% elif students_with_tt %}
-        <div class="table-responsive">
-            <table class="student-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Roll No.</th>
-                        <th>Department</th>
-                        <th>Branch</th>
-                        <th>Course</th>
-                        <th class="text-center">Timetable</th>
-                        <th style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in students_with_tt %}
-                    <tr>
-                        <td class="student-name">{{ item.student.user.get_full_name|default:item.student.user.username }}</td>
-                        <td class="student-id">{{ item.student.student_id }}</td>
-                        <td><span class="badge-dept">{{ item.student.department.name|default:"-" }}</span></td>
-                        <td>{{ item.student.branch.name|default:"-" }}</td>
-                        <td>{{ item.student.course.name|default:"-" }}</td>
-                        <td class="text-center">
-                            {% if item.has_timetable %}
-                            <a class="btn-timetable" href="{% url 'student_timetable' %}?student_id={{ item.student.id }}" title="{{ item.timetable_name }}">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                                View
-                            </a>
-                            {% else %}
-                            <span class="badge-warning-custom" title="No timetable generated for this student's department/branch">
-                                Not Available
-                            </span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="action-btns">
-                                <a class="btn-action btn-edit" href="{% url 'student_edit' item.student.id %}">Edit</a>
-                                <form method="post" action="{% url 'student_delete' item.student.id %}" class="d-inline" onsubmit="return confirm('Delete this student?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-action btn-delete">Delete</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="sl-main">
+        <div class="sl-glass-card">
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="sl-alert">✅ {{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% if error %}
+            <div class="sl-alert sl-alert-err">⚠️ {{ error }}</div>
+            {% endif %}
+
+            <div class="sl-toolbar">
+                <div class="sl-toolbar-title">All Enrolled Students</div>
+                <div class="sl-toolbar-right">
+                    {% if students_with_tt %}
+                    <div class="sl-search-wrap">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="text" class="sl-search" id="studentSearch" placeholder="Search students…"
+                            oninput="filterStudents(this.value)">
+                    </div>
+                    {% endif %}
+                    <a class="sl-btn-add" href="{% url 'student_create' %}">+ Add Student</a>
+                </div>
+            </div>
+
+            {% if students_with_tt %}
+            <div style="overflow-x:auto;">
+                <table class="sl-table" id="studentTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Roll No.</th>
+                            <th>Department</th>
+                            <th>Branch</th>
+                            <th>Course</th>
+                            <th style="text-align:center">Timetable</th>
+                            <th style="text-align:center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in students_with_tt %}
+                        <tr data-name="{{ item.student.user.get_full_name|lower }}">
+                            <td>
+                                <div class="name-cell">
+                                    <div class="student-avatar">{{ item.student.user.get_full_name|first|upper }}</div>
+                                    <span class="student-name">{{ item.student.user.get_full_name }}</span>
+                                </div>
+                            </td>
+                            <td><span class="student-id">{{ item.student.student_id }}</span></td>
+                            <td><span class="badge-dept">{{ item.student.department.name|default:"-" }}</span></td>
+                            <td style="color:var(--clr-text-muted)">{{ item.student.branch.name|default:"-" }}</td>
+                            <td style="color:var(--clr-text-muted)">{{ item.student.course.name|default:"-" }}</td>
+                            <td style="text-align:center">
+                                {% if item.has_timetable %}
+                                <a class="btn-tt" href="{% url 'student_timetable' %}?student_id={{ item.student.id }}">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    View
+                                </a>
+                                {% else %}
+                                <span class="badge-na">Not Available</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-wrap">
+                                    <a class="btn-act btn-edit-act" href="{% url 'student_edit' item.student.id %}">✏️
+                                        Edit</a>
+                                    <form method="post" action="{% url 'student_delete' item.student.id %}"
+                                        style="display:inline" onsubmit="return confirm('Delete this student?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-act btn-del-act">🗑️ Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="noRows">No students match your search.</div>
+
+            {% else %}
+            <div class="sl-empty">
+                <div class="sl-empty-icon">🎓</div>
+                <p>No students found.<br>Add your first student to get started!</p>
+            </div>
+            {% endif %}
+
         </div>
-        {% else %}
-        <div class="empty-state">
-            <p>No students found. Add your first student!</p>
-        </div>
-        {% endif %}
     </div>
 </div>
+
+<script>
+    function filterStudents(q) {
+        const rows = document.querySelectorAll('#studentTable tbody tr');
+        let vis = 0;
+        rows.forEach(r => {
+            const match = !q.trim() || r.dataset.name.includes(q.trim().toLowerCase());
+            r.style.display = match ? '' : 'none';
+            if (match) vis++;
+        });
+        document.getElementById('noRows').style.display = vis === 0 ? 'block' : 'none';
+    }
+</script>
+
 {% endblock %}
