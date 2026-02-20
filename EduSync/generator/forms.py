@@ -10,6 +10,9 @@ class TimetableEntryForm(forms.ModelForm):
         institution = getattr(timetable, 'institution', None)
         
         super().__init__(*args, **kwargs)
+        self.timetable = timetable
+        if timetable:
+            self.instance.timetable = timetable
         
         if timetable:
             self.fields['timeslot'].queryset = TimeSlot.objects.filter(timetable=timetable)
@@ -46,7 +49,14 @@ class TimetableEntryForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        timetable = self.instance.timetable if self.instance.timetable else self.fields['timeslot'].queryset.first().timetable if self.fields['timeslot'].queryset.exists() else None
+        
+        # Get timetable from stored property or instance
+        timetable = getattr(self, 'timetable', None)
+        if not timetable:
+            try:
+                timetable = self.instance.timetable
+            except Exception:
+                timetable = None
         
         # If we are in add view, we passed timetable in init, but in django ModelForm proper way is to look at instance or context.
         # However, checking duplicates:
@@ -81,13 +91,24 @@ class TimetableEntryForm(forms.ModelForm):
                    conflicting_entry = qs.first()
                    raise forms.ValidationError(f"Room {room} is already occupied by {conflicting_entry.division} at this time ({day} {timeslot}).")
             
-            # 3. Check Division Conflict (Already handled by unique constraint usually, but good to be explicit)
+            # 3. Check for Redundancy vs Collision
             if division:
-                qs = TimetableEntry.objects.filter(timetable=timetable, day=day, timeslot=timeslot, division=division)
-                if self.instance.pk:
-                    qs = qs.exclude(pk=self.instance.pk)
-                if qs.exists():
-                    raise forms.ValidationError(f"Division {division} already has a class at this time.")
+                existing = TimetableEntry.objects.filter(
+                    timetable=timetable, day=day, timeslot=timeslot, division=division
+                ).first()
+                
+                if existing:
+                    # Check if redundant (all inputs same)
+                    is_redundant = (
+                        existing.subject == cleaned_data.get('subject') and
+                        existing.faculty == cleaned_data.get('faculty') and
+                        existing.room == cleaned_data.get('room')
+                    )
+                    if is_redundant:
+                        raise forms.ValidationError(f"Redundant Entry: This exact schedule already exists for {division} at this time.")
+                    
+                    # If not redundant, we allow it (the view handles this by providing the instance)
+                    pass
 
         return cleaned_data
 

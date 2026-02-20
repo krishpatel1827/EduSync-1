@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .marksheet-card {
+        background: var(--clr-surface) !important;
+        border: 1px solid var(--clr-border) !important;
+        border-radius: 16px !important;
+        overflow: hidden;
+    }
+
+    .marksheet-header {
+        background: var(--clr-surface-alt) !important;
+        border-bottom: 1px solid var(--clr-border) !important;
+        color: var(--clr-text) !important;
+    }
+
+    .marksheet-table {
+        color: var(--clr-text) !important;
+    }
+
+    .marksheet-table thead th {
+        background: var(--clr-surface-alt) !important;
+        color: var(--clr-text) !important;
+        border-color: var(--clr-border) !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .marksheet-table td {
+        border-color: var(--clr-border) !important;
+        color: var(--clr-text) !important;
+    }
+
+    .text-title {
+        color: var(--clr-text) !important;
+    }
+
+    .text-muted-custom {
+        color: var(--clr-text-muted) !important;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="col-lg-10 mx-auto">
+        {% if is_admin_view %}
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'student_list' %}" class="btn btn-outline-secondary btn-sm me-3">
+                <i class="fas fa-arrow-left me-2"></i>Back to Students
+            </a>
+            <h4 class="mb-0 text-primary fw-bold">
+                Marksheet for {{ viewing_student.get_full_name|default:viewing_student.username }}
+            </h4>
+        </div>
+        {% else %}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 text-primary fw-bold">My Academic Marksheets</h4>
+            <a href="{% url 'student_dashboard' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                <i class="fas fa-home me-2"></i>Back to Dashboard
+            </a>
+        </div>
+        {% endif %}
+
+        {% if marksheets %}
+        {% for marksheet in marksheets %}
+        <div class="card shadow-sm mb-4 marksheet-card">
+            <div class="card-header marksheet-header py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0 fw-bold">Semester {{ marksheet.semester }}</h5>
+                    <small class="text-muted-custom">{{ marksheet.academic_year }}</small>
+                </div>
+                <div class="d-flex flex-column align-items-end">
+                    <span class="badge bg-primary rounded-pill px-3 py-2 mb-1">
+                        Overall Grade: {{ marksheet.final_grade }}
+                    </span>
+                    <small class="fw-bold text-success">{{ marksheet.percentage|floatformat:2 }}%</small>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 marksheet-table">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Subject Code</th>
+                                <th>Subject Name</th>
+                                <th class="text-center">Marks Obtained</th>
+                                <th class="text-center">Max Marks</th>
+                                <th class="text-center">Grade</th>
+                                <th class="text-center pe-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mark in marksheet.marks.all %}
+                            <tr>
+                                <td class="ps-4 text-muted-custom fw-bold">{{ mark.subject.code }}</td>
+                                <td class="fw-semibold">{{ mark.subject.name }}</td>
+                                <td class="text-center text-primary fw-bold">{{ mark.marks }}</td>
+                                <td class="text-center text-muted-custom">100</td>
+                                <td class="text-center">
+                                    <span
+                                        class="badge {% if mark.grade == 'F' %}bg-danger{% else %}bg-success{% endif %} bg-opacity-10 text-dark border">
+                                        {{ mark.grade }}
+                                    </span>
+                                </td>
+                                <td class="text-center pe-4">
+                                    {% if mark.marks >= 40 %}
+                                    <i class="fas fa-check-circle text-success" title="Pass"></i>
+                                    {% else %}
+                                    <i class="fas fa-times-circle text-danger" title="Fail"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="marksheet-header">
+                            <tr style="background: var(--clr-surface-alt);">
+                                <td colspan="2" class="text-end fw-bold pe-3">Grand Total:</td>
+                                <td class="text-center fw-bold">{{ marksheet.total_marks }}</td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 display-1 text-muted opacity-25">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <h5 class="text-muted-custom">No marksheets found.</h5>
+            <p class="text-muted-custom small">Your academic records will appear here once exams are evaluated.</p>
+            <div class="mt-3">
+                <a href="{% url 'generate_bulk_marksheets' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-sync-alt me-1"></i>Update Marksheet
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

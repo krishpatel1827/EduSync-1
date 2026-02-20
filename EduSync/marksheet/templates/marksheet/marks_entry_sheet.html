@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .marks-sheet-wrapper {
+        min-height: 100vh;
+        padding: 4rem 1.5rem;
+        background: radial-gradient(circle at top right, var(--clr-accent-soft), transparent),
+            radial-gradient(circle at bottom left, var(--clr-purple-soft, #f3e8ff), transparent),
+            var(--clr-bg);
+    }
+
+    .sheet-card {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 32px;
+        padding: 2.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    [data-bs-theme="dark"] .sheet-card {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2.5rem;
+    }
+
+    .sheet-title {
+        font-family: var(--font-head);
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--clr-text);
+        letter-spacing: -0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .sheet-subtitle {
+        color: var(--clr-text-muted);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 3rem;
+    }
+
+    .info-item {
+        background: var(--clr-surface);
+        border: 1px solid var(--clr-border);
+        border-radius: 20px;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .info-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--clr-text-muted);
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--clr-text);
+    }
+
+    .table-container {
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid var(--clr-border);
+        background: var(--clr-surface);
+    }
+
+    .marks-table th {
+        background: var(--clr-surface-alt);
+        padding: 1.25rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--clr-text-muted);
+    }
+
+    .marks-table td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--clr-border);
+    }
+
+    .subject-header-input {
+        background: transparent;
+        border: 1px dashed var(--clr-accent);
+        border-radius: 8px;
+        padding: 4px 8px;
+        font-weight: 700;
+        color: var(--clr-accent);
+        text-align: center;
+        width: 100%;
+        transition: all 0.2s;
+    }
+
+    .subject-header-input:focus {
+        background: var(--clr-accent-soft);
+        border-style: solid;
+        outline: none;
+    }
+
+    .marks-input {
+        width: 75px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        border: 2px solid var(--clr-border);
+        background: var(--clr-bg);
+        color: var(--clr-text);
+        font-weight: 700;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+    .marks-input:focus {
+        border-color: var(--clr-accent);
+        outline: none;
+        box-shadow: 0 0 0 4px var(--clr-accent-soft);
+    }
+
+    .percent-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 12px;
+        background: var(--clr-accent-soft);
+        color: var(--clr-accent);
+        font-weight: 800;
+        font-size: 1rem;
+    }
+
+    .btn-sheet {
+        padding: 0.85rem 1.75rem;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-publish {
+        background: var(--clr-accent);
+        color: white;
+        border: none;
+        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-publish:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-save-single {
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border: 2px solid var(--clr-accent-soft);
+        background: transparent;
+        color: var(--clr-accent);
+    }
+
+    .btn-save-single:hover {
+        background: var(--clr-accent);
+        color: white;
+        border-color: var(--clr-accent);
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<div class="marks-sheet-wrapper">
+    <div class="sheet-card">
+        <div class="header-flex">
+            <div>
+                <a href="{% url 'manage_marksheets' %}" class="btn-sheet mb-3"
+                    style="padding: 0; color: var(--clr-text-muted); text-decoration: none;">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Back to Management
+                </a>
+                <h1 class="sheet-title">Marks Entry Console</h1>
+                <p class="sheet-subtitle">Bulk edit and publish academic performance records</p>
+            </div>
+            <button type="submit" form="bulk_marks_form" name="action" value="share" class="btn-sheet btn-publish">
+                <span class="material-symbols-outlined">publish</span>
+                Publish to Students
+            </button>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Department</span>
+                <span class="info-value">{{ department.name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Semester</span>
+                <span class="info-value">Term {{ semester }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Academic Year</span>
+                <span class="info-value">{{ academic_year }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Cohort Size</span>
+                <span class="info-value">{{ total_students }} Students</span>
+            </div>
+        </div>
+        <!-- Moved closing tags to the bottom -->
+
+        {% if messages %}
+        <div class="alert-container mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" id="bulk_marks_form">
+            {% csrf_token %}
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="marks-table w-100 mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">#</th>
+                                <th>Student Identity</th>
+                                {% for i in subject_slots %}
+                                <th class="text-center" style="min-width: 180px;">
+                                    <div class="mb-2 info-label">Subject Slot {{ i }}</div>
+                                    <input type="text" name="subject_col_{{ i }}" class="subject-header-input"
+                                        placeholder="Add Subject..." list="subject_list_{{ i }}"
+                                        value="{% for key, val in current_subject_names.items %}{% if key == i %}{{ val }}{% endif %}{% endfor %}"
+                                        required>
+                                    <datalist id="subject_list_{{ i }}">
+                                        {% for subj in available_subjects %}
+                                        <option value="{{ subj.name }}">
+                                            {% endfor %}
+                                    </datalist>
+                                </th>
+                                {% endfor %}
+                                <th class="text-center">Performance</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td class="text-center fw-bold text-muted">{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ student.user.get_full_name|default:student.user.username }}</div>
+                                    <div class="small text-muted">{{ student.student_id }}</div>
+                                </td>
+                                {% for i in subject_slots %}
+                                <td class="text-center">
+                                    {% with slot_idx=forloop.counter0 %}
+                                    <input type="number" name="marks_{{ student.user.id }}_{{ i }}" min="0" max="100"
+                                        class="marks-input" placeholder="0"
+                                        value="{% for m_val in student.marks_by_slot %}{% if forloop.counter0 == slot_idx %}{{ m_val }}{% endif %}{% endfor %}">
+                                    {% endwith %}
+                                </td>
+                                {% endfor %}
+                                <td class="text-center">
+                                    <div class="percent-badge">
+                                        <span id="percent_{{ student.user.id }}">0</span>%
+                                    </div>
+                                    <div class="small text-muted mt-1"
+                                        style="font-size: 0.65rem; text-transform: uppercase; font-weight: 700;">
+                                        Aggregate</div>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button"
+                                        class="btn-save-single d-flex align-items-center gap-2 mx-auto"
+                                        data-student-id="{{ student.user.id }}">
+                                        <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
+                                        Update
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{{ num_subjects|add:4 }}" class="text-center py-5">
+                                    <div class="text-muted">No students enrolled in this department.</div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div> <!-- End table-responsive -->
+            </div> <!-- End table-container -->
+
+            {% if students %}
+            <input type="hidden" id="num_subjects_val" value="{{ num_subjects }}">
+            <div class="text-center mt-5">
+                <button type="submit" name="action" value="save" class="btn-sheet btn-publish px-5">
+                    <span class="material-symbols-outlined">save_as</span>
+                    Bulk Save All Records
+                </button>
+            </div>
+            {% endif %}
+        </form>
+    </div> <!-- End sheet-card -->
+</div> <!-- End marks-sheet-wrapper -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Confirm before sharing
+        const shareBtn = document.querySelector('button[value="share"]');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function (e) {
+                if (!confirm('Are you sure you want to share these marksheets with students? They will be notified and able to view their results.')) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        // Dynamic Percentage Calculation
+        const inputs = document.querySelectorAll('.marks-input');
+        const numSubjectsEl = document.getElementById('num_subjects_val');
+        const numSubjects = numSubjectsEl ? parseInt(numSubjectsEl.value) : 0;
+
+        function calculatePercentage(studentId) {
+            let total = 0;
+            let count = 0;
+            for (let i = 1; i <= numSubjects; i++) {
+                const input = document.getElementsByName(`marks_${studentId}_${i}`)[0];
+                if (input && input.value !== '') {
+                    total += parseFloat(input.value);
+                    count++;
+                }
+            }
+            const display = document.getElementById(`percent_${studentId}`);
+            if (display) {
+                const avg = count > 0 ? (total / count).toFixed(1) : 0;
+                display.innerText = avg;
+            }
+        }
+
+        inputs.forEach(input => {
+            const nameParts = input.name.split('_');
+            const studentId = nameParts[1];
+            input.addEventListener('input', () => calculatePercentage(studentId));
+            // Initial calculation
+            calculatePercentage(studentId);
+        });
+
+        // Row-Level Save AJAX
+        const saveRowBtns = document.querySelectorAll('.btn-save-single');
+        saveRowBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const studentId = this.dataset.studentId;
+                const row = this.closest('tr');
+                const btnContent = this.innerHTML;
+
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px; animation: spin 1s linear infinite;">sync</span> Saving...';
+
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                formData.append('action', 'save_single');
+                formData.append('target_student_id', studentId);
+
+                // Collect Global Header Subjects
+                for (let i = 1; i <= numSubjects; i++) {
+                    const subjInput = document.querySelector(`input[name="subject_col_${i}"]`);
+                    if (subjInput) formData.append(`subject_col_${i}`, subjInput.value);
+                }
+
+                // Collect Row Marks
+                for (let i = 1; i <= numSubjects; i++) {
+                    const markInput = row.querySelector(`input[name="marks_${studentId}_${i}"]`);
+                    if (markInput) formData.append(`marks_${studentId}_${i}`, markInput.value);
+                }
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            this.style.background = 'var(--clr-accent)';
+                            this.style.color = 'white';
+                            this.style.borderColor = 'var(--clr-accent)';
+                            this.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">check_circle</span> Saved!';
+
+                            setTimeout(() => {
+                                this.style.background = '';
+                                this.style.color = '';
+                                this.style.borderColor = '';
+                                this.innerHTML = btnContent;
+                                this.disabled = false;
+                            }, 2500);
+                        } else {
+                            alert('Error: ' + data.message);
+                            this.innerHTML = btnContent;
+                            this.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while saving.');
+                        this.innerHTML = btnContent;
+                        this.disabled = false;
+                    });
+            });
+        });
+    });
+</script>
+
+{% endblock %}

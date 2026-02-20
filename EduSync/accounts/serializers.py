@@ -105,3 +105,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['username', 'email', 'first_name', 'last_name', 'role', 'phone', 'institution']
         read_only_fields = ['role', 'institution']
+        

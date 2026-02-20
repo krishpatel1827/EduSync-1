@@ -256,6 +256,21 @@
 
     <div class="auth-footer">
       Already registered? <a href="{% url 'login' %}">Sign in instead</a>
+
+      {% if user.is_authenticated %}
+      <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--clr-border); text-align: center;">
+        <p style="font-size: 0.85rem; color: var(--clr-text-muted); margin-bottom: 0.75rem;">
+          Currently logged in as <strong>{{ user.username }}</strong>
+        </p>
+        <p style="font-size: 0.8rem; color: var(--clr-text-muted); margin-bottom: 0.75rem;">
+          To register a new institution, please logout first
+        </p>
+        <a href="/logout/" class="btn" 
+           style="background: var(--clr-error); color: white; padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 500; display: inline-block;">
+          🚪 Logout & Register New Institution
+        </a>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>

@@ -4,68 +4,108 @@
 
 <style>
     .attendance-wrapper {
-        min-height: 90vh;
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 3rem 1rem;
-        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+        padding: 4rem 1.5rem;
+        background: radial-gradient(circle at top right, var(--clr-accent-soft), transparent),
+            radial-gradient(circle at bottom left, var(--clr-success-soft), transparent),
+            var(--clr-bg);
     }
 
     .attendance-card {
-        background: var(--clr-surface);
-        border-radius: 24px;
-        padding: 3rem 2.5rem;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 28px;
+        padding: 3.5rem 3rem;
         width: 100%;
-        max-width: 600px;
-        box-shadow: var(--shadow-lg);
-        border: 1px solid var(--clr-border);
+        max-width: 650px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-bs-theme="dark"] .attendance-card {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes cardAppear {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .card-header {
         text-align: center;
-        margin-bottom: 2.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .icon-container {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--clr-accent) 0%, #4F46E5 100%);
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        color: white;
     }
 
     .card-title {
         font-family: var(--font-head);
-        font-weight: 700;
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, var(--clr-accent), var(--clr-success));
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        font-size: 2.25rem;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.5px;
+        color: var(--clr-text);
     }
 
     .card-subtitle {
-        font-size: 0.95rem;
+        font-size: 1.05rem;
         color: var(--clr-text-muted);
+        max-width: 80%;
+        margin: 0 auto;
     }
 
     .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.75rem;
     }
 
     .form-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--clr-text);
-        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--clr-text-muted);
+        margin-bottom: 0.65rem;
         display: block;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1.2px;
     }
 
     .form-control {
-        background: var(--clr-bg);
+        background: rgba(255, 255, 255, 0.5);
         border: 1px solid var(--clr-border);
-        padding: 0.85rem 1rem;
-        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        border-radius: 16px;
         font-size: 1rem;
         width: 100%;
         color: var(--clr-text);
-        transition: all 0.2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
+    }
+
+    [data-bs-theme="dark"] .form-control {
+        background: rgba(30, 41, 59, 0.5);
     }
 
     .form-control:focus {
@@ -73,6 +113,7 @@
         border-color: var(--clr-accent);
         box-shadow: 0 0 0 4px var(--clr-accent-soft);
         background: var(--clr-surface);
+        transform: translateY(-2px);
     }
 
     .btn-submit {
@@ -104,11 +145,11 @@
 
     @media (max-width: 768px) {
         .attendance-card {
-            padding: 2rem 1.5rem;
+            padding: 2.5rem 1.75rem;
         }
 
         .card-title {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
         }
     }
 </style>
@@ -116,8 +157,11 @@
 <div class="attendance-wrapper">
     <div class="attendance-card">
         <div class="card-header">
-            <h1 class="card-title">📊 Attendance Generator</h1>
-            <p class="card-subtitle">Create attendance sheet for your department</p>
+            <div class="icon-container">
+                <span class="material-symbols-outlined" style="font-size: 40px;">how_to_reg</span>
+            </div>
+            <h1 class="card-title">Attendance Generator</h1>
+            <p class="card-subtitle">Generate official attendance records for your department lectures</p>
         </div>
 
         {% if messages %}
@@ -163,7 +207,10 @@
                 <p class="help-text">Total number of lectures during this period</p>
             </div>
 
-            <button type="submit" class="btn-submit">Generate Sheet →</button>
+            <button type="submit" class="btn-submit">
+                <span class="material-symbols-outlined">analytics</span>
+                Generate Sheet
+            </button>
 
             <div style="text-align: center; margin-top: 2rem;">
                 <a href="{% url 'teacher_dashboard' %}" style="color: var(--clr-text-muted); text-decoration: none;">

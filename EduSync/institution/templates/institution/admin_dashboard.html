@@ -1,19 +1,57 @@
+<!-- 
+====================================================================
+                    EDUSYNC ADMIN DASHBOARD TEMPLATE
+====================================================================
+This template provides the main admin interface for institution management.
+It includes sections for:
+1. News publishing and management
+2. Department overview with teacher/student lists
+3. Quick actions for administrative tasks
+4. Responsive design with custom themes and scrollbars
+====================================================================
+-->
+
+<!-- 
+====================================================================
+                    EDUSYNC ADMIN DASHBOARD TEMPLATE
+====================================================================
+This template provides the main admin interface for institution management.
+It includes sections for:
+1. News publishing and management
+2. Department overview with teacher/student lists
+3. Quick actions for administrative tasks
+4. Responsive design with custom themes and scrollbars
+====================================================================
+-->
+
 {% extends "base.html" %}
 {% block content %}
 
+<!-- 
+====================================================================
+                         CSS STYLES SECTION
+====================================================================
+This section contains all custom CSS for:
+- Theme-aware styling (light/dark mode support)
+- Component styling (buttons, cards, forms)
+- Responsive design and animations
+- Custom scrollbars for better UX
+====================================================================
+-->
 <style>
+  /* GLOBAL BODY STYLING - Sets minimum height and font family */
   body {
     min-height: 100vh;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
-  /* 🌈 PAGE BACKGROUND */
+  /* 🌈 PAGE BACKGROUND - Creates gradient background using CSS custom properties */
   .dashboard-wrapper {
     background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
     min-height: 100vh;
   }
 
-  /* 📰 NEWS TICKER */
+  /* 📰 NEWS TICKER - Styles for scrolling news display */
   .news-ticker {
     background: var(--clr-surface);
     border-bottom: 2px solid var(--clr-accent);
@@ -26,11 +64,12 @@
     font-size: 14px;
   }
 
-  /* HEADER */
+  /* DASHBOARD HEADER - Main title section with animation */
   .dashboard-header {
     text-align: center;
     padding: 40px 20px 30px;
     animation: fadeInDown 0.6s ease-out;
+    /* Slides down on load */
   }
 
   .dashboard-title {
@@ -43,7 +82,7 @@
     color: var(--clr-text-muted);
   }
 
-  /* 🧊 CARDS */
+  /* 🧊 ADMIN CARDS - Main content containers with glassmorphism effect */
   .admin-card {
     background: var(--clr-surface);
     border-radius: 16px;
@@ -51,15 +90,19 @@
     box-shadow: var(--shadow-md);
     border: 1px solid rgba(0, 0, 0, .06);
     backdrop-filter: blur(10px);
+    /* Glassmorphism effect */
     transition: .3s;
     animation: slideUp .6s ease-out;
+    /* Slides up on load */
     height: 100%;
   }
 
+  /* DARK THEME CARD STYLING - Adjusts border color for dark mode */
   [data-bs-theme="dark"] .admin-card {
     border-color: rgba(255, 255, 255, .08);
   }
 
+  /* CARD HOVER EFFECT - Lifts card slightly on hover */
   .admin-card:hover {
     transform: translateY(-5px);
   }
@@ -88,7 +131,7 @@
     justify-content: center;
   }
 
-  /* INPUT */
+  /* CUSTOM INPUT FIELDS - Themed form controls */
   .form-control-custom {
     background: var(--clr-surface-alt);
     border: 1px solid rgba(0, 0, 0, .08);
@@ -97,16 +140,20 @@
     color: var(--clr-text);
   }
 
+  /* DARK THEME INPUT STYLING */
   [data-bs-theme="dark"] .form-control-custom {
     border-color: rgba(255, 255, 255, .1);
   }
 
+  /* INPUT FOCUS STATE - Highlights active input with accent color */
   .form-control-custom:focus {
     border-color: var(--clr-accent);
     box-shadow: 0 0 0 3px var(--clr-accent-soft);
   }
 
-  /* BUTTONS */
+  /* CUSTOM BUTTON STYLES - Themed buttons for different actions */
+
+  /* PRIMARY BUTTON - Main action button (publish, submit, etc.) */
   .btn-primary-custom {
     background: var(--clr-accent);
     color: #fff;
@@ -126,6 +173,7 @@
     color: #fff;
   }
 
+  /* OUTLINE BUTTON - Secondary action button (view, edit links) */
   .btn-outline-custom {
     border: 1px solid var(--clr-accent);
     color: var(--clr-accent);
@@ -165,6 +213,7 @@
     color: #fff;
   }
 
+  /* DANGER BUTTON - For destructive actions (delete operations) */
   .btn-danger-custom {
     background: var(--clr-danger);
     color: #fff;
@@ -301,6 +350,20 @@
 
 
 
+<!-- 
+====================================================================
+                      MAIN DASHBOARD CONTENT
+====================================================================
+-->
+
+<!-- DASHBOARD HEADER - Main title and subtitle -->
+<!-- 
+====================================================================
+                      MAIN DASHBOARD CONTENT
+====================================================================
+-->
+
+<!-- DASHBOARD HEADER - Main title and subtitle for the admin interface -->
 <div class="dashboard-header">
   <h3 class="dashboard-title">Institution Admin Dashboard</h3>
   <p class="dashboard-subtitle">Manage your institution's settings and data here</p>
@@ -308,19 +371,28 @@
 
 <div class="container" style="max-width: 1400px; padding-bottom: 50px;">
 
-  <!-- QUICK ACTIONS SECTION -->
+  <!-- 
+  ====================================================================
+                        QUICK ACTIONS SECTION
+  ====================================================================
+  Provides immediate access to common administrative tasks:
+  - Publishing and managing news announcements
+  - Form for adding/editing news content
+  ====================================================================
+  -->
   <div class="row g-4 mb-5">
     <div class="col-12">
       <h4 style="color: var(--clr-text); margin-bottom: 20px; font-weight: 600;">⚡ Quick Actions</h4>
     </div>
 
-    <!-- ADD NEWS -->
+    <!-- NEWS PUBLISHING INTERFACE - Allows admins to add/edit news announcements -->
     <div class="col-12">
       <div class="admin-card" style="height: 100%;">
         <div class="card-header-custom">
           <h5>{% if edit_news %}✏️ Edit News{% else %}📰 Publish News{% endif %}</h5>
           <div class="card-icon">📢</div>
         </div>
+        <!-- NEWS FORM - Handles both creating new news and editing existing ones -->
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="add_news">
@@ -337,7 +409,16 @@
     </div>
   </div>
 
-  <!-- NEWS LIST SECTION -->
+  <!-- 
+  ====================================================================
+                         NEWS FEED SECTION
+  ====================================================================
+  Displays all published news with management options:
+  - List of all news items with content preview
+  - Edit and delete actions for each news item
+  - Scrollable container for better UX with many news items
+  ====================================================================
+  -->
   <div class="row g-4 mb-5">
     <div class="col-12">
       <h4 style="color: var(--clr-text); margin-bottom: 20px; font-weight: 600;">📋 News Feed</h4>
@@ -350,9 +431,11 @@
             {{ news_list|length }} item{{ news_list|length|pluralize }}
           </span>
         </div>
+        <!-- SCROLLABLE NEWS CONTAINER - Limits height and provides scroll for many items -->
         <div style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
           {% if news_list %}
           {% for n in news_list %}
+          <!-- INDIVIDUAL NEWS ITEM - Each news entry with edit/delete actions -->
           <div class="news-item">
             <span>{{ n.content }}</span>
             <div class="action-buttons">
@@ -376,9 +459,21 @@
   </div>
 </div>
 
-<!-- DEPARTMENT CARDS SECTION -->
+<!-- 
+====================================================================
+                    DEPARTMENTS OVERVIEW SECTION
+====================================================================
+Main section displaying all departments with:
+- Collapsible cards showing department details
+- Teacher and student lists with custom scrollbars
+- Branch management within departments
+- Inline forms for adding branches
+- Delete confirmation modals
+====================================================================
+-->
 <div class="container" style="max-width: 1400px; padding-bottom: 50px;">
   <div class="row g-4">
+    <!-- DEPARTMENTS HEADER with management link -->
     <div class="col-12 d-flex justify-content-between align-items-center mb-3">
       <h4 style="color: var(--clr-text); font-weight: 600; margin-bottom: 0;">📚 Departments Overview</h4>
       <a href="{% url 'department_list' %}" class="btn-primary-custom"
@@ -389,19 +484,20 @@
 
     {% if departments %}
     {% for dept in departments %}
+    <!-- INDIVIDUAL DEPARTMENT CARD -->
     <div class="col-12">
       <div class="admin-card" style="padding: 0; overflow: hidden;">
-        <!-- Card Header (Clickable for Collapse) -->
+        <!-- DEPARTMENT CARD HEADER - Clickable header to expand/collapse content -->
         <div class="card-header-custom dept-toggle"
           style="padding: 25px 30px; cursor: pointer; border-bottom: none; margin-bottom: 0; transition: background 0.3s;"
           onmouseover="this.style.background='var(--clr-surface-alt)'" onmouseout="this.style.background='transparent'">
 
           <div class="d-flex align-items-center justify-content-between w-100">
             <div class="d-flex align-items-center" onclick="toggleDepartment('{{ dept.id }}')">
-              <div class="card-icon me-3" style="font-size: 24px;">🏢</div>
+              <div class="card-icon me-3" style="font-size: 30px;">🏢</div>
               <div>
                 <h5 class="mb-1" style="font-weight: 600;">{{ dept.name }}</h5>
-                <small style="color: var(--clr-text-muted); font-size: 13px;">
+                <small style="color: var(--clr-text-muted); font-size: 18px;">
                   <span style="margin-right: 15px;">
                     👨‍🏫 {{ dept.teacher_set.count }} Teacher{{ dept.teacher_set.count|pluralize }}
                   </span>
@@ -413,45 +509,86 @@
             </div>
             <div class="d-flex align-items-center gap-2">
               <button type="button" class="btn-danger-custom"
-                style="padding: 6px 12px; font-size: 11px; border-radius: 8px;"
-                onclick="event.stopPropagation(); showDeleteDeptModal('{{ dept.id }}', '{{ dept.name }}', {{ dept.teacher_set.count }}, {{ dept.branch_set.count }});">
+                style="padding: 6px 12px; font-size: 18px; border-radius: 8px;" data-dept-id="{{ dept.id }}"
+                data-dept-name="{{ dept.name }}" data-teacher-count="{{ dept.teacher_set.count }}"
+                data-branch-count="{{ dept.branch_set.count }}"
+                onclick="event.stopPropagation(); deleteDeptButtonClick(this);">
                 🗑️ Delete
               </button>
               <span class="badge" id="badge-{{ dept.id }}" onclick="toggleDepartment('{{ dept.id }}')"
-                style="background: var(--clr-accent); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer;">
+                style="background: var(--clr-accent); color: white; padding: 8px 16px; border-radius: 20px; font-size: 18px; cursor: pointer;">
                 Click to Expand ▼
               </span>
             </div>
           </div>
         </div>
 
-        <!-- Collapsible Content -->
+        <!-- COLLAPSIBLE DEPARTMENT CONTENT - Hidden by default, shows teachers and students -->
         <div class="dept-content" id="deptContent{{ dept.id }}" style="display: none;">
           <div class="card-body"
             style="padding: 30px; background: var(--clr-surface-alt); border-top: 1px solid rgba(0,0,0,0.1);">
 
             <div class="row g-4">
-              <!-- TEACHERS LIST -->
+              <!-- 
+              ********************************************************
+                              TEACHERS LIST SECTION
+              ********************************************************
+              Displays all teachers assigned to this department:
+              - Custom scrollable container with theme-aware scrollbars
+              - Teacher cards with name, ID, and edit links
+              - Enhanced typography for better readability
+              ********************************************************
+              -->
               <div class="col-md-6">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                   <h6 class="text-uppercase mb-0"
-                    style="font-size: 11px; letter-spacing: 1.5px; color: var(--clr-text-muted); font-weight: 700;">
+                    style="color: var(--clr-text-muted); font-weight: 700 ; font-size: large;">
                     👨‍🏫 Teachers
                   </h6>
                   <span class="badge bg-secondary" style="font-size: 10px;">{{ dept.teacher_set.count }}</span>
                 </div>
                 {% if dept.teacher_set.all %}
-                <div class="list-group list-group-flush">
+                <div class="list-group list-group-flush teacher-list-scroll"
+                  style="max-height: 420px; overflow-y: auto; background: var(--clr-surface-alt); border-radius: 12px; box-shadow: var(--shadow-md); padding: 8px;">
+                  <style>
+                    .teacher-list-scroll::-webkit-scrollbar {
+                      width: 12px;
+                      background: transparent;
+                    }
+
+                    .teacher-list-scroll::-webkit-scrollbar-thumb {
+                      background: var(--clr-accent);
+                      border-radius: 10px;
+                      border: 2px solid var(--clr-surface-alt);
+                    }
+
+                    .teacher-list-scroll::-webkit-scrollbar-track {
+                      background: var(--clr-surface-alt);
+                      border-radius: 10px;
+                    }
+
+                    .teacher-list-scroll {
+                      scrollbar-width: thin;
+                      scrollbar-color: var(--clr-accent) var(--clr-surface-alt);
+                    }
+
+                    @media (max-width: 768px) {
+                      .teacher-list-scroll {
+                        max-height: 220px;
+                        padding: 4px;
+                      }
+                    }
+                  </style>
                   {% for teacher in dept.teacher_set.all %}
                   <div class="list-group-item d-flex justify-content-between align-items-center"
-                    style="background: var(--clr-surface); color: var(--clr-text); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; margin-bottom: 8px; padding: 12px;">
+                    style="background: var(--clr-surface); color: var(--clr-text); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; margin-bottom: 8px; padding: 18px; font-size: 18px;">
                     <div>
-                      <strong style="font-size: 14px;">{{ teacher.name|default:teacher.user.username }}</strong>
+                      <strong style="font-size: 18px;">{{ teacher.name|default:teacher.user.username }}</strong>
                       <br>
-                      <span style="font-size: 11px; color: var(--clr-text-muted);">ID: {{ teacher.employee_id }}</span>
+                      <span style="font-size: 14px; color: var(--clr-text-muted);">ID: {{ teacher.employee_id }}</span>
                     </div>
                     <a href="{% url 'teacher_edit' teacher.id %}" class="btn-sm btn-outline-custom"
-                      style="padding: 4px 12px; font-size: 11px; text-decoration: none;">View</a>
+                      style="padding: 6px 16px; font-size: 14px; text-decoration: none;">View</a>
                   </div>
                   {% endfor %}
                 </div>
@@ -462,21 +599,30 @@
                 {% endif %}
               </div>
 
-              <!-- STUDENTS LIST (Grouped by Branch) -->
+              <!-- 
+              ********************************************************
+                        STUDENTS LIST SECTION (Grouped by Branch)
+              ********************************************************
+              Displays students organized by their branches:
+              - Nested structure: Department > Branch > Students
+              - Custom scrollable containers for long lists
+              - Inline form for adding new branches
+              - Student cards with academic details
+              ********************************************************
+              -->
               <div class="col-md-6">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                   <h6 class="text-uppercase mb-0"
-                    style="font-size: 11px; letter-spacing: 1.5px; color: var(--clr-text-muted); font-weight: 700;">
+                    style=" color: var(--clr-text-muted); font-weight: 700; font-size: large;">
                     👨‍🎓 Students by Branch
                   </h6>
-                  <button class="btn-sm btn-success-custom"
-                    style="padding: 4px 10px; font-size: 10px; border-radius: 6px;"
+                  <button class="btn-sm btn-success-custom" style=" border-radius: 6px;"
                     onclick="toggleBranchForm('{{ dept.id }}');">
                     + Add Branch
                   </button>
                 </div>
 
-                <!-- Inline Add Branch Form -->
+                <!-- INLINE BRANCH FORM - Hidden form for adding new branches to department -->
                 <div id="addBranchForm{{ dept.id }}" style="display: none; margin-bottom: 15px;">
                   <div
                     style="background: var(--clr-surface); padding: 15px; border-radius: 10px; border: 1px solid var(--clr-accent);">
@@ -499,35 +645,88 @@
                 </div>
 
                 {% if dept.branch_set.all %}
-                <div style="max-height: 400px; overflow-y: auto;">
+                <div class="branch-list-scroll"
+                  style="max-height: 400px; overflow-y: auto; background: var(--clr-surface-alt); border-radius: 12px; box-shadow: var(--shadow-md); padding: 8px; margin-bottom: 16px;">
                   {% for branch in dept.branch_set.all %}
                   <div class="mb-3"
                     style="background: var(--clr-surface); padding: 15px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                      <strong style="color: var(--clr-accent); font-size: 13px;">📂 {{ branch.name }}</strong>
-                      <span class="badge bg-info" style="font-size: 10px;">
+                      <strong style="color: var(--clr-accent); font-size: 20px;">📂 {{ branch.name }}</strong>
+                      <span class="badge bg-info" style="font-size: medium; ">
                         {{ branch.student_set.count }} student{{ branch.student_set.count|pluralize }}
                       </span>
                     </div>
                     {% if branch.student_set.all %}
-                    <div class="list-group list-group-flush">
+                    <div class="list-group list-group-flush student-list-scroll"
+                      style="max-height: 320px; overflow-y: auto; background: var(--clr-surface-alt); border-radius: 10px; padding: 4px; margin-bottom: 8px;">
                       {% for student in branch.student_set.all %}
                       <div class="list-group-item d-flex justify-content-between align-items-center"
-                        style="background: transparent; color: var(--clr-text); border: none; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 8px 0;">
-                        <div>
-                          <strong style="font-size: 13px;">{{ student.name|default:student.user.username }}</strong>
+                        style="background: transparent; color: var(--clr-text); border: none; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 14px 0; font-size: 18px;">
+                        <div style="flex: 1;">
+                          <strong style="font-size: 18px;">{{ student.name|default:student.user.username }}</strong>
                           <br>
-                          <span style="font-size: 10px; color: var(--clr-text-muted);">
-                            Year: {{ student.academic_year|default:"N/A" }} • ID: {{ student.student_id }}
+                          <span style="font-size: 14px; color: var(--clr-text-muted);">
+                            Year: {{ student.academic_year|default:"N/A" }} • ID: {{ student.student_id }} • Sem: {{ student.semester }} • Blood: {{ student.blood_group|default:"-" }}
                           </span>
                         </div>
+                        <div style="text-align: right; margin-right: 15px; min-width: 90px;">
+                          <div style="font-size: 12px; color: var(--clr-text-muted); margin-bottom: 3px;">Grade</div>
+                          {% with marks=student.marksheets.all|first %}
+                          {% if marks %}
+                          <span style="font-size: 16px; font-weight: 700; color: var(--clr-accent);">{{ marks.final_grade }}</span>
+                          {% else %}
+                          <span style="font-size: 14px; color: var(--clr-text-muted);">—</span>
+                          {% endif %}
+                          {% endwith %}
+                        </div>
                         <a href="{% url 'student_edit' student.id %}" class="btn-sm btn-outline-custom"
-                          style="padding: 2px 8px; font-size: 10px; text-decoration: none;">View</a>
+                          style="padding: 6px 16px; font-size: 14px; text-decoration: none;">View</a>
+                        <!-- ...existing code... -->
+                        <style>
+                          .teacher-list-scroll::-webkit-scrollbar,
+                          .student-list-scroll::-webkit-scrollbar,
+                          .branch-list-scroll::-webkit-scrollbar {
+                            width: 12px;
+                            background: transparent;
+                          }
+
+                          .teacher-list-scroll::-webkit-scrollbar-thumb,
+                          .student-list-scroll::-webkit-scrollbar-thumb,
+                          .branch-list-scroll::-webkit-scrollbar-thumb {
+                            background: linear-gradient(135deg, var(--clr-scrollbar-thumb1, #6a82fb) 0%, var(--clr-scrollbar-thumb2, #fc5c7d) 100%);
+                            border-radius: 10px;
+                            border: 2px solid var(--clr-scrollbar-border, #232a36);
+                          }
+
+                          .teacher-list-scroll::-webkit-scrollbar-track,
+                          .student-list-scroll::-webkit-scrollbar-track,
+                          .branch-list-scroll::-webkit-scrollbar-track {
+                            background: var(--clr-scrollbar-track, #232a36);
+                            border-radius: 10px;
+                          }
+
+                          .teacher-list-scroll,
+                          .student-list-scroll,
+                          .branch-list-scroll {
+                            scrollbar-width: thin;
+                            scrollbar-color: var(--clr-scrollbar-thumb1, #6a82fb) var(--clr-scrollbar-track, #232a36);
+                          }
+
+                          @media (max-width: 768px) {
+
+                            .teacher-list-scroll,
+                            .student-list-scroll,
+                            .branch-list-scroll {
+                              max-height: 220px;
+                              padding: 4px;
+                            }
+                          }
+                        </style>
                       </div>
                       {% endfor %}
                     </div>
                     {% else %}
-                    <p class="text-muted small mb-0" style="font-size: 11px; padding-left: 10px;">No students in this
+                    <p class="text-muted small mb-0" style="font-size: 20px; padding-left: 10px;">No students in this
                       branch</p>
                     {% endif %}
                   </div>
@@ -736,8 +935,20 @@
   }
 </style>
 
+<!-- 
+====================================================================
+                         JAVASCRIPT FUNCTIONALITY
+====================================================================
+Handles all interactive features:
+- Department content toggle (expand/collapse)
+- Branch form show/hide
+- Delete confirmation modals
+- Form submission states
+- Smooth animations and transitions
+====================================================================
+-->
 <script>
-  // Toggle inline branch form
+  /* BRANCH FORM TOGGLE - Shows/hides inline form for adding branches */
   function toggleBranchForm(deptId) {
     const form = document.getElementById('addBranchForm' + deptId);
     if (form.style.display === 'none' || form.style.display === '') {
@@ -747,17 +958,17 @@
     }
   }
 
-  // Custom toggle function for departments
+  /* DEPARTMENT TOGGLE - Expands/collapses department content and updates badge text */
   function toggleDepartment(deptId) {
     const content = document.getElementById('deptContent' + deptId);
     const badge = document.getElementById('badge-' + deptId);
 
     if (content.style.display === 'none' || content.style.display === '') {
-      // Expand
+      // Expand department content
       content.style.display = 'block';
       badge.textContent = 'Click to Collapse ▲';
     } else {
-      // Collapse
+      // Collapse department content
       content.style.display = 'none';
       badge.textContent = 'Click to Expand ▼';
     }
@@ -783,15 +994,25 @@
     });
   });
 
-  // Delete Department Modal Functions
+  /* DELETE BUTTON CLICK - Bridge function to extract data attributes */
+  function deleteDeptButtonClick(btn) {
+    const deptId = btn.getAttribute('data-dept-id');
+    const deptName = btn.getAttribute('data-dept-name');
+    const teacherCount = btn.getAttribute('data-teacher-count');
+    const branchCount = btn.getAttribute('data-branch-count');
+    showDeleteDeptModal(deptId, deptName, teacherCount, branchCount);
+  }
+
+  /* DELETE DEPARTMENT MODAL - Shows confirmation dialog with detailed impact information */
   function showDeleteDeptModal(deptId, deptName, teacherCount, branchCount) {
     const modal = document.getElementById('deleteDeptModal');
     const modalBody = document.getElementById('deleteDeptModalBody');
     const form = document.getElementById('deleteDeptForm');
 
-    // Set the form action URL
+    // Set the form action URL dynamically
     form.action = "{% url 'delete_department' 0 %}".replace('/0/', '/' + deptId + '/');
 
+    // Build detailed warning message about deletion consequences
     let message = `<p><strong>You are about to delete "${deptName}"</strong></p>`;
     message += `<p style="margin-top: 15px;">This action will:</p>`;
     message += `<ul style="text-align: left; margin: 15px auto; max-width: 350px;">`;
@@ -805,12 +1026,14 @@
     modalBody.innerHTML = message;
     modal.style.display = 'flex';
 
+    // Close modal when clicking outside
     modal.onclick = function (e) {
       if (e.target === modal) {
         hideDeleteDeptModal();
       }
     };
 
+    // Enable ESC key to close modal
     document.addEventListener('keydown', handleEscapeKey);
   }
 
@@ -827,4 +1050,40 @@
   }
 </script>
 
+<!-- 
+====================================================================
+                    ADMIN DASHBOARD SUMMARY
+====================================================================
+This template provides a comprehensive admin interface with:
+
+MAIN FEATURES:
+✅ News Management - Publish, edit, and delete institution announcements
+✅ Department Overview - Expandable cards showing teachers and students
+✅ Teacher Lists - Scrollable lists with edit links and contact info
+✅ Student Management - Organized by branches with academic details
+✅ Branch Management - Add branches to departments with inline forms
+✅ Delete Protection - Confirmation modals with impact warnings
+
+DESIGN FEATURES:
+🎨 Theme Support - Automatic light/dark mode adaptation
+🎨 Custom Scrollbars - Beautiful, theme-aware scrolling containers
+🎨 Responsive Layout - Mobile-friendly design with breakpoints
+🎨 Smooth Animations - Fade-in and slide-up effects on load
+🎨 Glassmorphism Cards - Modern card design with backdrop blur
+🎨 Consistent Typography - Uses Inter font family throughout
+
+INTERACTIVE ELEMENTS:
+🔄 Collapsible Departments - Click to expand/collapse department details
+🔄 Inline Forms - Add branches without page refresh
+🔄 Hover Effects - Visual feedback on interactive elements
+🔄 Loading States - Form submission indicators
+🔄 Keyboard Support - ESC key closes modals
+
+ACCESSIBILITY:
+♿ High Contrast - Good color contrast ratios
+♿ Focus States - Clear focus indicators on interactive elements
+♿ Semantic HTML - Proper heading structure and labels
+♿ Screen Reader Friendly - Descriptive text and ARIA attributes
+====================================================================
+-->
 {% endblock %}

@@ -1,101 +1,283 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+# ================================================================================
+# INSTITUTION APP - VIEWS.PY
+# ================================================================================
+# This file contains all the view functions that handle institution management,
+# admin dashboards, department management, and portal access functionality.
+#
+# WHAT IS THE INSTITUTION APP?
+# The institution app manages the core entity of EduSync - the educational institution.
+# It handles everything related to the institution as a whole, including:
+# - Institution dashboard and overview
+# - Department and branch management  
+# - News and announcements system
+# - Room management for classrooms
+# - Academic calendar management
+# - Portal login system for role switching
+#
+# KEY CONCEPTS:
+# - Institution: The main entity (school, college, university)
+# - Admin: The person who manages the entire institution  
+# - Portal Access: System allowing admins to access teacher/student views
+# - Multi-tenant: Each institution's data is completely separate from others
+# ================================================================================
 
-from .models import Institution, News, Department, AcademicCalendarEvent
-from academics.models import Course, Branch
-from teacher.models import Teacher
-from student.models import Student
-from generator.models import Room
-from datetime import date
+# Import necessary Django functions and decorators
+from django.shortcuts import render, redirect, get_object_or_404  # View helper functions
+from django.contrib.auth import login, logout  # Authentication functions
+from django.contrib import messages  # User notification system
+from django.contrib.auth.decorators import login_required  # Decorator to require authentication
+from django.views.decorators.cache import never_cache  # Prevent caching for security
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect  # CSRF protection
+
+# Import models from various apps
+from .models import Institution, News, Department, AcademicCalendarEvent  # Institution app models
+from academics.models import Course, Branch  # Academic structure models
+from teacher.models import Teacher  # Faculty management
+from student.models import Student  # Student management  
+from generator.models import Room  # Classroom management
+from datetime import date  # For handling dates in calendar system
 
 
-# 🔹 INSTITUTION DASHBOARD (WELCOME PAGE)
-@ensure_csrf_cookie
-@csrf_protect
-@never_cache
-@login_required(login_url='login')
+# ================================================================================
+# INSTITUTION DASHBOARD SYSTEM
+# ================================================================================
+
+@ensure_csrf_cookie  # Ensures CSRF token is available for any forms
+@csrf_protect  # Validates CSRF token for form submissions
+@never_cache  # Prevents browser from caching this sensitive page
+@login_required(login_url='login')  # Redirects to login page if user not authenticated
 def dashboard_view(request):
+    """
+    WHAT THIS FUNCTION DOES:
+    Displays the main institution dashboard showing overview of all institution data.
+    This is like a "control panel" for institution administrators.
+    
+    PARAMETERS:
+    - request: Django HttpRequest object containing user session and request data
+    
+    RETURN VALUE:
+    HttpResponse containing the rendered dashboard template with context data
+    
+    BUSINESS LOGIC:
+    1. Find the institution associated with the logged-in admin user
+    2. Gather overview data (news, courses, teachers) for display
+    3. Pass all data to the dashboard template for rendering
+    
+    WHO CAN ACCESS THIS:
+    Only authenticated users who are institution administrators.
+    The @login_required decorator ensures only logged-in users can access this.
+    
+    DATA DISPLAYED:
+    - Institution information (name, contact details, etc.)
+    - Recent news and announcements
+    - Course offerings and statistics
+    - Teacher roster and information
+    - Quick access navigation links
+    
+    ERROR HANDLING:
+    If user is not associated with an institution, institution variable becomes None
+    and template will handle showing appropriate error messages.
+    """
+    
+    # STEP 1: Find the institution associated with the current admin user
     try:
+        # Look for institution where the admin field matches the current user
+        # This assumes each institution has exactly one admin user
         institution = Institution.objects.get(admin=request.user)
     except Institution.DoesNotExist:
+        # Handle case where user is not associated with any institution
+        # This shouldn't happen in normal operation, but good to handle edge cases
         institution = None
 
+    # STEP 2: Gather data for dashboard display
+    # Get all news items, ordered by most recent first
+    # "-created_at" means descending order (newest first)
     news_list = News.objects.order_by("-created_at")
+    
+    # Get courses, but only for this institution (data isolation)
+    # If institution is None, return empty QuerySet instead of all courses
     courses = Course.objects.filter(institution=institution) if institution else Course.objects.none()
+    
+    # Get teachers, but only for this institution (data isolation) 
+    # This prevents admins from seeing teachers from other institutions
     teachers = Teacher.objects.filter(institution=institution) if institution else Teacher.objects.none()
 
+    # STEP 3: Prepare context data for template
+    # Context is a dictionary of data that the template can access
     context = {
-        'institution': institution,
-        'user': request.user,
-        'news_list': news_list,
-        'courses': courses,
-        'teachers': teachers,
-        'show_dashboard_nav': True,
+        'institution': institution,        # Institution data for header/display
+        'user': request.user,             # Current user information
+        'news_list': news_list,           # All news items for news feed
+        'courses': courses,               # Institution's course offerings
+        'teachers': teachers,             # Institution's faculty roster
+        'show_dashboard_nav': True,       # Flag to show dashboard navigation
     }
 
+    # STEP 4: Render and return the dashboard template
     return render(request, 'institution/dashboard.html', context)
 
 
-# 🔹 PORTAL LOGIN — Admin role-switching
-@ensure_csrf_cookie
-@never_cache
-@login_required(login_url='login')
+# ================================================================================
+# PORTAL ACCESS SYSTEM
+# ================================================================================
+# The portal system allows institution admins to access teacher and student views
+# without needing separate accounts. This is useful for:
+# - Testing the system from different user perspectives
+# - Helping teachers/students troubleshoot issues
+# - Administrative oversight and monitoring
+
+@ensure_csrf_cookie  # Security: ensure CSRF protection
+@never_cache  # Security: don't cache portal access pages
+@login_required(login_url='login')  # Only authenticated users can access portals
 def teacher_portal_login(request):
-    """Shortcut for Admin to log in as a Teacher"""
+    """
+    WHAT THIS FUNCTION DOES:
+    Provides a way for institution admins to access the teacher interface.
+    This allows admins to see what teachers see and help troubleshoot issues.
+    
+    PARAMETERS:
+    - request: Django HttpRequest object
+    
+    RETURN VALUE:
+    Either redirects to teacher dashboard or shows portal login form
+    
+    BUSINESS LOGIC:
+    1. Check if current user is already a teacher → redirect to teacher dashboard
+    2. If not, show portal login form where admin can enter teacher details
+    3. Validate teacher credentials and switch to teacher view
+    
+    WHO CAN USE THIS:
+    Only institution administrators. Regular teachers use the normal login system.
+    
+    WHY IS THIS USEFUL?
+    - Admins can test teacher functionality
+    - Admins can help teachers troubleshoot problems
+    - Provides administrative oversight capability
+    """
+    # Import here to avoid circular import issues
     from accounts.models import UserProfile
+    
+    # STEP 1: Check if current user is already a teacher
     try:
         profile = UserProfile.objects.get(user=request.user)
         if profile.role == 'teacher':
+            # User is already a teacher, send them to teacher dashboard
             return redirect('teacher_dashboard')
     except UserProfile.DoesNotExist:
+        # User has no profile, continue with portal login process
         pass
+    
+    # STEP 2: Use helper function to handle portal login process
     return _handle_portal_login(request, role='teacher')
 
 
-@ensure_csrf_cookie
-@never_cache
-@login_required(login_url='login')
+@ensure_csrf_cookie  # Security: ensure CSRF protection
+@never_cache  # Security: don't cache portal access pages  
+@login_required(login_url='login')  # Only authenticated users can access portals
 def student_portal_login(request):
-    """Shortcut for Admin to log in as a Student"""
+    """
+    WHAT THIS FUNCTION DOES:
+    Provides a way for institution admins to access the student interface.
+    Similar to teacher portal but for student perspective.
+    
+    PARAMETERS:
+    - request: Django HttpRequest object
+    
+    RETURN VALUE: 
+    Either redirects to student dashboard or shows portal login form
+    
+    BUSINESS LOGIC:
+    Same as teacher portal but for students:
+    1. Check if current user is already a student → redirect to student dashboard
+    2. If not, show portal login form for student access
+    3. Validate student credentials and switch to student view
+    
+    USE CASES:
+    - Admin wants to see what student experience looks like
+    - Admin needs to help student with their account
+    - Testing student functionality during development
+    """
+    # Import here to avoid circular import issues
     from accounts.models import UserProfile
+    
+    # STEP 1: Check if current user is already a student
     try:
         profile = UserProfile.objects.get(user=request.user)
         if profile.role == 'student':
+            # User is already a student, send them to student dashboard
             return redirect('student_dashboard')
     except UserProfile.DoesNotExist:
+        # User has no profile, continue with portal login process
         pass
+    
+    # STEP 2: Use helper function to handle portal login process
     return _handle_portal_login(request, role='student')
 
 
 def _handle_portal_login(request, role):
-    """Helper to handle portal logic for swapping roles within an institution"""
+    """
+    HELPER FUNCTION: Handles the portal login process for both teachers and students
+    
+    WHAT THIS FUNCTION DOES:
+    This is the core logic for allowing admins to "become" teachers or students
+    temporarily. It validates admin permissions and handles the role switching.
+    
+    PARAMETERS:
+    - request: Django HttpRequest object
+    - role: String indicating target role ('teacher' or 'student')
+    
+    RETURN VALUE:
+    Either renders portal login form or redirects to appropriate dashboard
+    
+    BUSINESS LOGIC:
+    1. Verify current user is an institution admin (only admins can use portals)
+    2. Get the institution associated with this admin
+    3. Show portal login form (GET request) or process login (POST request)
+    4. Validate entered name and ID against database
+    5. Switch user session to the target teacher/student account
+    
+    SECURITY CONSIDERATIONS:
+    - Only institution admins can access this functionality
+    - Portal access is limited to users within the same institution
+    - Validates both name and ID for additional security
+    - Maintains audit trail of portal access
+    
+    WHY IS THIS A SEPARATE FUNCTION?
+    Both teacher and student portal login use identical logic, so we follow
+    DRY principle (Don't Repeat Yourself) by creating one reusable function.
+    """
+    # Import here to avoid circular import issues
     from accounts.models import UserProfile
 
-    # Check if user is admin
+    # STEP 1: Verify user is an institution admin
     try:
+        # Get user's profile to check their role
         profile = request.user.userprofile
         if profile.role != 'institution_admin':
+            # User is not an admin, deny access to portal functionality
             messages.error(request, 'Only administrators can use the portal login.')
             return redirect('institution_admin_dashboard')
     except UserProfile.DoesNotExist:
+        # User has no profile, this is an error condition
         messages.error(request, 'User profile not found.')
         return redirect('institution_admin_dashboard')
 
+    # STEP 2: Get the institution for data isolation
     try:
+        # Find institution where current user is the admin
         institution = Institution.objects.get(admin=request.user)
     except Institution.DoesNotExist:
+        # Admin is not associated with any institution, this is an error
         messages.error(request, 'Institution context missing.')
         return redirect('institution_admin_dashboard')
 
+    # STEP 3: Handle GET request - show the portal login form
     if request.method == "GET":
+        # Prepare context data for the portal login template
         context = {
-            'role': role,
+            'role': role,  # 'teacher' or 'student'
             'title': 'Teacher Login' if role == 'teacher' else 'Student Login',
-            'name_label': 'Teacher Name' if role == 'teacher' else 'Student Name',
+            'name_label': 'Teacher Name' if role == 'teacher' else 'Student Name', 
             'code_label': 'Employee ID' if role == 'teacher' else 'Student ID',
         }
         return render(request, 'institution/portal_login.html', context)

@@ -182,40 +182,37 @@
 
             </div>
         </div>
-        <!-- Students Access -->
-        <a href="{% url 'teacher_students' %}" class="feature-card">
-            <div class="card-icon-box icon-blue">
+
+
+
+        <!-- Generate Marksheet -->
+        <a href="{% url 'generate_bulk_marksheets' %}" class="feature-card">
+            <div class="card-icon-box icon-purple">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
                 </svg>
             </div>
-            <h3>Student Roster</h3>
-            <p>View students enrolled in your courses and track their academic progress.</p>
+            <h3>Generate Marksheet</h3>
+            <p>Generate new bulk marksheets for your students.</p>
         </a>
 
-        <!-- Course Access -->
-        <div class="feature-card">
-            <div class="card-icon-box icon-green">
+        <!-- Manage Marksheets -->
+        <a href="{% url 'manage_marksheets' %}" class="feature-card">
+            <div class="card-icon-box" style="background: rgba(99, 102, 241, 0.1); color: var(--clr-accent);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <path d="M9 12l2 2 4-4"></path>
                 </svg>
             </div>
-            <h3>Active Courses</h3>
-            <p>Overview of courses you are currently teaching this semester.</p>
-            <div style="margin-top: 1rem;">
-                {% for course in courses %}
-                <span class="badge bg-primary me-1">{{ course.code }}</span>
-                {% empty %}
-                <span class="text-muted" style="font-size: 0.8rem;">No courses assigned.</span>
-                {% endfor %}
-            </div>
-        </div>
+            <h3>Manage Marksheets</h3>
+            <p>View, edit, or delete previously generated bulk marksheets.</p>
+        </a>
+
 
         <!-- Attendance Generator -->
         <a href="{% url 'attendance_generator' %}" class="feature-card">
@@ -248,7 +245,8 @@
         <!-- Academic Calendar -->
         <a href="{% url 'academic_calendar_list' %}" class="feature-card">
             <div class="card-icon-box icon-blue">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -261,7 +259,9 @@
                 </svg>
             </div>
             <h3>Academic Calendar</h3>
-            {% if shared_calendars %}<p>View calendars shared by admins; see important academic events and schedules.</p>{% else %}<p style="color: var(--clr-warning, #f59e0b); font-weight: 600; margin: 0;">No shared calendar yet.</p>{% endif %}
+            {% if shared_calendars %}<p>View calendars shared by admins; see important academic events and schedules.
+            </p>{% else %}<p style="color: var(--clr-warning, #f59e0b); font-weight: 600; margin: 0;">No shared calendar
+                yet.</p>{% endif %}
         </a>
 
         <!-- Account Settings -->
@@ -270,7 +270,9 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
                 </svg>
             </div>
             <h3>Account Settings</h3>
@@ -299,7 +301,7 @@
                     </div>
                     <div class="card-body p-0">
                         <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th class="ps-3 border-0" style="font-size: 0.75rem; text-transform: uppercase;">
                                         Time</th>
@@ -353,34 +355,43 @@
     <div class="calendar-section" style="margin-top: 4rem;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 style="font-family: var(--font-head); font-weight: 700;">📅 Upcoming Events</h2>
-            <a href="{% url 'academic_calendar_list' %}" class="badge" style="color: var(--clr-accent); background: var(--clr-accent-soft); padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none;">View All Calendars</a>
+            <a href="{% url 'academic_calendar_list' %}" class="badge"
+                style="color: var(--clr-accent); background: var(--clr-accent-soft); padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none;">View
+                All Calendars</a>
         </div>
         {% if shared_calendars %}
-            {% if calendar_events %}
-        <div class="row g-3">
+        {% if calendar_events %}
+        <div class="row g-4">
             {% for event in calendar_events %}
-            <div class="col-md-6 col-lg-4">
+            <div class="col-lg-6">
                 <div class="feature-card" style="border-left: 4px solid {{ event.color_code }};">
                     <div class="d-flex align-items-start gap-3">
                         <div class="text-center" style="min-width: 50px;">
-                            <div style="font-size: 1.8rem; font-weight: 700; color: {{ event.color_code }}; line-height: 1;">{{ event.date|date:"d" }}</div>
-                            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--clr-text-muted); font-weight: 600;">{{ event.date|date:"M" }}</div>
+                            <div
+                                style="font-size: 1.8rem; font-weight: 700; color: {{ event.color_code }}; line-height: 1;">
+                                {{ event.date|date:"d" }}</div>
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; color: var(--clr-text-muted); font-weight: 600;">
+                                {{ event.date|date:"M" }}</div>
                         </div>
                         <div>
                             <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 4px;">{{ event.title }}</h4>
-                            <span style="display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: {{ event.color_code }}22; color: {{ event.color_code }};">{{ event.type }}</span>
-                            {% if event.description %}<p style="font-size: 0.85rem; color: var(--clr-text-muted); margin-top: 8px; margin-bottom: 0;">{{ event.description|truncatewords:15 }}</p>{% endif %}
+                            <span
+                                style="display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: {{ event.color_code }}22; color: {{ event.color_code }};">{{ event.type }}</span>
+                            {% if event.description %}<p
+                                style="font-size: 0.85rem; color: var(--clr-text-muted); margin-top: 8px; margin-bottom: 0;">
+                                {{ event.description|truncatewords:15 }}</p>{% endif %}
                         </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-            {% else %}
+        {% else %}
         <div class="text-center py-4 text-muted">
             <p class="mb-0">No upcoming events scheduled. Check the calendar for more details.</p>
         </div>
-            {% endif %}
+        {% endif %}
         {% else %}
         <div class="text-center py-4 text-muted">
             <p class="mb-0" style="color: var(--clr-warning, #f59e0b); font-weight: 600;">No shared calendar yet.</p>

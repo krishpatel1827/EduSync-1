@@ -51,6 +51,10 @@
             /* Amber 500 */
             --clr-warning-soft: rgba(245, 158, 11, 0.1);
 
+            --clr-error: #EF4444;
+            /* Red 500 */
+            --clr-error-soft: rgba(239, 68, 68, 0.1);
+
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -95,6 +99,43 @@
             --clr-green-soft: rgba(16, 185, 129, 0.15);
             --clr-navy-soft: rgba(59, 130, 246, 0.15);
             --clr-gold-soft: rgba(245, 158, 11, 0.15);
+            --clr-error-soft: rgba(239, 68, 68, 0.2);
+
+            /* High Contrast Dark Mode Adjustments */
+            --clr-surface: #0f172a;
+            --clr-surface-alt: #1e293b;
+            --clr-border: #334155;
+        }
+
+        /* 🌙 PREMIUM DARK MODE REFINEMENTS */
+        [data-bs-theme="dark"] .card,
+        [data-bs-theme="dark"] .feature-card,
+        [data-bs-theme="dark"] .admin-card,
+        [data-bs-theme="dark"] .stat-box {
+            background: rgba(30, 41, 59, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        [data-bs-theme="dark"] .table {
+            --bs-table-bg: transparent;
+            --bs-table-color: #f8fafc;
+        }
+
+        [data-bs-theme="dark"] .table>thead {
+            background: #1e293b;
+        }
+
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-select {
+            background-color: #0f172a;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+
+        [data-bs-theme="dark"] .form-control:focus {
+            background-color: #1e293b;
+            border-color: var(--clr-accent);
         }
 
         * {
@@ -243,6 +284,31 @@
 
         .es-brand span {
             color: var(--clr-accent);
+        }
+
+        /* Enhanced brand styling for authenticated users */
+        .es-brand[onclick]:hover {
+            transform: translateY(-1px);
+            filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.2));
+            cursor: pointer;
+        }
+
+        .es-brand[onclick]:active {
+            transform: translateY(0);
+            filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.3));
+        }
+
+        /* Subtle indicator for logout functionality */
+        .es-brand[onclick]::after {
+            content: '🚪';
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .es-brand[onclick]:hover::after {
+            opacity: 1;
         }
 
         /* Links */
@@ -911,7 +977,8 @@
     <!-- ═══ NAVBAR ═══ -->
     <nav class="es-navbar">
         <div class="container d-flex align-items-center justify-content-between">
-            <a class="es-brand" href="/">Edu<span>Sync</span></a>
+            <a class="es-brand" href="/" {% if user.is_authenticated %} onclick="return handleBrandClick(event);"
+                title="Click to logout and return to home" {% endif %}>Edu<span>Sync</span></a>
 
             {% with route=request.resolver_match.url_name %}
             {% if force_public_nav or route == 'signup' or route == 'login' %}
@@ -981,8 +1048,7 @@
 
                 <!-- Branding -->
                 <div class="col-lg-4 col-md-6" style="margin-bottom: 32px;">
-                    <a class="es-brand" href="/"
-                        style="margin-bottom: 16px; display: inline-flex;">Edu<span>Sync</span></a>
+                    <a class="es-brand" href="/" style="margin-bottom: 16px; display: inline-flex;" {% if user.is_authenticated %} onclick="return handleBrandClick(event);" title="Click to logout and return to home" {% endif %}>Edu<span>Sync</span></a>
                     <p
                         style="color: var(--clr-text-muted); font-size: 0.9rem; line-height: 1.7; max-width: 320px; margin-bottom: 24px;">
                         Building the future of educational infrastructure. Scalable, secure, and smart solutions for
@@ -1124,10 +1190,10 @@
             const messages = [
                 {% for message in messages %}
                 {
-                text: "{{ message|escapejs }}",
-                tag: "{{ message.tags }}"
-            }{% if not forloop.last %}, {% endif %}
-        {% endfor %}
+                    text: "{{ message|escapejs }}",
+                    tag: "{{ message.tags }}"
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
             ];
 
         messages.forEach(function (message) {
@@ -1172,7 +1238,17 @@
             document.documentElement.setAttribute("data-bs-theme", theme);
             localStorage.setItem("theme", theme);
             const btn = document.getElementById("themeToggle");
-            if (btn) btn.innerHTML = theme === 'dark' ? icons.light : icons.dark;
+            if (btn) {
+                btn.innerHTML = theme === 'dark' ? icons.light : icons.dark;
+                // Add smooth rotation animation for theme toggle feedback
+                btn.style.transform = 'rotate(180deg)';
+                setTimeout(() => btn.style.transform = 'rotate(0deg)', 200);
+            }
+
+            // Dispatch theme change event for components to listen to
+            window.dispatchEvent(new CustomEvent('themeChanged', {
+                detail: { theme, timestamp: Date.now() }
+            }));
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1181,10 +1257,18 @@
 
             const btn = document.getElementById("themeToggle");
             if (btn) {
-                btn.onclick = () => {
+                // Add smooth transition for button animations
+                btn.style.transition = 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
+
+                btn.onclick = (e) => {
+                    e.preventDefault();
                     const current = document.documentElement.getAttribute("data-bs-theme");
                     const next = current === "dark" ? "light" : "dark";
                     setTheme(next);
+
+                    // Add visual feedback
+                    btn.style.boxShadow = '0 0 20px rgba(99, 102, 241, 0.3)';
+                    setTimeout(() => btn.style.boxShadow = '', 300);
                 };
             }
         });
@@ -1210,6 +1294,86 @@
                 navLinks.classList.remove('active');
             }
         });
+
+        // 🚪 Brand Click Logout Handler
+        let brandLogoutInProgress = false;
+
+        function handleBrandClick(event) {
+            event.preventDefault();
+
+            // Prevent double-clicks
+            if (brandLogoutInProgress) {
+                return false;
+            }
+
+            // Show confirmation dialog with warning
+            const confirmed = confirm(
+                '⚠️ LOGOUT WARNING\n\n' +
+                'Clicking the EduSync logo will:\n' +
+                '• Log you out completely\n' +
+                '• Redirect you to the landing page\n' +
+                '• Clear your session (back button won\'t restore it)\n\n' +
+                'Are you sure you want to continue?'
+            );
+
+            if (confirmed) {
+                brandLogoutInProgress = true;
+
+                // Show loading state
+                document.body.style.cursor = 'wait';
+                const brandElements = document.querySelectorAll('.es-brand[onclick]');
+                brandElements.forEach(el => {
+                    el.style.opacity = '0.6';
+                    el.style.pointerEvents = 'none';
+                });
+
+                // Create hidden form for logout
+                const logoutForm = document.createElement('form');
+                logoutForm.method = 'POST';
+                logoutForm.action = '{% url "logout" %}';
+                logoutForm.style.display = 'none';
+
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken.value;
+                    logoutForm.appendChild(csrfInput);
+                } else {
+                    // Get CSRF from cookie if form token not available
+                    const csrfCookie = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('csrftoken='));
+                    if (csrfCookie) {
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = 'csrfmiddlewaretoken';
+                        csrfInput.value = csrfCookie.split('=')[1];
+                        logoutForm.appendChild(csrfInput);
+                    }
+                }
+
+                // Add hidden field to indicate brand logout
+                const brandLogoutInput = document.createElement('input');
+                brandLogoutInput.type = 'hidden';
+                brandLogoutInput.name = 'brand_logout';
+                brandLogoutInput.value = 'true';
+                logoutForm.appendChild(brandLogoutInput);
+
+                // Submit logout form
+                document.body.appendChild(logoutForm);
+                logoutForm.submit();
+
+                // Show user-friendly message while processing
+                setTimeout(() => {
+                    alert('🚪 Logging out... You will be redirected to the landing page.');
+                }, 100);
+            }
+
+            return false; // Prevent default link behavior
+        }
 
         // Reload page on back button to prevent stale CSRF tokens
         window.onpageshow = function (event) {

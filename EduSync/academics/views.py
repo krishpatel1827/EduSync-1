@@ -46,7 +46,7 @@ def course_list(request):
         courses = Course.objects.filter(institution=institution)
     else:
         courses = Course.objects.all()
-    context = {'courses': courses, 'institution': institution}
+    context = {'courses': courses, 'institution': institution, 'is_admin': _is_admin(request.user)}
     return render(request, 'academics/course_list.html', context)
 
 
@@ -58,13 +58,14 @@ def course_detail(request, course_id):
     else:
         course = get_object_or_404(Course, id=course_id)
     grades = Grade.objects.filter(course=course)
-    context = {'course': course, 'grades': grades}
+    context = {'course': course, 'grades': grades, 'is_admin': _is_admin(request.user)}
     return render(request, 'academics/course_detail.html', context)
 
 
 @ensure_csrf_cookie
 @csrf_protect
 @login_required(login_url='login')
+@role_required('institution_admin')
 @never_cache
 def course_create(request):
     institution = get_user_institution(request.user)
@@ -95,6 +96,7 @@ def course_create(request):
 
 
 @login_required(login_url='login')
+@role_required('institution_admin')
 @never_cache
 def course_edit(request, course_id):
     institution = get_user_institution(request.user)
@@ -119,6 +121,7 @@ def course_edit(request, course_id):
 
 
 @login_required(login_url='login')
+@role_required('institution_admin')
 @require_POST
 def course_delete(request, course_id):
     institution = get_user_institution(request.user)
@@ -133,31 +136,54 @@ def course_delete(request, course_id):
 
 @login_required(login_url='login')
 def academic_calendar_list(request):
-    # Admins see all calendars; teachers/students see only those shared with them.
+    user_institution = get_user_institution(request.user)
+    if not user_institution:
+        return render(request, 'academics/calendar_list.html', {'calendars': AcademicCalendar.objects.none(), 'is_admin': False})
+
+    # Filter calendars to only show those belonging to the current user's institution
+    base_qs = AcademicCalendar.objects.filter(institution=user_institution).select_related('created_by', 'department')
+    
+    # Also handle the role-based visibility within the institution
     if _is_admin(request.user):
-        calendars = AcademicCalendar.objects.select_related('created_by', 'department').all()
+        calendars = base_qs.all()
     elif _is_teacher(request.user):
         teacher_dept = getattr(getattr(request.user, 'teacher', None), 'department', None)
-        calendars = AcademicCalendar.objects.filter(shared_with_teachers=True).select_related('created_by', 'department')
+        calendars = base_qs.filter(shared_with_teachers=True)
         if teacher_dept:
             calendars = calendars.filter(Q(department__isnull=True) | Q(department=teacher_dept))
         else:
             calendars = calendars.filter(department__isnull=True)
     elif _is_student(request.user):
         student_dept = getattr(getattr(request.user, 'student', None), 'department', None)
-        calendars = AcademicCalendar.objects.filter(shared_with_students=True).select_related('created_by', 'department')
+        calendars = base_qs.filter(shared_with_students=True)
         if student_dept:
             calendars = calendars.filter(Q(department__isnull=True) | Q(department=student_dept))
         else:
             calendars = calendars.filter(department__isnull=True)
     else:
         calendars = AcademicCalendar.objects.none()
-    return render(request, 'academics/calendar_list.html', {'calendars': calendars, 'is_admin': _is_admin(request.user)})
+
+    # Determine dashboard URL for the back button
+    dashboard_url = 'institution_admin_dashboard'
+    if _is_teacher(request.user):
+        dashboard_url = 'teacher_dashboard'
+    elif _is_student(request.user):
+        dashboard_url = 'student_dashboard'
+
+    return render(request, 'academics/calendar_list.html', {
+        'calendars': calendars, 
+        'is_admin': _is_admin(request.user),
+        'dashboard_url': dashboard_url
+    })
 
 
 @login_required(login_url='login')
 def academic_calendar_detail(request, calendar_id):
-    calendar_obj = get_object_or_404(AcademicCalendar.objects.select_related('created_by', 'department'), id=calendar_id)
+    user_institution = get_user_institution(request.user)
+    calendar_obj = get_object_or_404(
+        AcademicCalendar.objects.filter(institution=user_institution).select_related('created_by', 'department'), 
+        id=calendar_id
+    )
 
     # enforce visibility: admins always allowed; teachers/students must have the share flag and match department (if set)
     if not _is_admin(request.user):
@@ -231,7 +257,8 @@ def academic_calendar_share(request, calendar_id):
     - 'students' or 'teachers' toggles the single flag
     - 'all' toggles both flags together (useful for the single "Share" button)
     """
-    calendar_obj = get_object_or_404(AcademicCalendar, id=calendar_id)
+    user_institution = get_user_institution(request.user)
+    calendar_obj = get_object_or_404(AcademicCalendar.objects.filter(institution=user_institution), id=calendar_id)
     if request.method == 'POST':
         target = request.POST.get('target')
         if target == 'students':
@@ -264,6 +291,7 @@ def academic_calendar_create(request):
         if form.is_valid():
             calendar_obj = form.save(commit=False)
             calendar_obj.created_by = request.user
+            calendar_obj.institution = institution
             calendar_obj.save()
             messages.success(request, 'Academic calendar created successfully.')
             return redirect('academic_calendar_detail', calendar_id=calendar_obj.id)
@@ -279,8 +307,9 @@ def academic_calendar_create(request):
 @login_required(login_url='login')
 @role_required('institution_admin')
 def academic_calendar_edit(request, calendar_id):
-    calendar_obj = get_object_or_404(AcademicCalendar, id=calendar_id)
-    institution = get_user_institution(request.user)
+    user_institution = get_user_institution(request.user)
+    calendar_obj = get_object_or_404(AcademicCalendar.objects.filter(institution=user_institution), id=calendar_id)
+    institution = user_institution
 
     if request.method == 'POST':
         form = AcademicCalendarForm(request.POST, instance=calendar_obj, institution=institution)
@@ -302,7 +331,8 @@ def academic_calendar_edit(request, calendar_id):
 @role_required('institution_admin')
 @require_POST
 def academic_calendar_delete(request, calendar_id):
-    calendar_obj = get_object_or_404(AcademicCalendar, id=calendar_id)
+    user_institution = get_user_institution(request.user)
+    calendar_obj = get_object_or_404(AcademicCalendar.objects.filter(institution=user_institution), id=calendar_id)
     calendar_obj.delete()
     messages.success(request, 'Academic calendar deleted successfully.')
     return redirect('academic_calendar_list')
@@ -311,7 +341,8 @@ def academic_calendar_delete(request, calendar_id):
 @login_required(login_url='login')
 @role_required('institution_admin')
 def calendar_event_create(request, calendar_id):
-    calendar_obj = get_object_or_404(AcademicCalendar, id=calendar_id)
+    user_institution = get_user_institution(request.user)
+    calendar_obj = get_object_or_404(AcademicCalendar.objects.filter(institution=user_institution), id=calendar_id)
 
     if request.method == 'POST':
         form = CalendarEventForm(request.POST)
@@ -363,7 +394,11 @@ def calendar_event_create(request, calendar_id):
 @login_required(login_url='login')
 @role_required('institution_admin')
 def calendar_event_edit(request, event_id):
-    event = get_object_or_404(CalendarEvent.objects.select_related('calendar'), id=event_id)
+    user_institution = get_user_institution(request.user)
+    event = get_object_or_404(
+        CalendarEvent.objects.filter(calendar__institution=user_institution).select_related('calendar'), 
+        id=event_id
+    )
 
     if request.method == 'POST':
         form = CalendarEventForm(request.POST, instance=event)
@@ -392,7 +427,8 @@ def calendar_event_edit(request, event_id):
 @role_required('institution_admin')
 @require_POST
 def calendar_event_delete(request, event_id):
-    event = get_object_or_404(CalendarEvent, id=event_id)
+    user_institution = get_user_institution(request.user)
+    event = get_object_or_404(CalendarEvent.objects.filter(calendar__institution=user_institution), id=event_id)
     calendar_id = event.calendar_id
     event.delete()
     messages.success(request, 'Event deleted successfully.')

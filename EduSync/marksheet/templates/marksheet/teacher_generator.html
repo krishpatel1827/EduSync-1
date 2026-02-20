@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    .marksheet-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 1.5rem;
+        background: radial-gradient(circle at top right, var(--clr-accent-soft), transparent),
+            radial-gradient(circle at bottom left, var(--clr-success-soft), transparent),
+            var(--clr-bg);
+    }
+
+    .marksheet-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 28px;
+        padding: 3.5rem 3rem;
+        width: 100%;
+        max-width: 650px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-bs-theme="dark"] .marksheet-card {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes cardAppear {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .icon-container {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--clr-accent) 0%, #8B5CF6 100%);
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        color: white;
+    }
+
+    .card-title {
+        font-family: var(--font-head);
+        font-weight: 800;
+        font-size: 2.25rem;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.5px;
+        color: var(--clr-text);
+    }
+
+    .card-subtitle {
+        font-size: 1.05rem;
+        color: var(--clr-text-muted);
+        max-width: 80%;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 1.75rem;
+    }
+
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--clr-text-muted);
+        margin-bottom: 0.65rem;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--clr-border);
+        padding: 1rem 1.25rem;
+        border-radius: 16px;
+        font-size: 1rem;
+        width: 100%;
+        color: var(--clr-text);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
+    }
+
+    [data-bs-theme="dark"] .form-control {
+        background: rgba(30, 41, 59, 0.5);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--clr-accent);
+        box-shadow: 0 0 0 4px var(--clr-accent-soft);
+        background: var(--clr-surface);
+        transform: translateY(-2px);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--clr-accent), var(--clr-accent-hover));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        margin-top: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        filter: brightness(1.1);
+    }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: var(--clr-text-muted);
+        margin-top: 0.3rem;
+    }
+
+    @media (max-width: 768px) {
+        .marksheet-card {
+            padding: 2.5rem 1.75rem;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<div class="marksheet-wrapper">
+    <div class="marksheet-card">
+        <div class="card-header">
+            <div class="icon-container">
+                <span class="material-symbols-outlined" style="font-size: 40px;">school</span>
+            </div>
+            <h1 class="card-title">Marksheet Generator</h1>
+            <p class="card-subtitle">Create and manage digital academic marksheets for your students</p>
+        </div>
+
+        {% if messages %}
+        <div class="alert-container mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="department">Select Department</label>
+                <select name="department_id" id="department" class="form-control" required onchange="updateSubjects()">
+                    <option value="">-- Choose a department --</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+                <p class="help-text">Select department where you teach subjects</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="num_subjects">Number of Subjects</label>
+                <input type="number" name="num_subjects" id="num_subjects" class="form-control" value="1" min="1"
+                    max="15" required>
+                <p class="help-text">Enter how many subjects you want to enter marks for (1-15)</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="semester">Select Semester</label>
+                <select name="semester" id="semester" class="form-control" required>
+                    <option value="">-- Choose semester --</option>
+                    {% for sem in semesters %}
+                    <option value="{{ sem }}">Semester {{ sem }}</option>
+                    {% endfor %}
+                </select>
+                <p class="help-text">Select the current semester</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="academic_year">Academic Year</label>
+                <input type="text" name="academic_year" id="academic_year" class="form-control" value="2025-2026"
+                    required pattern="[0-9]{4}-[0-9]{4}">
+                <p class="help-text">Academic year in YYYY-YYYY format</p>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <span class="material-symbols-outlined">description</span>
+                Create Marksheet
+            </button>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="{% url 'teacher_dashboard' %}" style="color: var(--clr-text-muted); text-decoration: none;">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // This form handles multi-subject marksheets.
+    // Subjects are selected on the next step.
+</script>
+
+{% endblock %}

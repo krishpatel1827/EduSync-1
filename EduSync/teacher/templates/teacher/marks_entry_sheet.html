@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .marks-entry {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .header-section {
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+
+    .header-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .info-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .info-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 0.25rem;
+    }
+
+    .table-container {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        border-bottom: 2px solid var(--clr-surface-alt);
+    }
+
+    th {
+        text-align: left;
+        padding: 1rem;
+        font-weight: 600;
+        color: var(--clr-text);
+        font-size: 0.95rem;
+    }
+
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        color: var(--clr-text);
+    }
+
+    tbody tr:hover {
+        background: var(--clr-surface-alt);
+    }
+
+    .student-name {
+        font-weight: 600;
+    }
+
+    .marks-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--clr-accent);
+        border-radius: 6px;
+        background: var(--clr-surface-alt);
+        color: var(--clr-text);
+        font-size: 0.95rem;
+        text-align: center;
+    }
+
+    .marks-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--clr-text-muted);
+    }
+
+    .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 1rem;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: var(--clr-surface-alt);
+        color: var(--clr-text);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .info-box {
+        background: rgba(99, 102, 241, 0.1);
+        border-left: 4px solid var(--clr-accent);
+        padding: 1rem;
+        border-radius: 8px;
+        color: var(--clr-text);
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--clr-accent);
+        text-decoration: none;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+
+    .back-link:hover {
+        gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+        .table-container {
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .marks-input {
+            padding: 6px 8px;
+            font-size: 0.85rem;
+        }
+
+        .button-group {
+            flex-direction: column-reverse;
+        }
+
+        .btn {
+            min-width: auto;
+        }
+    }
+</style>
+
+<div class="marks-entry">
+    <a href="{% url 'teacher_dashboard' %}" class="back-link">
+        <span>←</span> Back to Dashboard
+    </a>
+
+    <div class="header-section">
+        <h1>📊 Enter Marks for Students</h1>
+        <div class="header-info">
+            <div class="info-item">
+                <div class="info-label">Department</div>
+                <div class="info-value">{{ department.name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Semester</div>
+                <div class="info-value">{{ semester }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Academic Year</div>
+                <div class="info-value">{{ academic_year }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Total Students</div>
+                <div class="info-value">{{ students|length }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if students %}
+    <form method="post" class="table-container">
+        {% csrf_token %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 30px;">#</th>
+                    <th>Student Name</th>
+                    <th>Student ID</th>
+                    {% for course in courses %}
+                    <th style="min-width: 120px;">{{ course.code }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in students %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td class="student-name">
+                        {{ item.student.name|default:item.student.user.username }}
+                    </td>
+                    <td>{{ item.student.student_id }}</td>
+                    {% for course in courses %}
+                    <td>
+                        <input 
+                            type="number" 
+                            name="marks_{{ item.student.id }}_{{ course.id }}" 
+                            class="marks-input"
+                            min="0" 
+                            max="100" 
+                            placeholder="0-100"
+                            value="{{ item.marks|get_item:course.id|default:'' }}"
+                        >
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="button-group">
+            <button type="submit" name="action" value="save" class="btn btn-secondary">
+                💾 Save Marks
+            </button>
+            <button type="submit" name="action" value="publish" class="btn btn-success">
+                ✓ Save & Publish to Students
+            </button>
+        </div>
+
+        <div class="info-box">
+            <strong>📝 Instructions:</strong><br>
+            • Enter marks out of 100 for each student and subject<br>
+            • Click "Save Marks" to save without publishing (students won't see)<br>
+            • Click "Save & Publish" to save and make visible to students<br>
+            • Only students in {{ department.name }} will see these marks
+        </div>
+    </form>
+    {% else %}
+    <div class="table-container">
+        <div class="empty-state">
+            <div class="empty-state-icon">👤</div>
+            <h3 style="color: var(--clr-text); margin: 0.5rem 0;">No Students Found</h3>
+            <p>There are no students in {{ department.name }} department yet.</p>
+            <a href="{% url 'student_list' %}" style="color: var(--clr-accent); text-decoration: none;">Add Students →</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Add a custom filter for template to get dictionary values
+    // This helps retrieve marks for each course
+</script>
+
+{% endblock %}
+
+{% comment %}
+Custom template filter for getting dictionary values in Django template.
+Since we can't use dict access directly in templates, this filter helps.
+{% endcomment %}

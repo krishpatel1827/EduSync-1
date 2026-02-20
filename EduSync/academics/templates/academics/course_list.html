@@ -431,7 +431,13 @@
                             oninput="filterCourses(this.value)">
                     </div>
                     {% endif %}
+                    {% if is_admin %}
                     <a class="cl-btn-add" href="{% url 'course_create' %}">+ Add Course</a>
+                    {% else %}
+                    <button type="button" class="cl-btn-add"
+                        onclick="alert('You are not authorized to do that if button is accessed from student and teacher dashbord only admin has rights to change it');">+
+                        Add Course</button>
+                    {% endif %}
                 </div>
             </div>
 
@@ -456,12 +462,21 @@
                                 <div class="action-wrap">
                                     <a class="btn-act btn-view-act" href="{% url 'course_detail' course.id %}">👁
                                         View</a>
+                                    {% if is_admin %}
                                     <a class="btn-act btn-edit-act" href="{% url 'course_edit' course.id %}">✏️ Edit</a>
                                     <form method="post" action="{% url 'course_delete' course.id %}"
                                         style="display:inline" onsubmit="return confirm('Delete this course?');">
                                         {% csrf_token %}
                                         <button type="submit" class="btn-act btn-del-act">🗑️ Delete</button>
                                     </form>
+                                    {% else %}
+                                    <button type="button" class="btn-act btn-edit-act"
+                                        onclick="alert('You are not authorized to do that if button is accessed from student and teacher dashbord only admin has rights to change it');">✏️
+                                        Edit</button>
+                                    <button type="button" class="btn-act btn-del-act"
+                                        onclick="alert('You are not authorized to do that if button is accessed from student and teacher dashbord only admin has rights to change it');">🗑️
+                                        Delete</button>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

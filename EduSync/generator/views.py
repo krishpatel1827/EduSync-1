@@ -145,13 +145,25 @@ def add_entry(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        form = TimetableEntryForm(request.POST, timetable=active_tt)
+        # Find existing entry for the selected slot to allow 'Update' behavior
+        day = request.POST.get('day')
+        ts_id = request.POST.get('timeslot')
+        div_id = request.POST.get('division')
+        
+        existing_entry = None
+        if all([day, ts_id, div_id]):
+            existing_entry = TimetableEntry.objects.filter(
+                timetable=active_tt, day=day, timeslot_id=ts_id, division_id=div_id
+            ).first()
+
+        form = TimetableEntryForm(request.POST, timetable=active_tt, instance=existing_entry)
         if form.is_valid():
             entry = form.save(commit=False)
             entry.timetable = active_tt
             entry.save()
-            messages.success(request, "Entry added successfully!")
-            return redirect('timetable')
+            msg = "Entry updated successfully!" if existing_entry else "Entry added successfully!"
+            messages.success(request, msg)
+            return redirect('timetable', timetable_id=active_tt.id)
     else:
         form = TimetableEntryForm(timetable=active_tt)
     
@@ -508,11 +520,12 @@ def publish_timetable(request, timetable_id):
         messages.error(request, "Invalid request.")
         return redirect('timetable', timetable_id=timetable.id)
 
-    # Permission check: only creator or admin can publish
-    is_creator = request.user == timetable.created_by
-    is_admin = hasattr(request.user, 'userprofile') and request.user.userprofile.role == 'institution_admin'
+    # Permission check: creator, admin, or any teacher from the same institution can publish
+    is_creator = (request.user == timetable.created_by)
+    is_admin = (hasattr(request.user, 'userprofile') and request.user.userprofile.role == 'institution_admin')
+    is_teacher = hasattr(request.user, 'teacher')
 
-    if not (is_creator or is_admin):
+    if not (is_creator or is_admin or is_teacher):
         messages.error(request, "You don't have permission to publish this timetable.")
         return redirect('timetable', timetable_id=timetable.id)
 

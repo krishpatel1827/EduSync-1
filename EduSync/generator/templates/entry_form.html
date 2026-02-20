@@ -126,9 +126,23 @@
         <a href="{% url 'timetable' %}" class="back-link">&larr; Back to Timetable</a>
         <h2 class="entry-form-title">Add Timetable Entry</h2>
         <p class="entry-form-subtitle">Create a new entry for your timetable schedule</p>
-        
+
         <form method="post">
             {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
             {% for field in form %}
             <div class="form-field">
                 <label>{{ field.label }}</label>

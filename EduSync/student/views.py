@@ -1,175 +1,375 @@
+# ================================================================================
+# STUDENT APP - VIEWS.PY
+# ================================================================================
+# This file contains all the view functions for student management in EduSync.
+# It handles student dashboards, academic information display, account management,
+# and administrative functions for managing student records.
+#
+# WHAT ARE VIEWS IN DJANGO?
+# Views are Python functions that handle HTTP requests and return HTTP responses.
+# They contain the business logic that processes data and renders templates.
+# Each view function corresponds to a URL and handles specific user interactions.
+#
+# STUDENT SYSTEM FUNCTIONALITY:
+# 1. Student Dashboard: Personal academic information hub
+# 2. Grade Viewing: Academic performance and transcript data  
+# 3. Timetable Display: Class schedules and timing information
+# 4. Attendance Tracking: Attendance records and statistics
+# 5. Account Management: Username/password updates
+# 6. Admin Functions: Creating, editing, and managing student records
+#
+# USER ROLES & ACCESS:
+# - Students: Access to their own dashboard, grades, timetable, attendance
+# - Institution Admins: Full access to all student management functions
+# - Teachers: Limited access to view student information for their classes
+#
+# SECURITY MEASURES:
+# - @login_required: Ensures only authenticated users can access views
+# - Role-based access control: Different permissions for different user types
+# - CSRF protection: Prevents cross-site request forgery attacks
+# - Institution isolation: Users can only see data from their own institution
+# ================================================================================
+
+# Import Django core functionality
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.db.models import Q
+from django.db import transaction, IntegrityError
+from datetime import date
+
+# Import models from different apps
 from .models import Student
-from academics.models import Grade, AcademicCalendar, CalendarEvent
+from academics.models import Grade, AcademicCalendar, CalendarEvent, Attendance
 from institution.models import Institution
 from accounts.models import UserProfile
-from django.db import transaction, IntegrityError
-from .forms import StudentCreateForm, StudentEditForm
 from generator.models import Timetable, TimetableEntry
-from datetime import date
+
+# Import form classes for student data collection
+from .forms import StudentCreateForm, StudentEditForm
 
 
 def _find_student_timetable(student):
     """
-    Find the best matching active timetable for a student.
+    HELPER FUNCTION: Find the best matching active timetable for a student
     
-    Priority hierarchy:
-    1. Exact match: department + branch
-    2. Department + course match
-    3. Any active timetable for the department (fallback)
-    4. Institution-wide timetable (no department specified)
+    WHAT THIS FUNCTION DOES:
+    Attempts to locate an active timetable for a student using a priority hierarchy.
+    This ensures students see appropriate class schedules based on their academic assignment.
     
-    Returns: Timetable object or None
+    PRIORITY HIERARCHY (most specific to most general):
+    1. Exact match: Same department AND same branch (most specific)
+    2. Department + course match: Same department AND same course  
+    3. Any active timetable for the department (fallback for broad matching)
+    4. Institution-wide timetable: No department specified (global fallback)
+    
+    WHY THIS PRIORITY SYSTEM?
+    - Students should see the most relevant timetable for their specific program
+    - Fallbacks ensure students always see some timetable if available
+    - Handles cases where students might not have all assignments (branch, course)
+    
+    PARAMETERS:
+    student (Student): The student object to find a timetable for
+    
+    RETURNS:
+    Timetable object if found, None if no matching timetable exists
+    
+    USAGE EXAMPLES:
+    - CS student in CS department with CS branch → Gets CS-specific timetable
+    - Student in Engineering department without branch → Gets any Engineering timetable
+    - New student with only institution → Gets institution-wide timetable
     """
     timetable = None
     
-    # Priority 1: Exact match - department + branch
+    # Priority 1: Exact match - department + branch (most specific)
+    # Example: Computer Science student gets Computer Science timetable
     if student.department and student.branch:
         timetable = Timetable.objects.filter(
-            department=student.department,
-            branch=student.branch,
-            is_active=True
-        ).first()
+            department=student.department,  # Must match student's department
+            branch=student.branch,          # Must match student's branch
+            is_active=True                  # Only active timetables
+        ).first()  # Get the first matching timetable
     
-    # Priority 2: Department + course match
+    # Priority 2: Department + course match (specific but broader than branch)
+    # Example: Engineering student gets timetable for their specific course
     if not timetable and student.department and student.course:
         timetable = Timetable.objects.filter(
-            department=student.department,
-            course=student.course,
-            is_active=True
+            department=student.department,  # Must match student's department
+            course=student.course,          # Must match student's course
+            is_active=True                  # Only active timetables
         ).first()
     
-    # Priority 3: Any active timetable for the same department
-    # This is the key change - be more flexible for students without branch/course
+    # Priority 3: Any active timetable for the same department (flexible fallback)
+    # This is key for students who don't have branch/course assignments yet
+    # Example: New student in Engineering gets any active Engineering timetable
     if not timetable and student.department:
         timetable = Timetable.objects.filter(
-            department=student.department,
-            is_active=True
-        ).first()
+            department=student.department,  # Must match student's department
+            is_active=True                  # Only active timetables
+        ).first()  # Accept any timetable for the department
     
-    # Priority 4: Institution-wide timetable (backward compatibility)
+    # Priority 4: Institution-wide timetable (global fallback for backward compatibility)
+    # Example: Student gets general institution timetable if no specific one exists
     if not timetable:
         timetable = Timetable.objects.filter(
-            institution=student.institution,
-            department__isnull=True,
-            is_active=True
+            institution=student.institution,  # Must match student's institution
+            department__isnull=True,         # No specific department (institution-wide)
+            is_active=True                   # Only active timetables
         ).first()
     
     return timetable
 
 
 def _unique_username(base):
-    username = base
-    suffix = 1
+    """
+    HELPER FUNCTION: Generate a unique username based on a base string
+    
+    WHAT THIS FUNCTION DOES:
+    Takes a base username (e.g., "student_ST001") and ensures it's unique by
+    adding number suffixes if the base username already exists.
+    
+    LOGIC:
+    1. Start with the base username
+    2. Check if it exists in the database
+    3. If it exists, add a number suffix (1, 2, 3, etc.)
+    4. Keep incrementing until we find a unique username
+    
+    PARAMETERS:
+    base (str): The base username to make unique (e.g., "student_ST001")
+    
+    RETURNS:
+    str: A guaranteed unique username
+    
+    EXAMPLES:
+    - Input: "student_ST001", Output: "student_ST001" (if available)
+    - Input: "student_ST001", Output: "student_ST0011" (if ST001 exists)
+    - Input: "student_ST001", Output: "student_ST0012" (if ST001 and ST0011 exist)
+    
+    WHY THIS IS NEEDED:
+    - Prevents database integrity errors when creating user accounts
+    - Ensures every student gets a unique login username
+    - Handles cases where student IDs might be reused or duplicated
+    """
+    username = base                    # Start with the base username
+    suffix = 1                        # Start numbering from 1
+    
+    # Keep checking and incrementing until we find a unique username
     while User.objects.filter(username=username).exists():
-        username = f"{base}{suffix}"
-        suffix += 1
-    return username
+        username = f"{base}{suffix}"   # Add number suffix to base
+        suffix += 1                   # Increment for next attempt
+    
+    return username                   # Return the unique username
 
 
 def _get_institution_admin(request):
+    """
+    HELPER FUNCTION: Validate and retrieve institution admin information
+    
+    WHAT THIS FUNCTION DOES:
+    Validates that the current user is an institution admin and returns their
+    associated institution. This is used to secure admin-only functions.
+    
+    VALIDATION STEPS:
+    1. Check if user has a UserProfile (account setup completed)
+    2. Verify user's role is 'institution_admin' 
+    3. Find the Institution object where this user is the admin
+    4. Return institution or appropriate error message
+    
+    PARAMETERS:
+    request: Django HTTP request object containing user information
+    
+    RETURNS:
+    tuple: (Institution object, Error message)
+    - Success: (Institution, None)
+    - Failure: (None, "Error description")
+    
+    USAGE:
+    institution, error = _get_institution_admin(request)
+    if error:
+        return render(request, 'template.html', {'error': error})
+    
+    SECURITY PURPOSE:
+    - Prevents non-admin users from accessing admin functions
+    - Ensures admins can only manage their own institution's data
+    - Provides consistent error handling across admin views
+    """
     try:
+        # Try to get the user's profile information
         profile = request.user.userprofile
     except UserProfile.DoesNotExist:
+        # User doesn't have a profile - account setup incomplete
         return None, 'User profile not found.'
 
+    # Check if user has admin privileges
     if profile.role != 'institution_admin':
         return None, 'Only institution admins can access this page.'
 
     try:
+        # Find the institution where this user is the admin
         institution = Institution.objects.get(admin=request.user)
     except Institution.DoesNotExist:
+        # User is marked as admin but no institution is linked
         return None, 'No institution is linked to this account.'
 
+    # Success - return the institution
     return institution, None
 
 
 @ensure_csrf_cookie
 @login_required(login_url='login')
 def student_dashboard(request):
+    """
+    MAIN VIEW: Student personal dashboard displaying academic information
+    
+    WHAT THIS VIEW DOES:
+    Creates a comprehensive dashboard for students showing their grades, timetable,
+    attendance records, and upcoming calendar events. This is the main hub where
+    students access all their academic information.
+    
+    DASHBOARD COMPONENTS:
+    1. Student Profile: Basic student information and status
+    2. Grades: Academic performance and course results
+    3. Timetable: Weekly class schedule (if available)
+    4. Attendance: Attendance statistics from shared records
+    5. Calendar Events: Upcoming academic events and important dates
+    
+    TIMETABLE DISPLAY LOGIC:
+    - Uses _find_student_timetable() to find matching timetable
+    - Shows complete timetable if student has division assignment
+    - Groups entries by day of week for organized display
+    - Handles cases where no timetable is available
+    
+    ATTENDANCE CALCULATIONS:
+    - Only shows attendance from sheets shared with students
+    - Calculates overall attendance percentage across all subjects
+    - Provides summary statistics for quick overview
+    
+    CALENDAR INTEGRATION:
+    - Shows upcoming events from calendars shared with students
+    - Filters events to show only future dates
+    - Limits to 5 most immediate events to avoid clutter
+    
+    ACCESS CONTROL:
+    - @ensure_csrf_cookie: Enables CSRF protection for forms
+    - @login_required: Only authenticated users can access
+    - Automatically redirects non-students to landing page
+    
+    ERROR HANDLING:
+    - Gracefully handles missing student profiles
+    - Provides user-friendly error messages
+    - Redirects to appropriate pages on errors
+    """
     try:
+        # Get the student record for the current user
         student = Student.objects.get(user=request.user)
+        
+        # Get all grades for this student
         grades = Grade.objects.filter(student=student)
         
         # Find matching timetable using helper function
         active_tt = _find_student_timetable(student)
         
+        # Initialize empty schedule
         schedule = []
+        
         if active_tt:
-            # Get ALL entries for the timetable (not just student's course)
-            # This shows the complete timetable with all divisions
-            # Filter entries for the student's specific division if assigned
+            # Build the timetable schedule for display
+            
+            # Prepare filter criteria for timetable entries
             entry_filter = {'timetable': active_tt}
+            
+            # If student has a specific division, show only their entries
+            # Otherwise, show all entries for the timetable
             if student.division:
                 entry_filter['division'] = student.division
             
+            # Get timetable entries with related data for efficiency
             entries = TimetableEntry.objects.filter(**entry_filter).select_related(
-                'timeslot', 'faculty', 'room', 'division', 'subject'
+                'timeslot',   # Time information
+                'faculty',    # Teacher information  
+                'room',       # Location information
+                'division',   # Student group information
+                'subject'     # Course information
             ).order_by('timeslot__start_time', 'timeslot__lecture_number')
             
-            # Group by day
-            days_map = {'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday'}
+            # Group entries by day of the week for organized display
+            days_map = {
+                'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 
+                'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday'
+            }
+            
+            # Create daily schedule structure
             for day_code, day_name in days_map.items():
+                # Filter entries for this specific day
                 day_entries = [e for e in entries if e.day == day_code]
+                
+                # Only include days that have classes scheduled
                 if day_entries:
                     schedule.append({
-                        'day': day_name,
-                        'entries': day_entries
+                        'day': day_name,      # Human-readable day name
+                        'entries': day_entries # List of classes for this day
                     })
 
-        # Attendance summary stats
-        from academics.models import Attendance
+        # Calculate attendance statistics from shared attendance sheets
+        # Only show attendance that teachers have chosen to share with students
         shared_attendance_records = Attendance.objects.filter(
-            student=student,
-            sheet__shared_with_students=True,
+            student=student,                      # This specific student
+            sheet__shared_with_students=True,     # Only shared attendance sheets
         )
+        
+        # Calculate summary statistics
         shared_attendance_count = shared_attendance_records.count()
         shared_total_attended = sum(r.lectures_attended for r in shared_attendance_records)
         shared_total_lectures = sum(r.total_lectures for r in shared_attendance_records)
-        shared_overall_percentage = round((shared_total_attended / shared_total_lectures) * 100, 2) if shared_total_lectures else 0
+        
+        # Calculate overall attendance percentage with division by zero protection
+        if shared_total_lectures > 0:
+            shared_overall_percentage = round((shared_total_attended / shared_total_lectures) * 100, 2)
+        else:
+            shared_overall_percentage = 0
 
         # Get upcoming calendar events from shared calendars
-        # When a calendar is shared with students, show it to ALL students
+        # When a calendar is shared with students, all students can see it
         # (department field is informational, not a visibility restriction)
         shared_calendars = AcademicCalendar.objects.filter(shared_with_students=True)
         
+        # Get next 5 upcoming events for dashboard display
         calendar_events = CalendarEvent.objects.filter(
-            calendar__in=shared_calendars,
-            date__gte=date.today()
-        ).order_by('date')[:5]
+            calendar__in=shared_calendars,    # From shared calendars only
+            date__gte=date.today()           # Only future events
+        ).order_by('date')[:5]               # Limit to 5 most immediate events
 
+        # Prepare all data for template rendering
         context = {
-            'student': student,
-            'grades': grades,
-            'schedule': schedule,
-            'timetable': active_tt,
-            'shared_attendance_count': shared_attendance_count,
-            'shared_total_attended': shared_total_attended,
-            'shared_total_lectures': shared_total_lectures,
-            'shared_overall_percentage': shared_overall_percentage,
-            'calendar_events': calendar_events,
-            'shared_calendars': shared_calendars,
+            'student': student,                              # Student profile information
+            'grades': grades,                                # Academic grades and courses
+            'schedule': schedule,                            # Weekly timetable schedule
+            'timetable': active_tt,                         # Timetable object (for additional info)
+            'shared_attendance_count': shared_attendance_count,     # Number of attendance records
+            'shared_total_attended': shared_total_attended,  # Total classes attended
+            'shared_total_lectures': shared_total_lectures,  # Total classes conducted
+            'shared_overall_percentage': shared_overall_percentage, # Overall attendance %
+            'calendar_events': calendar_events,              # Upcoming academic events
+            'shared_calendars': shared_calendars,            # Available calendars
+            'semester_text': f"Semester {student.semester}", # Current semester display text
         }
+        
+        # Render the dashboard template with all prepared data
         return render(request, 'student/dashboard.html', context)
+        
     except Student.DoesNotExist:
+        # Handle case where user is authenticated but not a student
         messages.error(request, 'Student not found.')
-        return redirect('landing')
+        return redirect('landing')  # Redirect to main page
 
 @login_required(login_url='login')
 def student_grades(request):
-    try:
-        student = Student.objects.get(user=request.user)
-        grades = Grade.objects.filter(student=student).select_related('course')
-        context = {'grades': grades, 'student': student}
-        return render(request, 'student/grades.html', context)
-    except Student.DoesNotExist:
-        return render(request, 'student/grades.html', {'error': 'Student profile not found'})
+    """
+    Redirects to the new marksheet application view
+    """
+    return redirect('student_marksheet')
 
 
 @ensure_csrf_cookie
@@ -233,6 +433,7 @@ def student_create(request):
                         parent_name=form.cleaned_data.get('parent_name', ''),
                         parent_phone=form.cleaned_data.get('parent_phone', ''),
                         blood_group=form.cleaned_data.get('blood_group', ''),
+                        semester=form.cleaned_data.get('semester', 1),
                         course=form.cleaned_data.get('course'),
                         department=form.cleaned_data.get('department'),
                         division=form.cleaned_data.get('division'),
@@ -281,6 +482,7 @@ def student_edit(request, student_id):
             student.parent_name = form.cleaned_data.get('parent_name', '')
             student.parent_phone = form.cleaned_data.get('parent_phone', '')
             student.blood_group = form.cleaned_data.get('blood_group', '')
+            student.semester = form.cleaned_data.get('semester', 1)
             student.course = form.cleaned_data.get('course')
             student.department = form.cleaned_data.get('department')
             student.division = form.cleaned_data.get('division')

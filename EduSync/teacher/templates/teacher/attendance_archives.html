@@ -2,56 +2,102 @@
 {% block content %}
 
 <style>
-    .archives-wrap {
+    .archives-wrapper {
         min-height: 100vh;
-        padding: 2rem 1rem;
-        background: linear-gradient(135deg, var(--clr-bg) 0%, var(--clr-surface-alt) 100%);
+        padding: 4rem 1.5rem;
+        background: radial-gradient(circle at top right, var(--clr-accent-soft), transparent),
+            radial-gradient(circle at bottom left, var(--clr-success-soft), transparent),
+            var(--clr-bg);
     }
 
     .archives-card {
-        max-width: 1100px;
+        max-width: 1200px;
         margin: 0 auto;
-        background: var(--clr-surface);
-        border: 1px solid var(--clr-border);
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: var(--shadow-md);
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 28px;
+        padding: 2.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-bs-theme="dark"] .archives-card {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .archives-title {
         font-family: var(--font-head);
-        font-size: 1.8rem;
+        font-size: 2.25rem;
         font-weight: 800;
         color: var(--clr-text);
-        margin: 0 0 1rem;
+        letter-spacing: -0.5px;
+    }
+
+    .table-container {
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--clr-border);
+        background: var(--clr-surface);
     }
 
     .archives-table {
         width: 100%;
-        border-collapse: collapse;
-    }
-
-    .archives-table th,
-    .archives-table td {
-        padding: 0.8rem;
-        border-bottom: 1px solid var(--clr-border);
-        text-align: left;
+        margin-bottom: 0;
     }
 
     .archives-table th {
         background: var(--clr-surface-alt);
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--clr-text);
-    }
-
-    .status-chip {
-        display: inline-block;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
+        padding: 1.25rem 1rem;
         font-size: 0.75rem;
         font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--clr-text-muted);
+        border-bottom: 1px solid var(--clr-border);
+    }
+
+    .archives-table td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        color: var(--clr-text);
+        border-bottom: 1px solid var(--clr-border);
+    }
+
+    .archives-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .dept-name {
+        font-weight: 700;
+        color: var(--clr-text);
+        font-size: 1rem;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .status-shared {
@@ -63,54 +109,91 @@
         background: var(--clr-warning-soft);
         color: var(--clr-warning);
     }
+
+    .btn-action {
+        padding: 0.6rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
 </style>
 
-<div class="archives-wrap">
+<div class="archives-wrapper">
     <div class="archives-card">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="archives-title">Attendance Archives</h1>
-            <a href="{% url 'teacher_dashboard' %}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h1 class="archives-title">Attendance Archives</h1>
+                <p class="text-muted mb-0">Review and manage your past attendance records</p>
+            </div>
+            <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <span class="material-symbols-outlined me-2"
+                    style="font-size: 18px; vertical-align: middle;">dashboard</span>
+                Dashboard
+            </a>
         </div>
 
         {% if sheets %}
-        <div class="table-responsive">
-            <table class="archives-table">
-                <thead>
-                    <tr>
-                        <th>Department</th>
-                        <th>Date From</th>
-                        <th>Date To</th>
-                        <th>Total Lectures</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sheet in sheets %}
-                    <tr>
-                        <td><strong>{{ sheet.department.name }}</strong></td>
-                        <td>{{ sheet.date_from|date:"M d, Y" }}</td>
-                        <td>{{ sheet.date_to|date:"M d, Y" }}</td>
-                        <td>{{ sheet.total_lectures }}</td>
-                        <td>
-                            {% if sheet.shared_with_students %}
-                            <span class="status-chip status-shared">Shared</span>
-                            {% else %}
-                            <span class="status-chip status-private">Not Shared</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a class="btn btn-sm btn-primary"
-                                href="{% url 'attendance_sheet' sheet.department.id sheet.date_from|date:'Y-m-d' sheet.date_to|date:'Y-m-d' sheet.total_lectures %}">Open
-                                Sheet</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="archives-table">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Period</th>
+                            <th>Total Lectures</th>
+                            <th>Visibility</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sheet in sheets %}
+                        <tr>
+                            <td>
+                                <div class="dept-name">{{ sheet.department.name }}</div>
+                            </td>
+                            <td>
+                                <div class="small fw-semibold text-muted">{{ sheet.date_from|date:"M d" }} — {{ sheet.date_to|date:"M d, Y" }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border fw-bold">{{ sheet.total_lectures }}</span>
+                            </td>
+                            <td>
+                                {% if sheet.shared_with_students %}
+                                <span class="status-badge status-shared">
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">visibility</span>
+                                    Shared
+                                </span>
+                                {% else %}
+                                <span class="status-badge status-private">
+                                    <span class="material-symbols-outlined"
+                                        style="font-size: 14px;">visibility_off</span>
+                                    Private
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-primary btn-action"
+                                    href="{% url 'attendance_sheet' sheet.department.id sheet.date_from|date:'Y-m-d' sheet.date_to|date:'Y-m-d' sheet.total_lectures %}">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">open_in_new</span>
+                                    Open
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% else %}
-        <div class="alert alert-warning mb-0">No attendance archives created yet.</div>
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined display-1 text-muted opacity-25 mb-3">folder_open</span>
+            <h4 class="text-muted">No archives found</h4>
+            <p class="text-muted small">You haven't generated any attendance sheets yet.</p>
+        </div>
         {% endif %}
     </div>
 </div>

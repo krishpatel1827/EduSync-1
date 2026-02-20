@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold text-primary">Student Marksheet Dashboard</h5>
+        </div>
+        <div class="card-body">
+            <!-- Filter Form -->
+            <form method="get" class="row g-3 mb-4">
+                {% csrf_token %}
+                <div class="col-md-4">
+                    <label for="department" class="form-label">Select Department</label>
+                    <select name="department" id="department" class="form-select">
+                        <option value="">-- Choose Department --</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if selected_dept_id and dept.id|stringformat:"s"==selected_dept_id %}selected{% endif %}>
+                            {{ dept.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="semester" class="form-label">Select Semester</label>
+                    <select name="semester" id="semester" class="form-select">
+                        <option value="">-- Choose Semester --</option>
+                        {% for i in "12345678"|make_list %}
+                        <option value="{{ i }}" {% if selected_sem and selected_sem==i %}selected{% endif %}>
+                            Semester {{ i }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i>Load
+                    </button>
+                    <!-- Admin can only view marksheets, not generate them -->
+                    {% if subjects and matrix_data %}
+                    <button type="button" class="btn btn-info" onclick="shareMarksheet()" title="Share Marksheet">
+                        <i class="fas fa-share-alt me-2"></i>Share
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="exportToPDF()" title="Export to PDF">
+                        <i class="fas fa-file-pdf me-2"></i>Export
+                    </button>
+                    {% endif %}
+                </div>
+            </form>
+
+            {% if subjects %}
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width: 50px;">#</th>
+                            <th>Student Name</th>
+                            <th>Student ID</th>
+                            {% for subj in subjects %}
+                            <th class="text-center text-nowrap" title="{{ subj.name }}">
+                                {{ subj.code }}
+                            </th>
+                            {% endfor %}
+                            <th class="text-center bg-light fw-bold">Total</th>
+                            <th class="text-center bg-light fw-bold">Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in matrix_data %}
+                        <tr>
+                            <td class="text-center">{{ forloop.counter }}</td>
+                            <td class="fw-semibold">{{ item.student.user.get_full_name|default:item.student.user.username }}</td>
+                            <td class="text-muted small">{{ item.student.student_id }}</td>
+
+                            {% for mark_obj in item.row_marks %}
+                            <td class="text-center">
+                                {% if mark_obj %}
+                                <span
+                                    class="badge {% if mark_obj.marks < 40 %}bg-danger{% else %}bg-success{% endif %} bg-opacity-10 text-dark border">
+                                    {{ mark_obj.marks }}
+                                </span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+
+                            <td class="text-center fw-bold">{{ item.total }}</td>
+                            <td class="text-center">
+                                {% if item.grade != '-' %}
+                                <span class="badge bg-primary">{{ item.grade }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{{ subjects|length|add:5 }}" class="text-center py-4 text-muted">
+                                No students found for this selection.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif selected_dept_id and selected_sem %}
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>No Subjects Found</h5>
+                <p><strong>To input marks, you need to:</strong></p>
+                <ol>
+                    <li><strong>Create Courses:</strong> Go to <a href="/admin/academics/course/add/" target="_blank"
+                            class="alert-link">Django Admin → Academics → Courses</a></li>
+                    <li><strong>Assign Teachers:</strong> Go to <a href="/admin/marksheet/teachersubject/add/"
+                            target="_blank" class="alert-link">Django Admin → Marksheet → Teacher Subjects</a></li>
+                    <li><strong>Enter Marks:</strong> Use <strong>Teacher Dashboard → Enter Marks</strong></li>
+                </ol>
+                <div class="mt-3 d-flex gap-2">
+                    <a href="/admin/academics/course/add/" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>Create Course
+                    </a>
+                    <a href="/admin/marksheet/teachersubject/add/" target="_blank"
+                        class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-user-plus me-1"></i>Assign Teacher
+                    </a>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <strong>Debug Info:</strong> Department ID: {{ selected_dept_id }}, Semester: {{ selected_sem }}<br>
+                        Available departments: {% for d in departments %}{{ d.name }} (ID: {{ d.id }}){% if not forloop.last %}, {% endif %}{% endfor %}
+                    </small>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-search fa-3x mb-3 opacity-50"></i>
+                <p>Please select a Department and Semester to view the marksheet matrix.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function shareMarksheet() {
+        const url = window.location.href;
+        const title = 'Student Marksheet - {{ selected_dept.name }} Semester {{ selected_sem }}';
+
+        if (navigator.share) {
+            // Use native sharing if available (mobile)
+            navigator.share({
+                title: title,
+                url: url
+            }).catch(console.error);
+        } else {
+            // Fallback: copy link to clipboard
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Marksheet link copied to clipboard!\n\nYou can now share it via email, WhatsApp, etc.');
+            }).catch(() => {
+                // Fallback for older browsers
+                prompt('Copy this link to share:', url);
+            });
+        }
+    }
+
+    function exportToPDF() {
+        // Simple print to PDF functionality
+        window.print();
+    }
+
+    // Auto-submit form when department/semester changes
+    document.getElementById('department').addEventListener('change', function () {
+        const semester = document.getElementById('semester').value;
+        if (this.value && semester) {
+            this.form.submit();
+        }
+    });
+
+    document.getElementById('semester').addEventListener('change', function () {
+        const department = document.getElementById('department').value;
+        if (this.value && department) {
+            this.form.submit();
+        }
+    });
+</script>
+{% endblock %}

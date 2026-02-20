@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .marks-generator {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .header-section {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .header-icon {
+        font-size: 48px;
+        margin-bottom: 1rem;
+    }
+
+    .header-section h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .header-section p {
+        color: var(--clr-text-muted);
+        font-size: 1rem;
+    }
+
+    .form-card {
+        background: var(--clr-surface);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--clr-text);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        background: var(--clr-surface-alt);
+        color: var(--clr-text);
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--clr-accent);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-help {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--clr-text-muted);
+        margin-top: 0.5rem;
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    .error-message {
+        color: var(--clr-danger);
+        padding: 1rem;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .info-box {
+        background: rgba(99, 102, 241, 0.1);
+        border-left: 4px solid var(--clr-accent);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1.5rem;
+        color: var(--clr-text);
+        font-size: 0.95rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--clr-accent);
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: all 0.3s;
+    }
+
+    .back-link:hover {
+        gap: 12px;
+    }
+</style>
+
+<div class="marks-generator">
+    <a href="{% url 'teacher_dashboard' %}" class="back-link">
+        <span>←</span> Back to Dashboard
+    </a>
+
+    <div class="header-section">
+        <div class="header-icon">📊</div>
+        <h1>Generate Student Marks</h1>
+        <p>Select a department and enter marks for all students</p>
+    </div>
+
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="department" class="form-label">Select Department</label>
+                <select name="department" id="department" class="form-control" required>
+                    <option value="">-- Choose a Department --</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% empty %}
+                    <option value="" disabled>No departments available</option>
+                    {% endfor %}
+                </select>
+                <span class="form-help">Select the department for which you want to enter marks</span>
+            </div>
+
+            <button type="submit" class="btn-submit">Continue to Marks Entry →</button>
+
+            <div class="info-box">
+                <strong>💡 How it Works:</strong><br>
+                1. Select your department<br>
+                2. Enter marks for each student out of 100<br>
+                3. Save the marks<br>
+                4. Publish marks to students (optional)<br>
+                <br>
+                <strong>Note:</strong> Only students in the selected department will see the marks you enter.
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

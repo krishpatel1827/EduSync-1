@@ -30,6 +30,7 @@ urlpatterns = [
     path('student/', include('student.urls')),
     path('teacher/', include('teacher.urls')),
     path('academics/', include('academics.urls')),
+    path('marksheet/', include('marksheet.urls')),
 ]
 
 if settings.DEBUG:

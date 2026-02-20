@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Enter Marks</h5>
+                    <span class="badge bg-white text-primary">Teacher Portal</span>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!-- Selection Form -->
+                    <form method="get" class="row g-3 mb-4 bg-light p-3 rounded">
+                        {% csrf_token %}
+                        <div class="col-md-6">
+                            <label for="subject" class="form-label fw-semibold">Select Subject</label>
+                            <select name="subject" id="subject" class="form-select" onchange="this.form.submit()">
+                                <option value="">-- Choose Subject --</option>
+                                {% for sub in subjects %}
+                                <option value="{{ sub.id }}" {% if selected_subject and selected_subject.id|stringformat:"s" == sub.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ sub.name }} ({{ sub.code }}) - {{ sub.department.name }}
+                                </option>
+                                {% empty %}
+                                <option disabled>No subjects assigned to you</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="semester" class="form-label fw-semibold">Select Semester</label>
+                            <select name="semester" id="semester" class="form-select" onchange="this.form.submit()" {% if not selected_subject %}disabled{% endif %}>
+                                <option value="">-- Choose Semester --</option>
+                                <option value="1" {% if selected_semester and selected_semester == 1 %}selected{% endif %}>Semester 1</option>
+                                <option value="2" {% if selected_semester and selected_semester == 2 %}selected{% endif %}>Semester 2</option>
+                                <option value="3" {% if selected_semester and selected_semester == 3 %}selected{% endif %}>Semester 3</option>
+                                <option value="4" {% if selected_semester and selected_semester == 4 %}selected{% endif %}>Semester 4</option>
+                                <option value="5" {% if selected_semester and selected_semester == 5 %}selected{% endif %}>Semester 5</option>
+                                <option value="6" {% if selected_semester and selected_semester == 6 %}selected{% endif %}>Semester 6</option>
+                                <option value="7" {% if selected_semester and selected_semester == 7 %}selected{% endif %}>Semester 7</option>
+                                <option value="8" {% if selected_semester and selected_semester == 8 %}selected{% endif %}>Semester 8</option>
+                            </select>
+                        </div>
+                    </form>
+
+                    {% if not subjects %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>No Subjects Assigned</h6>
+                        <p class="mb-2">You don't have any subjects assigned yet. To enter marks:</p>
+                        <ol class="mb-3">
+                            <li>Contact your admin to assign subjects to your account</li>
+                            <li>Or create subject assignments in <a href="/admin/marksheet/teachersubject/add/" target="_blank" class="alert-link">Django Admin</a></li>
+                        </ol>
+                        <a href="/admin/marksheet/teachersubject/add/" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i>Assign Subject
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if selected_subject and selected_semester %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-muted mb-0">
+                            Students in {{ selected_subject.department.name }} - Semester {{ selected_semester }}
+                        </h6>
+                        <span class="badge bg-secondary">{{ student_list|length }} Students Found</span>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50px;">#</th>
+                                        <th>Student Name</th>
+                                        <th>Student ID</th>
+                                        <th style="width: 150px;">Marks (Max 100)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in student_list %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td class="fw-semibold">
+                                            {{ item.profile.user.get_full_name|default:item.profile.user.username }}
+                                        </td>
+                                        <td><span class="badge bg-light text-dark border">{{ item.profile.student_id }}</span></td>
+                                        <td>
+                                            <input type="number" name="marks_{{ item.profile.user.id }}"
+                                                value="{{ item.current_marks }}"
+                                                class="form-control form-control-sm text-center fw-bold" min="0"
+                                                max="100" placeholder="-">
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">
+                                            No students found for this semester.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if student_list %}
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-success px-5">
+                                <i class="fas fa-save me-2"></i>Save All Marks
+                            </button>
+                        </div>
+                        {% endif %}
+                    </form>
+                    {% elif not selected_subject %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-chalkboard-teacher fa-3x mb-3 opacity-50"></i>
+                        <p>Select a subject to start entering marks.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

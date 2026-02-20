@@ -31,7 +31,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 class StudentListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for listing students."""
+    """Lightweight serializer for listing students.""" 
     full_name = serializers.SerializerMethodField()
     course_name = serializers.CharField(source='course.name', read_only=True)
 

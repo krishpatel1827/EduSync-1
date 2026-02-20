@@ -55,7 +55,12 @@ def role_required(*roles):
         @login_required(login_url='login')
         def wrapper(request, *args, **kwargs):
             if _get_user_role(request.user) not in roles:
-                messages.error(request, 'You do not have permission to access this page.')
+                role = _get_user_role(request.user)
+                messages.error(request, 'You are not authorized to do that if button is accessed from student and teacher dashbord only admin has rights to change it')
+                if role == 'teacher':
+                    return redirect('teacher_dashboard')
+                elif role == 'student':
+                    return redirect('student_dashboard')
                 return redirect('login')
             return view_func(request, *args, **kwargs)
         return wrapper

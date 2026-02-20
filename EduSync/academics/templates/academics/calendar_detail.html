@@ -32,7 +32,7 @@
         pointer-events: none;
     }
 
-    .cal-hero-left {}
+
 
     .cal-back-btn {
         display: inline-flex;
@@ -458,8 +458,14 @@
 
         <div class="cal-hero-right">
             <div class="cal-ctrl-btns">
+                {% if is_admin %}
                 <a class="cal-btn cal-btn-ghost" href="{% url 'academic_calendar_edit' calendar_obj.id %}">✏️ Edit
                     calendar</a>
+                {% else %}
+                <button type="button" class="cal-btn cal-btn-ghost"
+                    onclick="alert('You are not authorized to do that , only admin has rights to change it');">✏️
+                    Edit calendar</button>
+                {% endif %}
                 {% if is_admin %}
                 <form method="post" action="{% url 'academic_calendar_share' calendar_obj.id %}" style="display:inline">
                     {% csrf_token %}
@@ -593,16 +599,16 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const isAdmin = {% if is_admin %}true{% else %}false{% endif %};
-    try {
-        const events = JSON.parse(document.getElementById('eventData').textContent);
-        const dayCells = document.querySelectorAll('.day-events');
-        dayCells.forEach(cell => {
-            const day = parseInt(cell.dataset.day);
-            const dayEvents = events.filter(e => e.day === day);
-            dayEvents.forEach(ev => {
-                const pill = document.createElement('div');
-                pill.style.cssText = `
+        const isAdmin = "{{ is_admin }}" === "True";
+        try {
+            const events = JSON.parse(document.getElementById('eventData').textContent);
+            const dayCells = document.querySelectorAll('.day-events');
+            dayCells.forEach(cell => {
+                const day = parseInt(cell.dataset.day);
+                const dayEvents = events.filter(e => e.day === day);
+                dayEvents.forEach(ev => {
+                    const pill = document.createElement('div');
+                    pill.style.cssText = `
           display:flex; align-items:center; gap:6px;
           padding:6px 10px; border-radius:8px;
           background:${ev.color}33;
@@ -613,12 +619,12 @@
           cursor:pointer; letter-spacing:0.2px;
           box-shadow: 0 1px 4px rgba(0,0,0,0.2);
         `;
-                pill.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;max-width:100%;">${ev.title}</span>`;
-                cell.appendChild(pill);
+                    pill.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;max-width:100%;">${ev.title}</span>`;
+                    cell.appendChild(pill);
+                });
             });
-        });
-    } catch (e) { console.error('Failed to render events:', e); }
-});
+        } catch (e) { console.error('Failed to render events:', e); }
+    });
 </script>
 
 {% endblock %}

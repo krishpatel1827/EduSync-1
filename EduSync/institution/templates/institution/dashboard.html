@@ -381,8 +381,16 @@
             <div class="feature-icon">✓</div>
             <span>User administration</span>
           </div>
+          <div class="feature-item">
+            <div class="feature-icon">✓</div>
+            <span>Marksheet management</span>
+          </div>
         </div>
 
+        <a href="{% url 'marksheet_admin' %}" class="btn btn-outline-primary w-100 mb-2" 
+           style="border-radius: 12px; padding: 10px;">
+          View Marksheets →
+        </a>
         <a href="{% url 'institution_admin_dashboard' %}" class="btn-panel">
           Access Admin Panel →
         </a>

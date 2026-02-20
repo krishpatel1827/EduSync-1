@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.db.models import Q
 from .models import Teacher
 from academics.models import Course, AttendanceSheet, AcademicCalendar, CalendarEvent
 
@@ -357,18 +356,27 @@ def attendance_sheet(request, dept_id, date_from, date_to, total_lectures):
         institution=teacher.institution
     ).select_related('user').order_by('student_id')
 
-    # Create attendance records if they don't exist
+    # Optimized: Get or create attendance records efficiently
+    existing_records = Attendance.objects.filter(sheet=sheet, student__in=students)
+    existing_students = {r.student_id for r in existing_records}
+    
+    records_to_create = []
+    records_to_update = []
+    
     for student in students:
-        record, _ = Attendance.objects.get_or_create(
-            sheet=sheet,
-            student=student,
-            defaults={'total_lectures': total_lectures, 'lectures_attended': 0}
-        )
-        if record.total_lectures != total_lectures:
-            record.total_lectures = total_lectures
-            if record.lectures_attended > total_lectures:
-                record.lectures_attended = total_lectures
-            record.save(update_fields=['total_lectures', 'lectures_attended'])
+        if student.id not in existing_students:
+            records_to_create.append(Attendance(
+                sheet=sheet,
+                student=student,
+                total_lectures=total_lectures,
+                lectures_attended=0
+            ))
+    
+    if records_to_create:
+        Attendance.objects.bulk_create(records_to_create)
+    
+    # Update existing records if total_lectures changed
+    existing_records.exclude(total_lectures=total_lectures).update(total_lectures=total_lectures)
 
     # Get attendance records
     attendance_records = Attendance.objects.filter(sheet=sheet).select_related('student__user').order_by('student__student_id')
@@ -409,6 +417,194 @@ def attendance_sheet(request, dept_id, date_from, date_to, total_lectures):
     }
     return render(request, 'teacher/attendance_sheet.html', context)
 
+
+# ═══ MARKS GENERATOR ═══
+@login_required(login_url='login')
+def generate_marks(request):
+    """Teacher marks generator - select department to generate marks for"""
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        messages.error(request, 'Teacher profile not found.')
+        return redirect('login')
+
+    # Get departments available to this teacher (their department primarily)
+    departments = []
+    if teacher.department:
+        departments = [teacher.department]
+    else:
+        # If no department, get all departments from institution
+        from institution.models import Department
+        departments = list(Department.objects.filter(institution=teacher.institution))
+
+    if request.method == 'POST':
+        dept_id = request.POST.get('department')
+        if not dept_id:
+            messages.error(request, 'Please select a department.')
+            return render(request, 'teacher/marks_generator.html', {'departments': departments, 'teacher': teacher})
+
+        # Ensure department belongs to teacher's institution
+        try:
+            from institution.models import Department
+            department = Department.objects.get(id=dept_id, institution=teacher.institution)
+        except Department.DoesNotExist:
+            messages.error(request, 'Department not found.')
+            return render(request, 'teacher/marks_generator.html', {'departments': departments, 'teacher': teacher})
+
+        # Redirect to marks entry sheet
+        return redirect('marks_entry_sheet', dept_id=dept_id)
+
+    context = {
+        'teacher': teacher,
+        'departments': departments,
+    }
+    return render(request, 'teacher/marks_generator.html', context)
+
+
+@login_required(login_url='login')
+def marks_entry_sheet(request, dept_id):
+    """Generate and display marks entry sheet for students in a department"""
+    from institution.models import Department
+    from student.models import Student
+    from marksheet.models import Marksheet, Marks
+    from datetime import date
+
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        messages.error(request, 'Teacher profile not found.')
+        return redirect('login')
+
+    try:
+        department = Department.objects.get(id=dept_id, institution=teacher.institution)
+    except Department.DoesNotExist:
+        messages.error(request, 'Department not found.')
+        return redirect('generate_marks')
+
+    # Get students in this department
+    students = Student.objects.filter(
+        department=department,
+        institution=teacher.institution
+    ).select_related('user').order_by('student_id')
+
+    # Get semester from request or use current semester calculation
+    current_year = date.today().year
+    current_month = date.today().month
+    semester = 1 if current_month < 7 else 2
+    academic_year = f"{current_year}-{current_year + 1}"
+
+    # Optimized: Get or create marksheets for all students efficiently
+    existing_marksheets = Marksheet.objects.filter(
+        student__in=[s.user for s in students],
+        semester=semester,
+        academic_year=academic_year
+    ).select_related('student')
+    
+    existing_user_ids = {m.student_id for m in existing_marksheets}
+    marksheets_to_create = []
+    
+    for student in students:
+        if student.user_id not in existing_user_ids:
+            marksheets_to_create.append(Marksheet(
+                student=student.user,
+                semester=semester,
+                academic_year=academic_year,
+                teacher=teacher.user,
+                department=department,
+                shared_with_students=False
+            ))
+            
+    if marksheets_to_create:
+        Marksheet.objects.bulk_create(marksheets_to_create)
+        # Re-fetch to get IDs
+        existing_marksheets = Marksheet.objects.filter(
+            student__in=[s.user for s in students],
+            semester=semester,
+            academic_year=academic_year
+        )
+    
+    marksheets = {m.student_id: m for m in existing_marksheets}
+
+    if request.method == 'POST':
+        # Update marks for all students
+        for student in students:
+            marksheet = marksheets[student.id]
+            
+            # Get marks for each course/subject
+            courses = Course.objects.filter(institution=teacher.institution)
+            for course in courses:
+                marks_value = request.POST.get(f'marks_{student.id}_{course.id}')
+                if marks_value and marks_value.strip():
+                    try:
+                        marks_int = int(marks_value)
+                        if 0 <= marks_int <= 100:
+                            Marks.objects.update_or_create(
+                                marksheet=marksheet,
+                                subject=course,
+                                defaults={'marks': marks_int}
+                            )
+                    except (ValueError, TypeError):
+                        pass
+
+            # Recalculate marksheet statistics
+            marksheet.calculate_stats()
+
+        action = request.POST.get('action', 'save')
+        if action == 'publish':
+            # Mark all marksheets as shared with students
+            for student in students:
+                marksheet = marksheets[student.id]
+                marksheet.shared_with_students = True
+                marksheet.save(update_fields=['shared_with_students', 'updated_at'])
+            messages.success(request, 'Marks saved and published to students.')
+        elif action == 'unpublish':
+            # Unshare marksheets from students
+            for student in students:
+                marksheet = marksheets[student.id]
+                marksheet.shared_with_students = False
+                marksheet.save(update_fields=['shared_with_students', 'updated_at'])
+            messages.success(request, 'Marks saved and unpublished from students.')
+        else:
+            messages.success(request, 'Marks saved.')
+
+        return redirect('teacher_dashboard')
+
+    # Get all courses for this institution
+    courses = Course.objects.filter(institution=teacher.institution)
+
+    # Optimized: Fetch all marks in a single query
+    all_marks = Marks.objects.filter(marksheet__in=marksheets.values()).select_related('subject')
+    marks_lookup = {}
+    for mark in all_marks:
+        marks_lookup[(mark.marksheet_id, mark.subject_id)] = mark.marks
+
+    # Prepare data for template
+    student_marks_data = []
+    for student in students:
+        marksheet = marksheets.get(student.user_id)
+        marks_dict = {}
+        if marksheet:
+            for course in courses:
+                marks_dict[course.id] = marks_lookup.get((marksheet.id, course.id), '')
+        
+        student_marks_data.append({
+            'student': student,
+            'marksheet': marksheet,
+            'marks': marks_dict
+        })
+
+    context = {
+        'teacher': teacher,
+        'department': department,
+        'students': student_marks_data,
+        'courses': courses,
+        'semester': semester,
+        'academic_year': academic_year,
+    }
+    return render(request, 'teacher/marks_entry_sheet.html', context)
+
+
+# ═══ TEACHER ACCOUNT SETTINGS ═══
 
 @login_required(login_url='login')
 def teacher_account_settings(request):

@@ -15,6 +15,7 @@ class StudentCreateForm(forms.Form):
     parent_name = forms.CharField(max_length=150, required=False)
     parent_phone = forms.CharField(max_length=15, required=False)
     blood_group = forms.CharField(max_length=5, required=False)
+    semester = forms.IntegerField(min_value=1, max_value=8, initial=1, label="Current Semester")
     course = forms.ModelChoiceField(queryset=Course.objects.none(), required=False)
     department = forms.ModelChoiceField(queryset=Department.objects.none(), required=False)
     division = forms.ModelChoiceField(
@@ -50,6 +51,7 @@ class StudentEditForm(forms.Form):
     parent_name = forms.CharField(max_length=150, required=False)
     parent_phone = forms.CharField(max_length=15, required=False)
     blood_group = forms.CharField(max_length=5, required=False)
+    semester = forms.IntegerField(min_value=1, max_value=8, label="Current Semester")
     course = forms.ModelChoiceField(queryset=Course.objects.none(), required=False)
     department = forms.ModelChoiceField(queryset=Department.objects.none(), required=False)
     division = forms.ModelChoiceField(
@@ -78,6 +80,7 @@ class StudentEditForm(forms.Form):
             self.fields["parent_name"].initial = student.parent_name
             self.fields["parent_phone"].initial = student.parent_phone
             self.fields["blood_group"].initial = student.blood_group
+            self.fields["semester"].initial = student.semester
             self.fields["course"].initial = student.course
             self.fields["department"].initial = student.department
             self.fields["division"].initial = student.division

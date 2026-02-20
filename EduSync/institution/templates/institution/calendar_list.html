@@ -216,8 +216,7 @@
                             {% if event.description %}
                             <div class="event-description">{{ event.description|truncatewords:20 }}</div>
                             {% endif %}
-                            <span class="event-badge badge-{{ event.event_type }}">{{ event.get_event_type_display
-                                }}</span>
+                            <span class="event-badge badge-{{ event.event_type }}">{{ event.get_event_type_display }}</span>
                             {% if event.is_published %}
                             <span class="event-badge badge-published">Published</span>
                             {% else %}
@@ -262,8 +261,7 @@
                                 - {{ event.end_date|date:"M d, Y" }}
                                 {% endif %}
                             </div>
-                            <span class="event-badge badge-{{ event.event_type }}">{{ event.get_event_type_display
-                                }}</span>
+                            <span class="event-badge badge-{{ event.event_type }}">{{ event.get_event_type_display }}</span>
                         </div>
                         <div class="text-end">
                             <a href="{% url 'calendar_delete' event.id %}" class="btn-action btn-delete"

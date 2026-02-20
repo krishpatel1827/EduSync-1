@@ -180,6 +180,18 @@
                 Don't have an account? <a href="{% url 'signup' %}"
                     style="color: var(--clr-accent); font-weight: 600;">Register Institution</a>
             </p>
+
+            {% if user.is_authenticated %}
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--clr-border);">
+                <p style="font-size: 0.85rem; color: var(--clr-text-muted); margin-bottom: 0.75rem;">
+                    Already logged in as <strong>{{ user.username }}</strong>?
+                </p>
+                <a href="/logout/" class="btn" 
+                   style="background: var(--clr-error); color: white; padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 500; display: inline-block;">
+                    🚪 Logout & Switch Account
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div> <!-- auth-card -->
 </div> <!-- auth-wrapper -->
